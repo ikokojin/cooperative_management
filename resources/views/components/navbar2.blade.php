@@ -118,6 +118,14 @@
                     }
                 });
             </script>
+            @if(auth()->user()?->isAlliedWorker())
+            <li class="tw:list-none" style="align-self:center; margin-right:12px;">
+                <button type="button" onclick="openAwSwitch()"
+                    style="background:#1D4ED8; color:#fff; border:none; border-radius:8px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer;">
+                    <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right:6px;"></i>Switch to Allied Worker
+                </button>
+            </li>
+            @endif
             <li>
                 <a href="#" onclick="toggleDropdown(event)"
                     class="tw:flex tw:justify-center tw:items-center tw:gap-x-[0.7rem] position-relative">
@@ -247,5 +255,27 @@
             rightbar.classList.toggle('expanded');
         }
     </script>
+
+    @if(auth()->user()?->isAlliedWorker())
+    <div id="awSwitchModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:14px; padding:24px; width:94%; max-width:400px; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+            <h3 style="margin:0 0 4px; font-size:17px; color:#1a1a1a;">Switch to Allied Worker</h3>
+            <p style="margin:0 0 18px; font-size:13px; color:#666;">Confirm your password to work as an Allied Worker. Your member account stays intact.</p>
+            <form action="{{ route('allied-workers.switch-to-aw') }}" method="POST">
+                @csrf
+                <input type="password" name="password" required placeholder="Enter your password"
+                    style="width:100%; padding:11px 13px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:14px;">
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" onclick="closeAwSwitch()" style="padding:9px 14px; border:1px solid #ddd; border-radius:8px; background:#fff; color:#333; font-size:13px; cursor:pointer;">Cancel</button>
+                    <button type="submit" style="padding:9px 16px; border:none; border-radius:8px; background:#1D4ED8; color:#fff; font-size:13px; font-weight:600; cursor:pointer;">Switch Mode</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        function openAwSwitch() { document.getElementById('awSwitchModal').style.display = 'flex'; }
+        function closeAwSwitch() { document.getElementById('awSwitchModal').style.display = 'none'; }
+    </script>
+    @endif
 
 </nav>

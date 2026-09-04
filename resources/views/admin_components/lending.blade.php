@@ -25,18 +25,26 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Member Assistance Processing</h1>
-            <p class="text-sm text-gray-500">Manage member assistance applications and approvals</p>
+            <h1 class="text-2xl font-bold text-gray-900">Loans</h1>
+            <p class="text-sm text-gray-500">Manage member loan applications and approvals</p>
         </div>
-        <div class="flex items-center gap-3">
-            <div class="relative">
-                <select id="statusFilter" class="btn btn-outline cursor-pointer" onchange="filterByStatus(this.value)">
-                    <option value="all" {{ ($statusFilter ?? 'all') === 'all' ? 'selected' : '' }}>All Status</option>
-                    <option value="pending" {{ ($statusFilter ?? '') === 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="approved" {{ ($statusFilter ?? '') === 'approved' ? 'selected' : '' }}>On-going</option>
-                    <option value="declined" {{ ($statusFilter ?? '') === 'declined' ? 'selected' : '' }}>Declined</option>
-                    <option value="completed" {{ ($statusFilter ?? '') === 'completed' ? 'selected' : '' }}>Completed</option>
-                </select>
+        <div class="flex items-center gap-3 flex-wrap">
+            @php
+                $loanTabs = [
+                    'pending' => 'Pending',
+                    'approved' => 'On-going',
+                    'completed' => 'Completed',
+                    'declined' => 'Declined',
+                    'all' => 'All',
+                ];
+            @endphp
+            <div class="flex items-center gap-1.5 bg-gray-100 p-1 rounded-lg">
+                @foreach($loanTabs as $tabValue => $tabLabel)
+                <button onclick="filterByStatus('{{ $tabValue }}')"
+                    class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all {{ ($statusFilter ?? 'pending') === $tabValue ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-200' }}">
+                    {{ $tabLabel }}
+                </button>
+                @endforeach
             </div>
 
         </div>
@@ -90,7 +98,6 @@
                         <th>Duration</th>
                         <th>Date Requested</th>
                         <th>Status</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="loansTableBody">
@@ -126,19 +133,10 @@
                                     <span class="badge badge-danger">Declined</span>
                                 @endif
                             </td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <button class="btn btn-outline text-sm px-2 py-1"
-                                        onclick="event.stopPropagation(); openLoanModal({{ $loop->index }})">
-                                        <i data-lucide="eye" class="w-4 h-4"></i>
-                                    </button>
-                                    <!-- archive action removed -->
-                                </div>
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-8">
+                            <td colspan="6" class="text-center py-8">
                                 <div class="flex flex-col items-center text-gray-500">
                                     <i data-lucide="inbox" class="w-12 h-12 mb-3 opacity-50"></i>
                                     <p>No loan applications found</p>
@@ -153,7 +151,7 @@
         <!-- Pagination -->
         @php
             $paginator = $loans->appends([
-                'status' => $statusFilter ?? 'all',
+                'status' => $statusFilter ?? 'pending',
                 'search' => $search ?? '',
             ]);
             $currentPage = $loans->currentPage();
@@ -315,6 +313,32 @@
                             <p class="text-sm text-gray-500 mb-1">Monthly Payment</p>
                             <p class="text-2xl font-bold text-gray-900" id="modalMonthlyPayment">₱0</p>
                         </div>
+                    </div>
+
+                    <!-- Total Payables & Payment Progress -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-primary-50 border border-primary-100 rounded-xl">
+                            <p class="text-sm text-primary-600 mb-1">Total Payables</p>
+                            <p class="text-2xl font-bold text-gray-900" id="modalTotalPayables">₱0</p>
+                            <p class="text-xs text-gray-500 mt-1" id="modalTotalPayablesBreakdown">Loan + Interest</p>
+                        </div>
+                        <div class="p-4 border border-gray-200 rounded-xl">
+                            <p class="text-sm text-gray-500 mb-1">Payment Progress</p>
+                            <div class="flex items-center justify-between">
+                                <p class="text-lg font-bold text-gray-900" id="modalPaymentProgress">0 of 0</p>
+                                <span class="text-xs font-medium text-primary-600" id="modalPaymentProgressPct">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                <div class="bg-primary-600 h-2 rounded-full transition-all" id="modalPaymentProgressBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Net Proceeds -->
+                    <div class="p-4 border border-gray-200 rounded-xl">
+                        <p class="text-sm text-gray-500 mb-1">Net Proceeds</p>
+                        <p class="text-xl font-bold text-gray-900" id="modalNetProceeds">₱0</p>
+                        <p class="text-xs text-gray-500 mt-1" id="modalNetProceedsHint">Amount released to borrower</p>
                     </div>
 
                     <div>
@@ -511,6 +535,31 @@
                                 <span id="adminCalcInterest" class="font-semibold text-gray-900">-</span>
                             </div>
                         </div>
+                        <div class="mt-3 pt-3 border-t border-dashed border-gray-200">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Loan Charges</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div class="flex justify-between py-1">
+                                    <span class="text-gray-500">Processing Fee:</span>
+                                    <span id="adminCalcProcessing" class="font-semibold text-gray-900">-</span>
+                                </div>
+                                <div class="flex justify-between py-1">
+                                    <span class="text-gray-500">Service &amp; Legal Fee:</span>
+                                    <span id="adminCalcService" class="font-semibold text-gray-900">-</span>
+                                </div>
+                                <div class="flex justify-between py-1">
+                                    <span class="text-gray-500">Loan Protection:</span>
+                                    <span id="adminCalcProtection" class="font-semibold text-gray-900">-</span>
+                                </div>
+                                <div class="flex justify-between py-1">
+                                    <span class="text-gray-500">Retention / CBU:</span>
+                                    <span id="adminCalcRetention" class="font-semibold text-gray-900">-</span>
+                                </div>
+                                <div class="flex justify-between py-1">
+                                    <span class="text-gray-500">Net Proceeds:</span>
+                                    <span id="adminCalcNet" class="font-semibold text-primary-600">-</span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mt-3 pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
                             <span class="text-sm font-semibold text-gray-700">Estimated Monthly Payment:</span>
                             <span id="adminCalcMonthly" class="text-lg font-bold text-primary-600">₱0.00</span>
@@ -605,13 +654,35 @@
         document.getElementById('modalMonthlyIncome').textContent = '₱' + parseFloat(loan.monthly_income || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         // Interest rate display - use dynamic rates from database
-        const interestRates = {
-            'Personal Loan': {{ $loanSettings['Personal Loan'] ?? 2 }} + '%',
-            'Emergency Loan': {{ $loanSettings['Emergency Loan'] ?? 2 }} + '%',
-            'Business Loan': {{ $loanSettings['Business Loan'] ?? 2 }} + '%',
-            'Education Loan': {{ $loanSettings['Education Loan'] ?? 2 }} + '%'
-        };
-        document.getElementById('modalInterestRate').textContent = interestRates[loan.lending_type] || 'N/A';
+        const interestRates = @json($loanSettings ?? []);
+        const interestRateValue = interestRates[loan.lending_type];
+        document.getElementById('modalInterestRate').textContent = (interestRateValue !== undefined && interestRateValue !== null) ? interestRateValue + '%' : 'N/A';
+
+        // Total payables (loan amount + total interest)
+        const loanAmount = parseFloat(loan.lending_amount || 0);
+        const totalPayment = parseFloat(loan.total_payment);
+        const totalInterest = parseFloat(loan.total_interest);
+        document.getElementById('modalTotalPayables').textContent = '₱' + (isNaN(totalPayment) ? loanAmount : totalPayment).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('modalTotalPayablesBreakdown').textContent = isNaN(totalInterest)
+            ? 'Loan + Interest'
+            : 'Loan ₱' + loanAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 }) + ' + Interest ₱' + totalInterest.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+
+        // Net proceeds (actual amount released to borrower)
+        const netProceeds = parseFloat(loan.net_proceeds ?? loan.lending_amount ?? 0) || 0;
+        document.getElementById('modalNetProceeds').textContent = '₱' + netProceeds.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('modalNetProceedsHint').textContent =
+            loan.net_proceeds_adjustment_type === 'add'
+                ? 'Charges added back — full loan released'
+                : 'Amount released to borrower';
+
+        // Payment progress (payments made vs total term)
+        const paymentsMade = Array.isArray(loan.repayments) ? loan.repayments.length : 0;
+        const termMatch = String(loan.lending_type_term || '').match(/\d+/);
+        const totalPaymentsCount = termMatch ? parseInt(termMatch[0], 10) : (paymentsMade > 0 ? paymentsMade : 1);
+        const pct = totalPaymentsCount > 0 ? Math.min(100, Math.round((paymentsMade / totalPaymentsCount) * 100)) : 0;
+        document.getElementById('modalPaymentProgress').textContent = paymentsMade + ' of ' + totalPaymentsCount;
+        document.getElementById('modalPaymentProgressPct').textContent = pct + '%';
+        document.getElementById('modalPaymentProgressBar').style.width = pct + '%';
 
         // Documents
         const docsContainer = document.getElementById('modalDocuments');
@@ -801,6 +872,19 @@
     };
 
     // Admin loan calculation
+    @php
+        $loanChargeData = $loanChargeSettings
+            ? $loanChargeSettings->mapWithKeys(function ($s) {
+                return [$s->loan_type => [
+                    'rate' => (float) ($s->interest_rate ?? 0),
+                    'processing' => (float) ($s->processing_fee_rate ?? 0),
+                    'service' => (float) ($s->service_fee_rate ?? 0),
+                    'protection' => (float) ($s->loan_protection_fee ?? 0),
+                    'retention' => (float) ($s->retention_unpaid_rate ?? 0),
+                ]];
+            })->all()
+            : [];
+    @endphp
     window.adminRecalculate = function() {
         console.log('adminRecalculate called');
         const type = document.querySelector('select[name="lending_type"]').value;
@@ -816,35 +900,59 @@
             hiddenTerm.value = term;
         }
 
-        const interestRates = {
-            'Personal Loan': {{ $loanSettings['Personal Loan'] ?? 2 }},
-            'Emergency Loan': {{ $loanSettings['Emergency Loan'] ?? 2 }},
-            'Business Loan': {{ $loanSettings['Business Loan'] ?? 2 }},
-            'Education Loan': {{ $loanSettings['Education Loan'] ?? 2 }}
-        };
+        const LOAN_CHARGES = @json($loanChargeData ?? []);
+
+        const adminMoney = n => '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         const termMonths = {
             '6 months': 6,
             '12 months': 12
         };
 
-        const rate = interestRates[type] || 0;
+        const cfg = LOAN_CHARGES[type] || {};
+        const rate = cfg.rate || 0;
         const months = termMonths[term] || 0;
 
         if (amount > 0 && months > 0) {
             const monthlyInterest = rate / 100;
-            const totalInterest = amount * monthlyInterest * months;
-            const totalPayment = amount + totalInterest;
+            // Diminishing balance, equal principal — mirrors LoanCalculationService.
+            // The final principal installment absorbs rounding so Σ principal === amount.
+            const basePrincipal = Math.round((amount / months) * 100) / 100;
+            const lastPrincipal = Math.round((amount - basePrincipal * (months - 1)) * 100) / 100;
+            let balance = amount;
+            let totalInterest = 0;
+            let totalPayment = 0;
+            for (let m = 1; m <= months; m++) {
+                const principalDue = m === months ? lastPrincipal : basePrincipal;
+                const interestDue = Math.round(balance * monthlyInterest * 100) / 100;
+                totalInterest += interestDue;
+                totalPayment += principalDue + interestDue;
+                balance = Math.round((balance - principalDue) * 100) / 100;
+            }
+            totalInterest = Math.round(totalInterest * 100) / 100;
+            totalPayment = Math.round(totalPayment * 100) / 100;
             const monthlyPayment = totalPayment / months;
+
+            // Charges — mirrors lendingProgram server math (retention uses the unpaid rate).
+            const processing = Math.round(amount * ((cfg.processing || 0) / 100) * 100) / 100;
+            const service = Math.round(amount * ((cfg.service || 0) / 100) * 100) / 100;
+            const protection = Math.round((cfg.protection || 0) * months * 100) / 100;
+            const retention = Math.round(amount * ((cfg.retention || 0) / 100) * 100) / 100;
+            const netProceeds = Math.round((amount - processing - service - protection - retention) * 100) / 100;
 
             document.getElementById('adminCalcType').textContent = type || '-';
             document.getElementById('adminCalcRate').textContent = rate + '% / mo';
             document.getElementById('adminCalcTerm').textContent = term || '-';
-            document.getElementById('adminCalcInterest').textContent = '₱' + totalInterest.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('adminCalcMonthly').textContent = '₱' + monthlyPayment.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('adminCalcTotal').textContent = '₱' + totalPayment.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('adminCalcInterest').textContent = adminMoney(totalInterest);
+            document.getElementById('adminCalcProcessing').textContent = adminMoney(processing);
+            document.getElementById('adminCalcService').textContent = adminMoney(service);
+            document.getElementById('adminCalcProtection').textContent = adminMoney(protection);
+            document.getElementById('adminCalcRetention').textContent = adminMoney(retention);
+            document.getElementById('adminCalcNet').textContent = adminMoney(netProceeds);
+            document.getElementById('adminCalcMonthly').textContent = adminMoney(monthlyPayment);
+            document.getElementById('adminCalcTotal').textContent = adminMoney(totalPayment);
 
-            // Set hidden fields
+            // Set hidden fields (informational only — the server recomputes authoritatively)
             document.getElementById('adminHiddenMonthly').value = monthlyPayment.toFixed(2);
             document.getElementById('adminHiddenTotal').value = totalPayment.toFixed(2);
             document.getElementById('adminHiddenInterest').value = totalInterest.toFixed(2);
@@ -853,6 +961,11 @@
             document.getElementById('adminCalcRate').textContent = '-';
             document.getElementById('adminCalcTerm').textContent = '-';
             document.getElementById('adminCalcInterest').textContent = '-';
+            document.getElementById('adminCalcProcessing').textContent = '-';
+            document.getElementById('adminCalcService').textContent = '-';
+            document.getElementById('adminCalcProtection').textContent = '-';
+            document.getElementById('adminCalcRetention').textContent = '-';
+            document.getElementById('adminCalcNet').textContent = '-';
             document.getElementById('adminCalcMonthly').textContent = '₱0.00';
             document.getElementById('adminCalcTotal').textContent = '₱0.00';
         }
@@ -887,6 +1000,11 @@
                         document.getElementById('adminCalcRate').textContent = '-';
                         document.getElementById('adminCalcTerm').textContent = '-';
                         document.getElementById('adminCalcInterest').textContent = '-';
+                        document.getElementById('adminCalcProcessing').textContent = '-';
+                        document.getElementById('adminCalcService').textContent = '-';
+                        document.getElementById('adminCalcProtection').textContent = '-';
+                        document.getElementById('adminCalcRetention').textContent = '-';
+                        document.getElementById('adminCalcNet').textContent = '-';
                         document.getElementById('adminCalcMonthly').textContent = '₱0.00';
                         document.getElementById('adminCalcTotal').textContent = '₱0.00';
                         

@@ -97,11 +97,6 @@
                                     <i data-lucide="check" class="w-4 h-4"></i>
                                     Approve
                                 </button>
-                                <button onclick="disbursePatronageRefund({{ $record->id }})"
-                                    class="btn btn-sm btn-success" title="Disburse">
-                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                                    Disburse
-                                </button>
                             @elseif($record->status === 'approved')
                                 <button onclick="disbursePatronageRefund({{ $record->id }})"
                                     class="btn btn-sm btn-success" title="Disburse">

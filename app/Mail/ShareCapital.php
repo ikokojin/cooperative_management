@@ -20,7 +20,7 @@ class ShareCapital extends Mailable
     public function build()
     {
         return $this->subject('Cooperative Membership Share Capital')
-                    ->from('your@email.com', 'Kingsland Pala-Pala Cooperative')
-                    ->view('emails.ShareCapital');
+            ->from('your@email.com', 'Kingsland Pala-Pala Cooperative')
+            ->view('emails.ShareCapital');
     }
 }

@@ -58,7 +58,6 @@
                         <th>Action</th>
                         <th>Details</th>
                         <th>Target</th>
-                        <th>IP Address</th>
                         <th>Timestamp</th>
                     </tr>
                 </thead>
@@ -79,6 +78,7 @@
                             @php
                                 $roleBadge = match(strtolower($log->user_role ?? '')) {
                                     'admin' => 'badge-primary',
+                                    'general-manager' => 'badge-primary',
                                     'officer' => 'badge-info',
                                     'member' => 'badge-success',
                                     default => 'badge-gray'
@@ -107,9 +107,6 @@
                             @endif
                         </td>
                         <td>
-                            <span class="text-sm text-gray-500 font-mono">{{ $log->ip_address ?? '—' }}</span>
-                        </td>
-                        <td>
                             <div class="text-sm text-gray-500" title="{{ $log->created_at }}">
                                 <div>{{ $log->created_at?->format('M d, Y') }}</div>
                                 <div class="text-xs text-gray-400">{{ $log->created_at?->format('h:i A') }}</div>
@@ -118,7 +115,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-12">
+                        <td colspan="6" class="text-center py-12">
                             <div class="flex flex-col items-center">
                                 <i data-lucide="file-text" class="w-12 h-12 text-gray-300 mb-3"></i>
                                 <p class="text-gray-500 font-medium">No audit logs found</p>

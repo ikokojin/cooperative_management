@@ -8,7 +8,18 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('savings:process')->quarterlyOn(1, '00:00');
+Schedule::command('savings:process')->dailyAt('00:05');
+
+// One-time backfill: capitalize previously-accrued savings interest into the
+// main balance. Stop scheduling it once it has run successfully (marker file).
+$backfillMarker = storage_path('framework/interest_capitalize_backfill_done');
+if (! file_exists($backfillMarker)) {
+    Schedule::command('savings:capitalize-backfill')
+        ->dailyAt('00:06')
+        ->after(function () use ($backfillMarker) {
+            file_put_contents($backfillMarker, now()->toDateTimeString());
+        });
+}
 
 // Schedule::call(function () {
 //     app(\App\Services\LoanPenaltyService::class)->applyPenaltiesForAllOverdueLoans();

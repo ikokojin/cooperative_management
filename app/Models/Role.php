@@ -11,9 +11,11 @@ class Role extends Model
         'slug',
         'description',
         'is_system',
+        'sidebar_permissions',
     ];
 
     protected $casts = [
         'is_system' => 'boolean',
+        'sidebar_permissions' => 'array',
     ];
 }

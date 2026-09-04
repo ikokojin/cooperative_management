@@ -67,6 +67,332 @@
         #repay-backdrop.show {
             opacity: 1;
         }
+
+        /* ── Receipt Modal Overlay ── */
+        #loan-receipt-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        #loan-receipt-overlay.active {
+            display: flex;
+        }
+
+        #loan-receipt-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            overflow: visible;
+            margin: auto;
+            animation: lrModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @keyframes lrModalIn {
+            from { opacity: 0; transform: translateY(28px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .lr-receipt-header {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid var(--line, #e5e7eb);
+        }
+
+        .lr-receipt-header .check-circle {
+            width: 60px;
+            height: 60px;
+            background-color: var(--teal, #14825a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+
+        .lr-receipt-header .check-circle i {
+            color: #fff;
+            font-size: 26px;
+        }
+
+        .lr-receipt-header h2 {
+            color: #1a1a1a;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 0.25rem;
+        }
+
+        .lr-receipt-header p {
+            color: var(--muted, #6b7280);
+            font-size: 0.82rem;
+            margin: 0;
+        }
+
+        .lr-receipt-body {
+            padding: 1rem 1.5rem 1.25rem;
+        }
+
+        .lr-receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.55rem 0;
+            border-bottom: 1px solid var(--line, #f0f0f0);
+        }
+
+        .lr-receipt-row:last-child {
+            border-bottom: none;
+        }
+
+        .lr-receipt-row .label {
+            font-size: 0.78rem;
+            color: var(--muted, #6b7280);
+        }
+
+        .lr-receipt-row .value {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            text-align: right;
+            max-width: 55%;
+            word-break: break-word;
+        }
+
+        .lr-receipt-row .value.highlight {
+            color: var(--teal, #14825a);
+            font-size: 0.95rem;
+        }
+
+        .lr-ref-badge {
+            display: inline-block;
+            background: var(--teal-light, #e8f5e9);
+            color: var(--teal, #14825a);
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .lr-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .lr-status-badge.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .lr-status-badge .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .lr-receipt-footer {
+            display: flex;
+            gap: 0.6rem;
+            padding: 0.75rem 1.5rem 1.25rem;
+        }
+
+        .lr-btn-download {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.65rem 0;
+            border: none;
+            border-radius: 12px;
+            background: var(--teal, #14825a);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .lr-btn-download:hover {
+            background: #12704d;
+        }
+
+        .lr-btn-close {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.65rem 0;
+            border: 1px solid var(--line, #e5e7eb);
+            border-radius: 12px;
+            background: #fff;
+            color: #374151;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .lr-btn-close:hover {
+            background: #f9fafb;
+        }
+
+        .tx-voided-row { background: #fef2f2; }
+        .tx-voided-row:hover { background: #fde8e8; }
+        .badge-voided {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fdecec;
+            border: 1px solid #f5c6c6;
+            color: #c0392b;
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* ═══ VOID REASON OVERLAY ═══ */
+        #lr-void-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+        #lr-void-overlay.active { display: flex; }
+        #lr-void-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            margin: auto;
+            animation: lrModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+        .lr-void-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--line, #e5e7eb);
+        }
+        .lr-void-header .lr-void-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #c0392b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+        .lr-void-header .lr-void-circle i { color: #fff; font-size: 26px; }
+        .lr-void-header h2 { color: #1a1a1a; font-size: 1.25rem; font-weight: 700; margin: 0 0 0.25rem; }
+        .lr-void-header p { color: var(--muted, #6b7280); font-size: 0.82rem; margin: 0; }
+        .lr-void-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .lr-void-body .lr-void-label {
+            font-size: 0.78rem;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+        }
+        .lr-void-body .lr-void-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #c0392b;
+            background: #fdecec;
+            border: 1px solid #f5c6c6;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+        }
+        .lr-void-body .lr-void-amount-wrap {
+            background: #fdecec;
+            border: 1px solid #f5c6c6;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .lr-void-body .lr-void-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #c0392b;
+            line-height: 1.2;
+        }
+        .lr-void-body .lr-void-details {
+            text-align: left;
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 0.25rem 1rem;
+            margin-bottom: 1rem;
+        }
+        .lr-void-body .lr-void-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #f0e2e2;
+            font-size: 0.85rem;
+        }
+        .lr-void-body .lr-void-row:last-child { border-bottom: none; }
+        .lr-void-body .lr-void-row-label {
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+        }
+        .lr-void-body .lr-void-row-value {
+            color: #1a1a1a;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        .lr-void-footer {
+            padding: 0 1.5rem 1.5rem;
+        }
+        .lr-btn-void-close {
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .lr-btn-void-close:hover { background: #f5f5f5; color: #333; }
     </style>
 </head>
 
@@ -329,8 +655,7 @@
 
                                 <div class="alh-stat">
                                     <span>Monthly Due</span>
-                                    <h5 id="monthly-due-value">₱{{ number_format($monthlyDue + $currentOverduePenalty, 2) }}
-                                    </h5>
+                                    <h5 id="monthly-due-value">₱{{ number_format($currentDueAmount + $currentOverduePenalty, 2) }}</h5>
                                     <p>Every {{ \Carbon\Carbon::parse($selectedLoan->created_at)->format('jS') }}</p>
                                 </div>
 
@@ -557,6 +882,21 @@
                                             <p>₱{{ number_format($retentionFee, 2) }}</p>
                                         </div>
                                     </div>
+                                    @if(($selectedLoan->net_proceeds_adjustment_type ?? null) === 'add')
+                                        <div class="pay-item">
+                                            <div class="parent-item">
+                                                <div class="item">
+                                                    <div class="icon"><i class="fa fa-circle-plus"></i></div>
+                                                    <div><span>Net Proceeds Adjustment</span>
+                                                        <p>Charges added back — you received the full loan amount</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="item-amount">
+                                                <p>+₱{{ number_format($processingFee + $serviceFee + $loanProtectionFee + $retentionFee, 2) }}</p>
+                                            </div>
+                                        </div>
+                                        @endif
                                     <div class="pay-item">
                                         <div class="parent-item">
                                             <div class="item">
@@ -592,7 +932,18 @@
                                         @php
                                             $wasLate = $payment->due_date && \Carbon\Carbon::parse($payment->payment_date)->gt(\Carbon\Carbon::parse($payment->due_date));
                                         @endphp
-                                        <div class="ph-card ph-row-mobile">
+                                        <div class="ph-card ph-row-mobile {{ strtolower($payment->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
+                                            @if(strtolower($payment->status ?? '') === 'voided')
+                                                style="cursor:pointer;" data-reason="{{ $payment->void_reason }}"
+                                                data-amount="{{ $payment->amount_paid }}"
+                                                data-date="{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}"
+                                                data-method="{{ $payment->payment_method }}"
+                                                data-ref="{{ $payment->reference_no }}"
+                                                data-loanref="{{ $payment->loan_reference_no ?? ($payment->loan_ref ?? '') }}"
+                                                data-paymentnum="{{ $payment->payment_number ?? '' }}"
+                                                onclick="showLoanVoidReason(this)"
+                                            @endif
+                                        >
                                             <div class="ph-card-top">
                                                 <div class="ph-card-icon"><i class="fa fa-receipt"></i></div>
                                                 <div class="ph-card-info">
@@ -602,7 +953,9 @@
                                                         {{ \Carbon\Carbon::parse($payment->created_at)->format('h:i A') }}
                                                     </p>
                                                 </div>
-                                                @if($wasLate)
+                                                @if(strtolower($payment->status ?? '') === 'voided')
+                                                    <span class="badge-voided"><i class="fa fa-ban"></i> Voided</span>
+                                                @elseif($wasLate)
                                                     <span class="badge-overdue"><i class="fa fa-triangle-exclamation"></i>
                                                         Overdue</span>
                                                 @else
@@ -659,7 +1012,18 @@
                                         </thead>
                                         <tbody id="ph-tbody">
                                             @forelse($paymentHistory as $payment)
-                                                <tr class="ph-row">
+                                                <tr class="ph-row {{ strtolower($payment->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
+                                                    @if(strtolower($payment->status ?? '') === 'voided')
+                                                        style="cursor:pointer;" data-reason="{{ $payment->void_reason }}"
+                                                        data-amount="{{ $payment->amount_paid }}"
+                                                        data-date="{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}"
+                                                        data-method="{{ $payment->payment_method }}"
+                                                        data-ref="{{ $payment->reference_no }}"
+                                                        data-loanref="{{ $payment->loan_reference_no ?? ($payment->loan_ref ?? '') }}"
+                                                        data-paymentnum="{{ $payment->payment_number ?? '' }}"
+                                                        onclick="showLoanVoidReason(this)"
+                                                    @endif
+                                                >
                                                     <td>{{ $payment->reference_no }}</td>
                                                     <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}
                                                     </td>
@@ -686,7 +1050,9 @@
                                                         @php
                                                             $wasLate = $payment->due_date && \Carbon\Carbon::parse($payment->payment_date)->gt(\Carbon\Carbon::parse($payment->due_date));
                                                         @endphp
-                                                        @if($wasLate)
+                                                        @if(strtolower($payment->status ?? '') === 'voided')
+                                                            <span class="badge-voided"><i class="fa fa-ban"></i> Voided</span>
+                                                        @elseif($wasLate)
                                                             <span class="badge-overdue"><i class="fa fa-triangle-exclamation"></i>
                                                                 Paid (Overdue)</span>
                                                         @else
@@ -757,7 +1123,7 @@
                             <select id="payment-type-select" class="form-select"
                                 onchange="handlePaymentTypeChange(this.value)"
                                 style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
-                                <option value="monthly">Monthly Payment — ₱{{ number_format($monthlyDue, 2) }}</option>
+                                <option value="monthly">Monthly Payment — ₱{{ number_format($currentDueAmount, 2) }}</option>
                                 <option value="full">Full Balance — ₱{{ number_format($fullBalanceRemaining, 2) }}
                                 </option>
                             </select>
@@ -769,7 +1135,7 @@
                             <input type="hidden" name="lending_id" value="{{ $selectedLoan->id ?? '' }}">
                             <input type="hidden" name="member_id" value="{{ auth()->id() }}">
                             <input type="hidden" name="payment_number"
-                                value="{{ ($lendingStatus->payments_made ?? 0) + 1 }}">
+                                value="{{ $nextPaymentNumber }}">
                             <input type="hidden" name="payment_type" id="cash-payment-type" value="monthly">
 
                             {{-- Amount --}}
@@ -782,10 +1148,21 @@
                                     <span
                                         style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--teal); font-weight: 500; font-size: 15px;">₱</span>
                                     <input type="number" name="amount_paid" id="repay-amount-input" class="form-control"
-                                        value="{{ $monthlyDue }}"
+                                        value="{{ $currentDueAmount }}"
                                         style="padding-left: 28px; border-radius: 10px; border: 1.5px solid #e0e0e0; font-size: 14px; font-weight: 500; color: var(--teal); height: 46px;"
                                         readonly>
                                 </div>
+                                <div id="penalty-breakdown" style="margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: #856404; background: #fef3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 8px 10px; display: none;">
+                                    <i class="fa fa-triangle-exclamation" style="color: #b8860b;"></i>
+                                    <span id="penalty-breakdown-text"></span>
+                                </div>
+                                @if(isset($hasSchedule) && $hasSchedule)
+                                    <p style="margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); background: #f0f7f4; border: 1px solid #cfe6dc; border-radius: 8px; padding: 8px 10px;">
+                                        <i class="fa fa-circle-info" style="color: var(--teal);"></i>
+                                        Current Installment: <strong>₱{{ number_format($currentDueAmount, 2) }}</strong>.
+                                        Full installment payment is required. Partial payments are not allowed.
+                                    </p>
+                                @endif
                             </div>
 
                             {{-- Payment Method --}}
@@ -797,8 +1174,10 @@
                                 <select name="payment_method" id="repay-method" class="form-select"
                                     onchange="handleMethodChange(this.value)"
                                     style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
-                                    <option value="Cash">Cash</option>
-                                    <option value="GCash">GCash</option>
+                                    <option value="" disabled selected>Select payment method...</option>
+                                    @foreach($paymentMethods as $pm)
+                                        <option value="{{ $pm->method_name }}">{{ $pm->method_name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -853,20 +1232,27 @@
                                             style="width:100%; height:180px; object-fit:cover; border-radius:8px; border:1px solid #e0e0e0;">
                                     </div>
                                 </div>
-                            </div>
 
-                            {{-- Reference No --}}
-                            <div id="ref-no-section" style="margin-top: 1.1rem;">
-                                <label
-                                    style="font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
-                                    Reference / Receipt No.
-                                    <span
-                                        style="color: #aaa; font-weight: 400; font-size: 11px; text-transform: none;">(optional
-                                        — auto-generated if blank)</span>
-                                </label>
-                                <input type="text" name="reference_no" id="repay-reference-input" class="form-control"
-                                    placeholder="Leave blank to auto-generate"
-                                    style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
+                                <div style="margin-top: 1.1rem;">
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
+                                        GCash Reference Number <span style="color: red;">*</span>
+                                    </label>
+                                    <p id="repay-ref-used-msg"
+                                        style="display:none; margin:0 0 6px; color:#e53e3e; font-size:12px; font-weight:600;">
+                                        <i class="fa fa-circle-exclamation"></i> This reference number has already been used for a transaction.
+                                    </p>
+                                    <input type="text" name="gcash_reference_no" id="repay-gcash-ref" class="form-control"
+                                        placeholder="13-digit reference number" maxlength="13" pattern="\d{13}"
+                                        style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
+                                </div>
+
+                                <div style="background: #fef3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px 12px; margin-top: 1rem;">
+                                    <p style="margin: 0; font-size: 12px; color: #856404;">
+                                        <i class="fa fa-triangle-exclamation"></i>
+                                        Submitting false or manipulated payment details will result in account suspension and potential legal action.
+                                    </p>
+                                </div>
                             </div>
 
                             {{-- Notes --}}
@@ -886,7 +1272,7 @@
                     {{-- Modal Footer --}}
                     <div class="modal-footer"
                         style="background: #f8f9fa; border-top: 1px solid rgba(0,0,0,0.1); padding: 1rem 1.6rem; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 8px;">
-                        <button type="submit" form="cash-repay-form" id="confirm-pay-btn" class="btn w-100"
+                        <button type="button" id="confirm-pay-btn" class="btn w-100"
                             style="background: var(--teal); color: white; border-radius: 8px; font-size: 14px; font-weight: 600; padding: 10px 22px; border: none; display: flex; align-items: center; gap: 6px; justify-content: center;">
                             <i class="fa-solid fa-check" style="font-size: 12px;"></i>
                             Confirm Payment
@@ -1056,6 +1442,21 @@
                                 <p>₱{{ number_format($retentionFee, 2) }}</p>
                             </div>
                         </div>
+                        @if(($selectedLoan->net_proceeds_adjustment_type ?? null) === 'add')
+                        <div class="pay-item">
+                            <div class="parent-item">
+                                <div class="item">
+                                    <div class="icon"><i class="fa fa-circle-plus"></i></div>
+                                    <div><span>Net Proceeds Adjustment</span>
+                                        <p>Charges added back — you received the full loan amount</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="item-amount">
+                                <p>+₱{{ number_format($processingFee + $serviceFee + $loanProtectionFee + $retentionFee, 2) }}</p>
+                            </div>
+                        </div>
+                        @endif
                         <div class="pay-item">
                             <div class="parent-item">
                                 <div class="item">
@@ -1082,15 +1483,16 @@
         </div>
 
         {{-- Hidden form that submits to storeRepayment --}}
-        <form id="repay-form" action="{{ route('repayment.store') }}" method="POST" style="display:none;">
+        <form id="repay-form" action="{{ route('repayment.store') }}" method="POST" style="display:none;" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="lending_id" value="{{ $selectedLoan->id ?? '' }}">
-            <input type="hidden" name="payment_number" value="{{ ($lendingStatus->payments_made ?? 0) + 1 }}">
+            <input type="hidden" name="payment_number" value="{{ $nextPaymentNumber }}">
             <input type="hidden" name="amount_paid" id="form-amount-paid">
             <input type="hidden" name="payment_method" id="form-payment-method">
             <input type="hidden" name="payment_type" id="form-payment-type">
             <input type="hidden" name="reference_no" id="form-reference-no">
             <input type="hidden" name="notes" id="form-notes">
+            <input type="hidden" name="gcash_reference_no" id="form-gcash-ref">
         </form>
 
         {{-- Backdrop --}}
@@ -1099,20 +1501,142 @@
 
         {{-- REPAYMENT MODAL --}}
 
-        @if(session('success'))
-            <div class="status-alert" style="border-color:#1e7a4e;">
-                <i class="fa fa-circle-check"></i>
-                <div class="status-alert-text" style="color:#1e7a4e;">{{ session('success') }}</div>
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="status-alert" style="border-color:#dc3545;">
-                <i class="fa fa-triangle-exclamation"></i>
-                <div class="status-alert-text" style="color:#dc3545;">{{ session('error') }}</div>
-            </div>
-        @endif
-
     </div>
+
+    {{-- Receipt overlay + error alert (outside container-fluid so no parent clips it) --}}
+    @if(session('success'))
+        <div id="loan-receipt-overlay" class="active">
+            <div id="loan-receipt-modal">
+                <div class="lr-receipt-header">
+                    <div class="check-circle"><i class="fa-solid fa-check"></i></div>
+                    <h2>Payment Submitted!</h2>
+                    <p>Your payment is pending admin verification.</p>
+                </div>
+
+                <div class="lr-receipt-body" id="loan-receipt-printable">
+                    <div class="lr-receipt-row">
+                        <span class="label">Organization</span>
+                        <span class="value">KMPCATS</span>
+                    </div>
+                    <div class="lr-receipt-row">
+                        <span class="label">Member</span>
+                        <span class="value">{{ session('loan_receipt_member', Auth::user()->first_name ?? 'Member') }}</span>
+                    </div>
+                    <div class="lr-receipt-row">
+                        <span class="label">Loan Reference</span>
+                        <span class="value"><span class="lr-ref-badge">{{ session('loan_receipt_lending_ref', '—') }}</span></span>
+                    </div>
+                    <div class="lr-receipt-row">
+                        <span class="label">Payment #</span>
+                        <span class="value">{{ session('loan_receipt_payment_number', '—') }}</span>
+                    </div>
+                    <div class="lr-receipt-row">
+                        <span class="label">Amount</span>
+                        <span class="value highlight">₱{{ number_format(session('loan_receipt_amount', 0), 2) }}</span>
+                    </div>
+                    <div class="lr-receipt-row">
+                        <span class="label">Payment Method</span>
+                        <span class="value">{{ session('loan_receipt_method', '—') }}</span>
+                    </div>
+                    <div class="lr-receipt-row">
+                        <span class="label">Reference No.</span>
+                        <span class="value"><span class="lr-ref-badge">{{ session('loan_receipt_ref', '—') }}</span></span>
+                    </div>
+                    <div class="lr-receipt-row">
+                        <span class="label">Date</span>
+                        <span class="value">{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}</span>
+                    </div>
+                    <div class="lr-receipt-row">
+                        <span class="label">Status</span>
+                        <span class="value">
+                            <span class="lr-status-badge"><span class="dot"></span> Pending Approval</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="lr-receipt-footer">
+                    <button class="lr-btn-download" onclick="loanDownloadReceipt()">
+                        <i class="fa-solid fa-download"></i> Download Receipt
+                    </button>
+                    <button class="lr-btn-close" onclick="loanCloseReceipt()">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loan-receipt-data"
+            data-member="{{ session('loan_receipt_member', Auth::user()->first_name ?? 'Member') }}"
+            data-lending-ref="{{ session('loan_receipt_lending_ref', '—') }}"
+            data-payment-number="{{ session('loan_receipt_payment_number', '—') }}"
+            data-amount="{{ number_format(session('loan_receipt_amount', 0), 2) }}"
+            data-method="{{ session('loan_receipt_method', '—') }}"
+            data-ref="{{ session('loan_receipt_ref', '—') }}"
+            data-date="{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
+            data-status="{{ session('loan_receipt_status', 'Pending') }}"
+            style="display:none;">
+        </div>
+    @endif
+
+    {{-- VOID REASON OVERLAY — Loan Repayment --}}
+    <div id="lr-void-overlay">
+        <div id="lr-void-modal">
+            <div class="lr-void-header">
+                <div class="lr-void-circle"><i class="fa-solid fa-ban"></i></div>
+                <h2>Payment Voided</h2>
+                <p>This payment has been voided by the admin.</p>
+            </div>
+            <div class="lr-void-body">
+                <div class="lr-void-amount-wrap">
+                    <div class="lr-void-label">Voided Amount</div>
+                    <div class="lr-void-amount" id="lr-void-amount-text">—</div>
+                </div>
+                <div class="lr-void-details">
+                    <div class="lr-void-row">
+                        <span class="lr-void-row-label">Loan Reference</span>
+                        <span class="lr-void-row-value" id="lr-void-loanref-text">—</span>
+                    </div>
+                    <div class="lr-void-row">
+                        <span class="lr-void-row-label">Payment #</span>
+                        <span class="lr-void-row-value" id="lr-void-paymentnum-text">—</span>
+                    </div>
+                    <div class="lr-void-row">
+                        <span class="lr-void-row-label">Reference No.</span>
+                        <span class="lr-void-row-value" id="lr-void-ref-text">—</span>
+                    </div>
+                    <div class="lr-void-row">
+                        <span class="lr-void-row-label">Date</span>
+                        <span class="lr-void-row-value" id="lr-void-date-text">—</span>
+                    </div>
+                    <div class="lr-void-row">
+                        <span class="lr-void-row-label">Method</span>
+                        <span class="lr-void-row-value" id="lr-void-method-text">—</span>
+                    </div>
+                </div>
+                <div class="lr-void-label">Reason</div>
+                <div class="lr-void-value" id="lr-void-reason-text"></div>
+            </div>
+            <div class="lr-void-footer">
+                <button class="lr-btn-void-close" onclick="lrCloseVoidModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    @if(session('error'))
+        <div class="status-alert" style="border-color:#dc3545;">
+            <i class="fa fa-triangle-exclamation"></i>
+            <div class="status-alert-text" style="color:#dc3545;">{{ session('error') }}</div>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="status-alert" style="border-color:#dc3545; background:#fef2f2; position:fixed; top:20px; right:20px; z-index:999999; max-width:400px; padding:1rem 1.2rem; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+            <i class="fa fa-triangle-exclamation" style="color:#dc3545;"></i>
+            <div style="color:#dc3545; font-size:13px; margin-top:4px;">
+                @foreach($errors->all() as $error)
+                    <p style="margin:2px 0;">{{ $error }}</p>
+                @endforeach
+            </div>
+        </div>
+    @endif
 
     {{-- QR Lightbox --}}
     <div id="qr-lightbox-overlay"
@@ -1126,7 +1650,7 @@
     </div>
 
     {{-- AOS animation link js --}}
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" onerror="window.__aosFailed=true"></script>
 
     <script>
         (function () {
@@ -1354,10 +1878,10 @@
     </script>
 
     <script>
-        AOS.init();
+        if (typeof AOS !== 'undefined') AOS.init();
 
         // Real values from controller
-        const MONTHLY_AMOUNT = {{ $monthlyDue ?? 0 }};
+        const MONTHLY_AMOUNT = {{ $currentDueAmount ?? 0 }};
         const FULL_BALANCE = {{ $fullBalanceRemaining ?? 0 }};
         // IMPORTANT: this is the penalty tied to the installment that is
         // ACTUALLY overdue right now — 0 whenever nothing is overdue. It is
@@ -1380,22 +1904,43 @@
             if (selectedRowStatus === 'upcoming' || selectedRowStatus === 'active' || selectedRowStatus === 'paid') {
                 return 0;
             }
-            // selectedRowStatus is 'overdue', or null (no row explicitly
-            // selected yet — falls back to whatever is genuinely due now).
             return PENALTY_PREVIEW;
         }
 
+        function updatePenaltyBreakdown(baseAmount, penalty, total) {
+            const box = document.getElementById('penalty-breakdown');
+            const text = document.getElementById('penalty-breakdown-text');
+            if (!box || !text) return;
+            if (penalty > 0) {
+                text.innerHTML = '<strong>₱' + Number(baseAmount).toFixed(2) + '</strong> + <strong style="color:#b8860b;">₱' + Number(penalty).toFixed(2) + '</strong> (late fee) = <strong>₱' + Number(total).toFixed(2) + '</strong>';
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+                text.innerHTML = '';
+            }
+        }
+
         function handlePaymentTypeChange(type) {
-            const input = document.getElementById('repay-amount-input');
-            input.value = (type === 'full')
-                ? FULL_BALANCE
-                : (MONTHLY_AMOUNT + getPenaltyForSelection()).toFixed(2);
+            const amountInput = document.getElementById('repay-amount-input');
+            const paymentTypeInput = document.getElementById('cash-payment-type');
+            const penalty = getPenaltyForSelection();
+            if (type === 'full') {
+                const total = FULL_BALANCE + penalty;
+                amountInput.value = total.toFixed(2);
+                updatePenaltyBreakdown(FULL_BALANCE, penalty, total);
+            } else {
+                const total = MONTHLY_AMOUNT + penalty;
+                amountInput.value = total.toFixed(2);
+                updatePenaltyBreakdown(MONTHLY_AMOUNT, penalty, total);
+            }
+            paymentTypeInput.value = type;
         }
 
         function handleMethodChange(method) {
             const isGcash = method === 'GCash';
             document.getElementById('gcash-section').style.display = isGcash ? 'block' : 'none';
             document.getElementById('gcash-proof-input').required = isGcash;
+            if (!isGcash) setRepayRefState(false);
         }
 
         document.getElementById('gcash-proof-input').addEventListener('change', function () {
@@ -1408,6 +1953,39 @@
                 reader.readAsDataURL(this.files[0]);
             }
         });
+
+        let repayRefUsed = false;
+        const repayRefInput = document.getElementById('repay-gcash-ref');
+        const repayRefUsedMsg = document.getElementById('repay-ref-used-msg');
+        const repayConfirmBtn = document.getElementById('confirm-pay-btn');
+
+        function setRepayRefState(used) {
+            repayRefUsed = used;
+            if (repayRefUsedMsg) repayRefUsedMsg.style.display = used ? 'block' : 'none';
+            if (repayConfirmBtn) {
+                repayConfirmBtn.disabled = used;
+                repayConfirmBtn.style.opacity = used ? 0.55 : 1;
+                repayConfirmBtn.style.cursor = used ? 'not-allowed' : 'pointer';
+            }
+        }
+
+        let repayRefTimer = null;
+        if (repayRefInput) {
+            repayRefInput.addEventListener('input', function () {
+                clearTimeout(repayRefTimer);
+                const v = this.value.trim();
+                if (v.length !== 13 || !/^\d{13}$/.test(v)) {
+                    setRepayRefState(false);
+                    return;
+                }
+                repayRefTimer = setTimeout(function () {
+                    fetch('{{ route('reference.check') }}?ref=' + encodeURIComponent(v))
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) { setRepayRefState(!!d.used); })
+                        .catch(function () { setRepayRefState(false); });
+                }, 300);
+            });
+        }
 
         // Defensive fallback only — the button itself gets disabled in
         // selectScheduleRow() the moment a Paid row is picked, so this
@@ -1422,16 +2000,23 @@
         function openRepayModal(type = 'monthly') {
             activeModalId = 'repayModal';
             document.getElementById('payment-type-select').value = type;
-            document.getElementById('repay-amount-input').value = (type === 'full')
-                ? FULL_BALANCE
-                : (MONTHLY_AMOUNT + getPenaltyForSelection()).toFixed(2);
+            const penalty = getPenaltyForSelection();
+            if (type === 'full') {
+                const total = FULL_BALANCE + penalty;
+                document.getElementById('repay-amount-input').value = total.toFixed(2);
+                updatePenaltyBreakdown(FULL_BALANCE, penalty, total);
+            } else {
+                const total = MONTHLY_AMOUNT + penalty;
+                document.getElementById('repay-amount-input').value = total.toFixed(2);
+                updatePenaltyBreakdown(MONTHLY_AMOUNT, penalty, total);
+            }
             document.getElementById('repay-method').value = 'Cash';
             document.getElementById('gcash-section').style.display = 'none';
             document.getElementById('confirm-pay-btn').style.display = 'flex';
-            document.getElementById('ref-no-section').style.display = 'block';
+            document.getElementById('repay-gcash-ref').value = '';
+            setRepayRefState(false);
             document.getElementById('notes-section').style.display = 'block';
 
-            document.querySelector('#ref-no-section input').value = '';
             document.querySelector('#notes-section textarea').value = '';
 
             const modal = document.getElementById('repayModal');
@@ -1611,19 +2196,117 @@
         });
 
         document.getElementById('confirm-pay-btn').addEventListener('click', function () {
-            const amount = document.getElementById('repay-amount-input').value;
-            const method = document.getElementById('repay-method').value;
-            const type = document.getElementById('payment-type-select').value;
-            const ref = document.querySelector('#ref-no-section input').value;
-            const notes = document.querySelector('#notes-section textarea').value;
+            if (repayRefUsed) {
+                if (repayRefUsedMsg) repayRefUsedMsg.style.display = 'block';
+                return;
+            }
+            document.getElementById('cash-repay-form').submit();
+        });
+    </script>
 
-            document.getElementById('form-amount-paid').value = amount;
-            document.getElementById('form-payment-method').value = method;
-            document.getElementById('form-payment-type').value = type;
-            document.getElementById('form-reference-no').value = ref;
-            document.getElementById('form-notes').value = notes;
+    <script>
+        function loanCloseReceipt() {
+            var overlay = document.getElementById('loan-receipt-overlay');
+            if (overlay) overlay.remove();
+        }
 
-            document.getElementById('repay-form').submit();
+        document.getElementById('loan-receipt-overlay')?.addEventListener('click', function (e) {
+            if (e.target === this) loanCloseReceipt();
+        });
+
+        function loanDownloadReceipt() {
+            var d = document.getElementById('loan-receipt-data')?.dataset;
+            if (!d) return;
+
+            var wrapper = document.createElement('div');
+            wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15);font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+
+            wrapper.innerHTML =
+                '<div style="padding:24px 20px;text-align:center;border-bottom:1px solid #f0f0f0;">' +
+                    '<div style="width:50px;height:50px;border-radius:50%;background:#14825a;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">' +
+                        '<i class="fa-solid fa-check" style="color:#fff;font-size:22px;"></i>' +
+                    '</div>' +
+                    '<h2 style="margin:0 0 4px;font-size:18px;color:#1a1a1a;">Payment Submitted!</h2>' +
+                    '<p style="margin:0;font-size:12px;color:#6b7280;">Your payment is pending admin verification.</p>' +
+                '</div>' +
+                '<div style="padding:16px 20px;">' +
+                    lrRow('Organization', 'KMPCATS') +
+                    lrRow('Member', d.member) +
+                    lrRow('Loan Reference', d.lendingRef) +
+                    lrRow('Payment #', d.paymentNumber) +
+                    lrRow('Amount', '₱' + d.amount, true) +
+                    lrRow('Payment Method', d.method) +
+                    lrRow('Reference No.', d.ref) +
+                    lrRow('Date', d.date) +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:none;">' +
+                        '<span style="font-size:12px;color:#6b7280;">Status</span>' +
+                        '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#fef3c7;color:#b45309;">' +
+                            '<span style="width:7px;height:7px;border-radius:50%;background:currentColor;"></span> Pending Approval' +
+                        '</span>' +
+                    '</div>' +
+                '</div>';
+
+            document.body.appendChild(wrapper);
+
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(wrapper, { scale: 2, useCORS: true }).then(function (canvas) {
+                    var link = document.createElement('a');
+                    link.download = 'loan-repayment-receipt.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    wrapper.remove();
+                });
+            } else {
+                var script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = function () {
+                    html2canvas(wrapper, { scale: 2, useCORS: true }).then(function (canvas) {
+                        var link = document.createElement('a');
+                        link.download = 'loan-repayment-receipt.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        wrapper.remove();
+                    });
+                };
+                document.head.appendChild(script);
+            }
+        }
+
+        function lrRow(label, value, highlight) {
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;">' +
+                '<span style="font-size:12px;color:#6b7280;">' + label + '</span>' +
+                '<span style="font-size:13px;font-weight:600;color:' + (highlight ? '#14825a' : '#1a1a1a') + ';text-align:right;max-width:55%;word-break:break-word;' + (highlight ? 'font-size:15px;' : '') + '">' + value + '</span>' +
+                '</div>';
+        }
+
+        /* ═══ VOID REASON MODAL ═══ */
+        const VOID_LABELS = {
+            wrong_amount: 'Wrong amount entered',
+            duplicate_payment: 'Duplicate payment',
+            fraudulent: 'Fraudulent / suspicious transaction',
+            other_member: 'Sent by wrong member',
+            technical_error: 'System / technical error',
+            other: 'Other'
+        };
+        function getVoidLabel(key) { return VOID_LABELS[key] || key || 'No reason provided'; }
+
+        function showLoanVoidReason(el) {
+            var d = el.dataset;
+            var reason = getVoidLabel(d.reason);
+            document.getElementById('lr-void-reason-text').textContent = reason;
+            document.getElementById('lr-void-amount-text').textContent = '₱' + Number(d.amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+            document.getElementById('lr-void-loanref-text').textContent = d.loanref || '—';
+            document.getElementById('lr-void-paymentnum-text').textContent = d.paymentnum || '—';
+            document.getElementById('lr-void-ref-text').textContent = d.ref || '—';
+            document.getElementById('lr-void-date-text').textContent = d.date || '—';
+            document.getElementById('lr-void-method-text').textContent = d.method || '—';
+            document.getElementById('lr-void-overlay').classList.add('active');
+        }
+        function lrCloseVoidModal() {
+            document.getElementById('lr-void-overlay').classList.remove('active');
+        }
+        document.getElementById('lr-void-overlay')?.addEventListener('click', function (e) {
+            if (e.target === this) lrCloseVoidModal();
         });
     </script>
 

@@ -38,7 +38,7 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Members</h1>
-            <p class="text-sm text-gray-500">Manage your cooperative members</p>
+            <p class="text-sm text-gray-500">Manage your cooperative members and staff</p>
         </div>
         <div class="flex items-center gap-3">
             <button onclick="openModal('addMemberModal')" class="btn btn-primary">
@@ -105,7 +105,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Admins</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $roleCounts ? array_sum($roleCounts) : $admins->count() }}</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $adminList->count() }}</p>
                     <p class="text-xs text-blue-500 mt-1 flex items-center">
                         <i data-lucide="shield" class="w-3 h-3 mr-1"></i>
                         Click to view breakdown
@@ -130,14 +130,20 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Category</th>
+                        <th>Role</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($members as $member)
-                    <tr>
-                        <td class="text-sm font-medium text-gray-900">MEM-{{ str_pad($member->id, 4, '0', STR_PAD_LEFT) }}</td>
+                    @php
+                        $isStaff = !in_array(strtolower($member->role ?? ''), ['member', 'pending', 'inactive']);
+                        $roleName = $isStaff ? ($roles->firstWhere('slug', $member->role)?->name ?? ucfirst($member->role)) : null;
+                        $adminArr = $adminList->firstWhere('id', $member->id);
+                    @endphp
+                    <tr class="cursor-pointer hover:bg-gray-50 transition-colors" onclick="openMemberDetailModal({{ $member->id }})">
+                        <td class="text-sm font-medium text-gray-900">{{ $isStaff ? 'ADM-' : 'MEM-' }}{{ str_pad($member->id, 4, '0', STR_PAD_LEFT) }}</td>
                         <td>
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full {{ $member->role === 'pending' ? 'bg-gradient-to-br from-yellow-400 to-orange-400' : 'bg-gradient-to-br from-primary-400 to-primary-600' }} flex items-center justify-center">
@@ -145,38 +151,52 @@
                                         {{ strtoupper(substr($member->first_name, 0, 1)) }}{{ strtoupper(substr($member->last_name ?? '', 0, 1)) }}
                                     </span>
                                 </div>
-                                <span class="text-sm font-medium text-gray-900">{{ $member->first_name }} {{ $member->last_name }}</span>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-900">{{ $member->first_name }} {{ $member->last_name }}</span>
+                                    @if($isStaff)
+                                        <p class="text-xs text-gray-400">{{ $member->username }}</p>
+                                    @endif
+                                </div>
                             </div>
                         </td>
                         <td class="text-sm text-gray-600">{{ $member->email }}</td>
-                        <td class="text-sm text-gray-600">{{ $member->membership_category ?? 'Investor Associate' }}</td>
+                        <td class="text-sm text-gray-600">{{ $isStaff ? 'Allied Workers' : ($member->membership_category ?? 'Investor Associate') }}</td>
+                        <td>
+                            @if($isStaff)
+                                <span class="badge badge-info">{{ $roleName }}</span>
+                            @elseif($member->role === 'pending' || $member->role === 'Pending')
+                                <span class="text-sm text-gray-600">Pending</span>
+                            @elseif($member->role === 'inactive' || $member->status === 'inactive')
+                                <span class="text-sm text-gray-600">Inactive</span>
+                            @else
+                                <span class="text-sm text-gray-600">Member</span>
+                            @endif
+                        </td>
                         <td>
                             @if($member->status === 'resignation_pending')
                                 <span class="badge badge-warning">Resignation Pending</span>
                             @elseif($member->status === 'resigned')
                                 <span class="badge badge-gray">Resigned</span>
-                            @elseif($member->role === 'Member' || $member->role === 'member' || $member->role === 'active')
+                            @elseif($isStaff)
+                                <span class="badge {{ ($member->status ?? 'active') === 'active' ? 'badge-success' : 'badge-gray' }}">{{ ucfirst($member->status ?? 'Active') }}</span>
+                            @elseif($member->status === 'inactive' || $member->role === 'inactive')
+                                <span class="badge badge-gray">Inactive</span>
+                            @elseif($member->role === 'member' || $member->role === 'active' || $member->role === 'Member')
                                 <span class="badge badge-success">Active</span>
                             @elseif($member->role === 'pending' || $member->role === 'Pending')
                                 <span class="badge badge-warning">Pending</span>
-                            @elseif($member->role === 'inactive')
-                                <span class="badge badge-gray">Inactive</span>
                             @else
                                 <span class="badge badge-gray">{{ ucfirst($member->role) }}</span>
                             @endif
                         </td>
                         <td>
-                            @if($member->role === 'pending' || $member->role === 'Pending')
-                                <div class="flex items-center gap-1">
-                                    <button class="btn btn-primary btn-xs px-2 py-1" onclick="openMemberDetailModal({{ $member->id }})">
-                                        <i data-lucide="eye" class="w-3 h-3"></i>
-                                        View
-                                    </button>
-                                    <a href="{{ route('approve.user', $member->id) }}" class="btn btn-success btn-xs px-2 py-1">
+                            <div class="flex items-center gap-2">
+                                @if($member->role === 'pending' || $member->role === 'Pending')
+                                    <a href="{{ route('approve.user', $member->id) }}" class="btn btn-success btn-xs px-2 py-1" onclick="event.stopPropagation()">
                                         <i data-lucide="check" class="w-3 h-3"></i>
                                         Approve
                                     </a>
-                                    <form action="{{ route('decline.user', $member->id) }}" method="POST">
+                                    <form action="{{ route('decline.user', $member->id) }}" method="POST" onclick="event.stopPropagation()">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-xs px-2 py-1" onclick="return confirm('Are you sure you want to decline this request?')">
@@ -184,18 +204,24 @@
                                             Decline
                                         </button>
                                     </form>
-                                </div>
-                            @else
-                                <button class="btn btn-primary btn-xs px-2 py-1" onclick="openMemberDetailModal({{ $member->id }})">
-                                    <i data-lucide="eye" class="w-3 h-3"></i>
-                                    View
-                                </button>
-                            @endif
+                                @elseif($isStaff && auth()->user()?->isMainAdmin())
+                                    <button onclick="event.stopPropagation();openEditAdminModal({{ $member->id }})"
+                                        class="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
+                                        Edit
+                                    </button>
+                                    @if(!($adminArr['is_main'] ?? false))
+                                    <button onclick="event.stopPropagation();confirmDeleteAdmin({{ $member->id }}, '{{ $member->first_name }} {{ $member->last_name }}')"
+                                        class="px-3 py-1.5 text-xs font-medium text-danger-600 bg-danger-50 rounded-lg hover:bg-danger-100 transition-colors">
+                                        Deactivate
+                                    </button>
+                                    @endif
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center py-12">
+                        <td colspan="7" class="text-center py-12">
                             <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                                 <i data-lucide="users" class="w-8 h-8 text-gray-300"></i>
                             </div>
@@ -213,7 +239,7 @@
     @if($members->hasPages())
     <div class="flex items-center justify-between mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <p class="text-sm text-gray-500">
-            Showing {{ $members->firstItem() ?? 1 }} to {{ $members->lastItem() ?? $members->count() }} of {{ $members->total() }} members
+            Showing {{ $members->firstItem() ?? 1 }} to {{ $members->lastItem() ?? $members->count() }} of {{ $members->total() }} accounts
         </p>
         <div class="flex items-center gap-1">
             @if($members->onFirstPage())
@@ -247,82 +273,8 @@
     </div>
     @endif
 
-    <!-- Existing Admin & Officer Accounts -->
-    @if(auth()->user()?->isMainAdmin())
-    <div class="mt-8">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden p-6">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900">Existing Admin & Officer Accounts</h2>
-                    <p class="text-sm text-gray-500">View, edit, or deactivate admin/officer accounts</p>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($adminList as $item)
-                        <tr>
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                                        <span class="text-xs font-semibold text-primary-600">{{ strtoupper(substr($item['first_name'], 0, 1) . substr($item['last_name'], 0, 1)) }}</span>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900">{{ $item['first_name'] }} {{ $item['last_name'] }}</p>
-                                        <p class="text-xs text-gray-400">{{ $item['username'] }}</p>
-                                    </div>
-                                    @if($item['is_main'])
-                                    <span class="badge badge-primary text-xs">Main Admin</span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td><span class="text-sm text-gray-600">{{ $item['email'] }}</span></td>
-                            <td>
-                                @php $roleName = $roles->firstWhere('slug', $item['role'])?->name ?? ucfirst($item['role']); @endphp
-                                <span class="badge {{ $item['role'] === 'admin' ? 'badge-primary' : 'badge-info' }}">{{ $roleName }}</span>
-                            </td>
-                            <td>
-                                <span class="badge {{ $item['status'] === 'active' ? 'badge-success' : ($item['status'] === 'pending' ? 'badge-warning' : 'badge-danger') }}">{{ ucfirst($item['status'] ?? 'active') }}</span>
-                            </td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <button onclick="openEditAdminModal({{ $item['id'] }})"
-                                        class="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
-                                        Edit
-                                    </button>
-                                    @if(!$item['is_main'])
-                                    <button onclick="confirmDeleteAdmin({{ $item['id'] }}, '{{ $item['first_name'] }} {{ $item['last_name'] }}')"
-                                        class="px-3 py-1.5 text-xs font-medium text-danger-600 bg-danger-50 rounded-lg hover:bg-danger-100 transition-colors">
-                                        Deactivate
-                                    </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-6 text-gray-500">
-                                No admin or officer accounts found
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
     <!-- Edit Admin Modal -->
+    @if(auth()->user()?->isMainAdmin())
     <div id="editAdminModal" class="modal-overlay hidden" style="display:none">
         <div class="modal max-w-2xl">
             <div class="p-6 border-b border-gray-100">
@@ -344,61 +296,36 @@
             <form id="editAdminForm" method="POST">
                 @csrf
                 <input type="hidden" name="id" id="edit_admin_id">
-                <div class="p-6 max-h-[60vh] overflow-y-auto">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                            <input type="text" name="first_name" id="edit_first_name" class="input" required>
+                    <div class="p-6 max-h-[60vh] overflow-y-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                <input type="text" name="first_name" id="edit_first_name" class="input" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                <input type="text" name="last_name" id="edit_last_name" class="input" required>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" name="email" id="edit_email" class="input" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                <select name="role" id="edit_role" class="input" required>
+                                    @foreach($roles as $role)
+                                    <option value="{{ $role->slug }}">{{ $role->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                            <input type="text" name="last_name" id="edit_last_name" class="input" required>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" name="email" id="edit_email" class="input" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                            <select name="role" id="edit_role" class="input" required>
-                                @foreach($roles as $role)
-                                <option value="{{ $role->slug }}">{{ $role->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
 
-                    <div class="mb-6">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Sidebar Access Permissions</h3>
-                        <p class="text-xs text-gray-500 mb-3">Check the sections this admin will be allowed to access.</p>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" id="edit_permissions_container">
-                            @php
-                                $sidebarMenus = [
-                                    'dashboard'           => ['label' => 'Dashboard',              'icon' => 'layout-dashboard'],
-                                    'lendings'            => ['label' => 'Assistance Management',  'icon' => 'banknote'],
-                                    'payments'            => ['label' => 'Payments',               'icon' => 'credit-card'],
-                                    'members'             => ['label' => 'Members',                'icon' => 'users'],
-                                    'seminars'            => ['label' => 'Seminars',               'icon' => 'graduation-cap'],
-                                    'savings'             => ['label' => 'Savings',                'icon' => 'piggy-bank'],
-                                    'sharecapitals'       => ['label' => 'Share Capitals',         'icon' => 'coins'],
-                                    'notifications'       => ['label' => 'Notifications',          'icon' => 'bell'],
-                                    'dividends'           => ['label' => 'Dividends',              'icon' => 'gift'],
-                                    'reports'             => ['label' => 'Reports',                'icon' => 'bar-chart-3'],
-                                    'finance'             => ['label' => 'Finance',                'icon' => 'wallet'],
-                                    'officers-committees' => ['label' => 'Officers & Committees',  'icon' => 'briefcase'],
-                                    'settings'            => ['label' => 'Settings',               'icon' => 'settings'],
-                                ];
-                            @endphp
-                            @foreach($sidebarMenus as $key => $menu)
-                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors group">
-                                <input type="checkbox" name="sidebar_permissions[]" value="{{ $key }}"
-                                    class="edit-perm-checkbox rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                                <span class="text-sm font-medium text-gray-800 group-hover:text-primary-600 transition-colors">{{ $menu['label'] }}</span>
-                            </label>
-                            @endforeach
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-800 mb-1">Sidebar Access Permissions</h3>
+                            <p class="text-xs text-gray-500">Sidebar permissions are inherited from the selected role. Edit the role to change permissions.</p>
+                            <div class="mt-2 flex flex-wrap gap-1" id="edit_role_perms_display"></div>
                         </div>
                     </div>
-                </div>
                 <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
                     <button type="button" onclick="closeModal('editAdminModal')" class="btn btn-outline">Cancel</button>
                     <button type="submit" class="btn btn-primary">
@@ -411,6 +338,9 @@
     </div>
     <script type="application/json" id="admin-list-data">
         {!! json_encode($adminList) !!}
+    </script>
+    <script type="application/json" id="roles-data">
+        {!! json_encode($roles->map(fn($r) => ['slug' => $r->slug, 'name' => $r->name, 'sidebar_permissions' => $r->sidebar_permissions])) !!}
     </script>
     @endif
 
@@ -822,237 +752,499 @@
     </div>
 
     <!-- Member Detail Modal -->
-    <div id="memberDetailModal" class="modal-overlay hidden">
-        <div class="modal max-w-3xl">
-            <div class="p-6 border-b border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                            <i data-lucide="user" class="w-5 h-5 text-primary-600"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-900">Member Profile</h2>
-                            <p class="text-xs text-gray-500">View member information</p>
-                        </div>
+    <div id="memberDetailModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto hidden">
+        <div class="bg-slate-50 rounded-3xl w-full max-w-5xl my-auto shadow-2xl border border-slate-200 flex flex-col max-h-[94vh] overflow-hidden">
+
+            <!-- Top Header Bar -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
+                        <i data-lucide="user" class="w-5 h-5"></i>
                     </div>
-                    <button onclick="closeModal('memberDetailModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
+                    <div>
+                        <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Member Profile & Accounts</h2>
+                        <p class="text-[10px] text-slate-400 font-medium">Cooperative member management</p>
+                    </div>
+                    <span id="detail-member-id" class="ml-2 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-mono font-bold rounded-lg border border-slate-200">--</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="px-3 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                        Print SOA
+                    </button>
+                    <button onclick="closeModal('memberDetailModal')" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                        <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
                     </button>
                 </div>
             </div>
-            <div class="p-6 max-h-[70vh] overflow-y-auto">
-                <!-- Profile Header -->
-                <div class="flex items-center gap-5 mb-6 p-4 bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl">
-                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg overflow-hidden">
-                        <img id="detail-profile-pic" src="" alt="" class="w-full h-full object-cover hidden">
-                        <span id="detail-avatar" class="text-white text-2xl font-bold">--</span>
-                    </div>
-                    <div class="flex-1">
-                        <h3 id="detail-name" class="text-xl font-bold text-gray-900">--</h3>
-                        <p id="detail-middle-name" class="text-sm text-gray-500">--</p>
-                        <p id="detail-member-id" class="text-sm text-gray-500 font-medium">--</p>
-                        <div class="flex gap-2 mt-2">
-                            <span id="detail-status" class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">--</span>
-                            <span id="detail-category" class="px-3 py-1 bg-primary-100 text-primary-700 text-xs font-semibold rounded-full">--</span>
+
+            <!-- Scrollable Body -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+                <!-- Hero Banner -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-800 text-white font-extrabold text-xl shadow-lg ring-2 ring-indigo-500/20 flex items-center justify-center overflow-hidden shrink-0">
+                            <img id="detail-profile-pic" src="" alt="" class="w-full h-full object-cover hidden">
+                            <span id="detail-avatar">--</span>
                         </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 id="detail-name" class="text-xl font-extrabold text-slate-900">--</h3>
+                                <span id="detail-status" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
+                                <span id="detail-category" class="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
+                            </div>
+                            <p id="detail-middle-name" class="text-xs text-slate-400 mb-2">--</p>
+                            <p id="detail-join-date" class="text-[10px] text-slate-400 font-medium mb-3">--</p>
+                            <div class="flex flex-wrap gap-3">
+                                <div class="flex items-center gap-1.5 text-xs text-slate-600">
+                                    <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i>
+                                    <span id="detail-email" class="font-medium">--</span>
+                                    <button onclick="copyToClipboard(this.previousElementSibling)" class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy email">
+                                        <i data-lucide="copy" class="w-3 h-3 text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-xs text-slate-600">
+                                    <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i>
+                                    <span id="detail-phone" class="font-medium">--</span>
+                                    <button onclick="copyToClipboard(this.previousElementSibling)" class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy phone">
+                                        <i data-lucide="copy" class="w-3 h-3 text-slate-400"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <a id="detail-send-sc-email" href="#" class="px-3 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center gap-1.5 shrink-0">
+                            <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                            Send Capital Email
+                        </a>
                     </div>
                 </div>
 
-                <!-- Info Grid -->
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="space-y-4">
-                        <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-                            <i data-lucide="user" class="w-4 h-4 text-primary-500"></i>
-                            Personal Information
-                        </h4>
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Email</span>
-                                <span id="detail-email" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Phone</span>
-                                <span id="detail-phone" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Date of Birth</span>
-                                <span id="detail-dob" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Sex</span>
-                                <span id="detail-sex" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Civil Status</span>
-                                <span id="detail-civil-status" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2">
-                                <span class="text-sm text-gray-500">Address</span>
-                                <span id="detail-address" class="text-sm font-medium text-gray-900 text-right max-w-[180px]">--</span>
-                            </div>
-                        </div>
+                <!-- Balance Cards -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+                        <button onclick="filterBalanceCards('all')" class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors bg-slate-900 text-white" data-filter="all">All Balances</button>
+                        <button onclick="filterBalanceCards('share')" class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50" data-filter="share">Share Capital</button>
+                        <button onclick="filterBalanceCards('savings')" class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50" data-filter="savings">Savings</button>
                     </div>
-                    <div class="space-y-4">
-                        <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-                            <i data-lucide="credit-card" class="w-4 h-4 text-primary-500"></i>
-                            Account Information
-                        </h4>
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Membership</span>
-                                <span id="detail-membership" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Citizenship</span>
-                                <span id="detail-citizenship" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Place of Birth</span>
-                                <span id="detail-pob" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Blood Type</span>
-                                <span id="detail-blood-type" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-500">Height</span>
-                                <span id="detail-height" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                            <div class="flex justify-between items-center py-2">
-                                <span class="text-sm text-gray-500">Weight</span>
-                                <span id="detail-weight" class="text-sm font-medium text-gray-900">--</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Family Information -->
-                <div class="mt-6 space-y-4">
-                    <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="heart" class="w-4 h-4 text-pink-500"></i>
-                        Family Information
-                    </h4>
-                    <div class="bg-pink-50 rounded-lg p-4 border border-pink-100">
-                        <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Share Capital Card -->
+                        <div id="balance-card-share" class="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100 flex flex-col justify-between min-h-[220px] relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
                             <div>
-                                <p class="text-xs text-gray-500 mb-1">Spouse Name</p>
-                                <p id="detail-spouse-name" class="text-sm font-medium text-gray-900">Not specified</p>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <i data-lucide="coins" class="w-4 h-4 text-indigo-200"></i>
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-200">Share Capital</span>
+                                </div>
+                                <p id="detail-sc-amount" class="font-mono text-3xl sm:text-4xl font-bold mt-2">₱0.00</p>
+                                <p class="text-xs text-indigo-200 mt-1"><span id="detail-sc-shares">0</span> Shares</p>
+                                <div class="mt-2">
+                                    <span id="detail-sc-status" class="inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full">No Account</span>
+                                </div>
                             </div>
+                            <div class="mt-4">
+                                <a id="detail-sc-see-more" href="#" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-white transition-colors">
+                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                    Ledger Details
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Savings Card -->
+                        <div id="balance-card-savings" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between min-h-[220px]">
                             <div>
-                                <p class="text-xs text-gray-500 mb-1">Spouse Date of Birth</p>
-                                <p id="detail-spouse-dob" class="text-sm font-medium text-gray-900">Not specified</p>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <i data-lucide="landmark" class="w-4 h-4 text-slate-400"></i>
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Regular Savings</span>
+                                </div>
+                                <p id="detail-savings-amount" class="font-mono text-3xl sm:text-4xl font-bold text-slate-800 mt-2">₱0.00</p>
+                                <p id="detail-savings-status" class="text-xs text-slate-400 mt-1">No savings account linked</p>
+                            </div>
+                            <div class="mt-4">
+                                <a id="detail-savings-see-more" href="#" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">
+                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                    Transaction History
+                                </a>
                             </div>
                         </div>
-                        <div class="mt-3 pt-3 border-t border-pink-100">
-                            <p class="text-xs text-gray-500 mb-2">Children</p>
-                            <div class="flex gap-4">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-8 h-8 rounded-full bg-pink-200 flex items-center justify-center">
-                                        <i data-lucide="baby" class="w-4 h-4 text-pink-600"></i>
-                                    </span>
-                                    <div>
-                                        <p class="text-xs text-gray-500">Sons</p>
-                                        <p id="detail-number-son" class="text-sm font-semibold text-gray-900">0</p>
-                                    </div>
+                    </div>
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="border-b border-slate-200">
+                    <div class="flex gap-0 overflow-x-auto">
+                        <button onclick="switchMemberTab('overview')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-indigo-600 text-indigo-600 bg-white" data-tab="overview">Overview</button>
+                        <button onclick="switchMemberTab('financials')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="financials">Financials & Balances</button>
+                        <button onclick="switchMemberTab('personal')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="personal">Personal & Family</button>
+                        <button onclick="switchMemberTab('govids')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="govids">Government IDs</button>
+                        <button onclick="switchMemberTab('vehicles')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="vehicles">Vehicles & Fleet</button>
+                        <button onclick="switchMemberTab('settings')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="settings">Account Settings</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Overview -->
+                <div id="tab-overview" class="member-tab-panel">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Primary Bio -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i data-lucide="user" class="w-3.5 h-3.5 text-indigo-600"></i></div>
+                                Personal Details
+                            </h4>
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Date of Birth</span>
+                                    <span id="detail-dob" class="text-xs font-semibold text-slate-800">--</span>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="w-8 h-8 rounded-full bg-pink-200 flex items-center justify-center">
-                                        <i data-lucide="baby" class="w-4 h-4 text-pink-600"></i>
-                                    </span>
-                                    <div>
-                                        <p class="text-xs text-gray-500">Daughters</p>
-                                        <p id="detail-number-daughter" class="text-sm font-semibold text-gray-900">0</p>
-                                    </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Sex</span>
+                                    <span id="detail-sex" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Civil Status</span>
+                                    <span id="detail-civil-status" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Citizenship</span>
+                                    <span id="detail-citizenship" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5">
+                                    <span class="text-xs text-slate-400">Address</span>
+                                    <span id="detail-address" class="text-xs font-semibold text-slate-800 text-right max-w-[200px]">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Info -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="credit-card" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                                Account Details
+                            </h4>
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Membership</span>
+                                    <span id="detail-membership" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Place of Birth</span>
+                                    <span id="detail-pob" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Blood Type</span>
+                                    <span id="detail-blood-type" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Height</span>
+                                    <span id="detail-height" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5">
+                                    <span class="text-xs text-slate-400">Weight</span>
+                                    <span id="detail-weight" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gov IDs Quick View -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center"><i data-lucide="id-card" class="w-3.5 h-3.5 text-blue-600"></i></div>
+                                Verified IDs
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600" data-field="sss">SSS: <span id="detail-sss-id">--</span></span>
+                                <span class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600" data-field="philhealth">PH: <span id="detail-philhealth-id">--</span></span>
+                                <span class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600" data-field="pagibig">PAG: <span id="detail-pagibig-id">--</span></span>
+                                <span class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600" data-field="tin">TIN: <span id="detail-tin-id">--</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Family Summary -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center"><i data-lucide="heart" class="w-3.5 h-3.5 text-pink-500"></i></div>
+                                Family Summary
+                            </h4>
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Spouse</span>
+                                    <span id="detail-spouse-name" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Children</span>
+                                    <span class="text-xs font-semibold text-slate-800"><span id="detail-number-son">0</span> sons, <span id="detail-number-daughter">0</span> daughters</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Skills & Expertise -->
-                <div class="mt-6 space-y-4">
-                    <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="star" class="w-4 h-4 text-yellow-500"></i>
-                        Skills & Expertise
-                    </h4>
-                    <div id="detail-skills-container" class="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
-                        <p id="detail-skills" class="text-sm font-medium text-gray-900">No skills specified</p>
+                <!-- Tab: Financials & Balances -->
+                <div id="tab-financials" class="member-tab-panel hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- Share Capital Summary -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i data-lucide="coins" class="w-3.5 h-3.5 text-indigo-600"></i></div>
+                                Share Capital
+                            </h4>
+                            <div class="space-y-2.5 mt-3">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Total Amount</span>
+                                    <span id="fin-sc-amount" class="text-sm font-mono font-bold text-slate-800">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Total Shares</span>
+                                    <span id="fin-sc-shares" class="text-sm font-bold text-slate-800">0</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5">
+                                    <span class="text-xs text-slate-400">Status</span>
+                                    <span id="fin-sc-status" class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">No Account</span>
+                                </div>
+                            </div>
+                            <a id="fin-sc-link" href="#" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                View Ledger
+                            </a>
+                        </div>
+
+                        <!-- Savings Summary -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center"><i data-lucide="landmark" class="w-3.5 h-3.5 text-emerald-600"></i></div>
+                                Regular Savings
+                            </h4>
+                            <div class="space-y-2.5 mt-3">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Current Balance</span>
+                                    <span id="fin-savings-amount" class="text-sm font-mono font-bold text-slate-800">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Interest Accrued</span>
+                                    <span id="fin-savings-interest" class="text-sm font-mono font-bold text-emerald-600">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5">
+                                    <span class="text-xs text-slate-400">Status</span>
+                                    <span id="fin-savings-status" class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">No Account</span>
+                                </div>
+                            </div>
+                            <a id="fin-savings-link" href="#" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-800 transition-colors">
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                View Transactions
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Active Loans -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm mt-6">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><i data-lucide="hand-coins" class="w-3.5 h-3.5 text-amber-600"></i></div>
+                            Active Loans
+                            <span id="fin-loans-count" class="ml-auto px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-extrabold rounded-full">0</span>
+                        </h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-slate-200">
+                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Reference</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Type</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">Loan Amount</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">Monthly</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">Total Payable</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fin-loans-body">
+                                    <tr><td colspan="5" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No active loans</p></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Government IDs -->
-                <div class="mt-6 space-y-4">
-                    <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="id-card" class="w-4 h-4 text-blue-500"></i>
-                        Government IDs
-                    </h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <span class="text-blue-600 font-bold text-xs">SSS</span>
+                <!-- Tab: Personal & Family -->
+                <div id="tab-personal" class="member-tab-panel hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Personal Info -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i data-lucide="user" class="w-3.5 h-3.5 text-indigo-600"></i></div>
+                                Personal Information
+                            </h4>
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Date of Birth</span>
+                                    <span id="detail-dob-2" class="text-xs font-semibold text-slate-800">--</span>
                                 </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">SSS ID</p>
-                                    <p id="detail-sss-id" class="text-sm font-medium text-gray-900">Not provided</p>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Sex</span>
+                                    <span id="detail-sex-2" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Civil Status</span>
+                                    <span id="detail-civil-status-2" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Citizenship</span>
+                                    <span id="detail-citizenship-2" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Place of Birth</span>
+                                    <span id="detail-pob-2" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Blood Type</span>
+                                    <span id="detail-blood-type-2" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Height</span>
+                                    <span id="detail-height-2" class="text-xs font-semibold text-slate-800">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5">
+                                    <span class="text-xs text-slate-400">Weight</span>
+                                    <span id="detail-weight-2" class="text-xs font-semibold text-slate-800">--</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <span class="text-blue-600 font-bold text-xs">PH</span>
+
+                        <!-- Address & Contact -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                                Address & Contact
+                            </h4>
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Address</span>
+                                    <span id="detail-address-2" class="text-xs font-semibold text-slate-800 text-right max-w-[220px]">--</span>
                                 </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">PhilHealth ID</p>
-                                    <p id="detail-philhealth-id" class="text-sm font-medium text-gray-900">Not provided</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <span class="text-blue-600 font-bold text-xs">PAG</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">PAG-IBIG ID</p>
-                                    <p id="detail-pagibig-id" class="text-sm font-medium text-gray-900">Not provided</p>
+                                <div class="flex justify-between items-center py-1.5">
+                                    <span class="text-xs text-slate-400">Phone</span>
+                                    <span id="detail-phone-2" class="text-xs font-semibold text-slate-800">--</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <span class="text-blue-600 font-bold text-xs">TIN</span>
+
+                        <!-- Family -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center"><i data-lucide="heart" class="w-3.5 h-3.5 text-pink-500"></i></div>
+                                Family Information
+                            </h4>
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Spouse Name</span>
+                                    <span id="detail-spouse-name-2" class="text-xs font-semibold text-slate-800">--</span>
                                 </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">TIN ID</p>
-                                    <p id="detail-tin-id" class="text-sm font-medium text-gray-900">Not provided</p>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Spouse Birthdate</span>
+                                    <span id="detail-spouse-dob-2" class="text-xs font-semibold text-slate-800">--</span>
                                 </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Sons</span>
+                                    <span id="detail-number-son-2" class="text-xs font-semibold text-slate-800">0</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5">
+                                    <span class="text-xs text-slate-400">Daughters</span>
+                                    <span id="detail-number-daughter-2" class="text-xs font-semibold text-slate-800">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Skills -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><i data-lucide="star" class="w-3.5 h-3.5 text-amber-500"></i></div>
+                                Skills & Expertise
+                            </h4>
+                            <div id="detail-skills-container" class="flex flex-wrap gap-1.5">
+                                <span id="detail-skills" class="text-xs text-slate-500">No skills specified</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Vehicles -->
-                <div class="mt-6 space-y-4">
-                    <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="car" class="w-4 h-4 text-green-500"></i>
-                        Vehicle Information
-                    </h4>
-                    <div class="bg-green-50 rounded-lg border border-green-100 overflow-hidden">
+                <!-- Tab: Government IDs -->
+                <div id="tab-govids" class="member-tab-panel hidden">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                                <span class="text-blue-600 font-extrabold text-xs">SSS</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">SSS ID</p>
+                                <p id="detail-sss-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
+                            </div>
+                            <button onclick="copyToClipboard(document.getElementById('detail-sss-id-2'))" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                                <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                                <span class="text-blue-600 font-extrabold text-xs">PH</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PhilHealth ID</p>
+                                <p id="detail-philhealth-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
+                            </div>
+                            <button onclick="copyToClipboard(document.getElementById('detail-philhealth-id-2'))" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                                <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                                <span class="text-blue-600 font-extrabold text-xs">PAG</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PAG-IBIG ID</p>
+                                <p id="detail-pagibig-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
+                            </div>
+                            <button onclick="copyToClipboard(document.getElementById('detail-pagibig-id-2'))" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                                <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                                <span class="text-blue-600 font-extrabold text-xs">TIN</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">TIN ID</p>
+                                <p id="detail-tin-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
+                            </div>
+                            <button onclick="copyToClipboard(document.getElementById('detail-tin-id-2'))" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                                <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Vehicles & Fleet -->
+                <div id="tab-vehicles" class="member-tab-panel hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="px-5 py-4 border-b border-slate-100">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center"><i data-lucide="car" class="w-3.5 h-3.5 text-emerald-600"></i></div>
+                                Registered Vehicles
+                            </h4>
+                        </div>
                         <div id="detail-vehicles-container">
                             <table class="w-full">
-                                <thead class="bg-green-100">
+                                <thead class="bg-slate-50">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Vehicle Type</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Plate Number</th>
-                                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantity</th>
+                                        <th class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Vehicle Type</th>
+                                        <th class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Plate Number</th>
+                                        <th class="px-5 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Qty</th>
                                     </tr>
                                 </thead>
                                 <tbody id="detail-vehicles-body">
                                     <tr>
-                                        <td colspan="3" class="px-4 py-6 text-center text-sm text-gray-500">No vehicles registered</td>
+                                        <td colspan="3" class="px-5 py-10 text-center">
+                                            <div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center">
+                                                <i data-lucide="car" class="w-6 h-6 text-slate-300"></i>
+                                            </div>
+                                            <p class="text-xs font-semibold text-slate-400">No vehicles registered</p>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1060,71 +1252,45 @@
                     </div>
                 </div>
 
-                <!-- Share Capital -->
-                <div class="mt-6 space-y-4">
-                    <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="coins" class="w-4 h-4 text-amber-500"></i>
-                        Share Capital
-                    </h4>
-                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-100">
-                        <div class="grid grid-cols-3 gap-4 mb-4">
-                            <div class="text-center">
-                                <p class="text-xs text-gray-500 mb-1">Amount</p>
-                                <p id="detail-sc-amount" class="text-lg font-bold text-gray-900">₱0.00</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs text-gray-500 mb-1">Shares</p>
-                                <p id="detail-sc-shares" class="text-lg font-bold text-gray-900">0</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs text-gray-500 mb-1">Status</p>
-                                <span id="detail-sc-status" class="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">No Account</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <a id="detail-sc-see-more" href="#" target="_blank" class="flex-1 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2">
-                                <i data-lucide="external-link" class="w-4 h-4"></i>
-                                See More in Share Capital
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Account Settings -->
-                <div class="mt-6 space-y-4">
-                    <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="settings" class="w-4 h-4 text-gray-500"></i>
-                        Account Settings
-                    </h4>
-                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <div class="grid grid-cols-2 gap-4 mb-4">
+                <!-- Tab: Account Settings -->
+                <div id="tab-settings" class="member-tab-panel hidden">
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="settings" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                            Administrative Controls
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select name="role" id="detail-role" class="input">
+                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Account Status</label>
+                                <select name="role" id="detail-role" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
                                     <option value="Pending">Pending</option>
                                     <option value="Member">Member</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="border-t border-gray-200 pt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Actions</label>
-                            <a id="detail-send-sc-email" href="#" class="inline-flex px-4 py-2.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors items-center gap-2">
+                        <div class="border-t border-slate-100 pt-4">
+                            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Email Actions</label>
+                            <a id="detail-send-sc-email-2" href="#" class="inline-flex px-4 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-black transition-colors items-center gap-2">
                                 <i data-lucide="mail" class="w-4 h-4"></i>
                                 Send Share Capital Email
                             </a>
-                            <p class="text-xs text-gray-500 mt-2">Send an email to this member reminding them to complete their share capital contribution.</p>
+                            <p class="text-[10px] text-slate-400 mt-2">Send an email to this member reminding them to complete their share capital contribution.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                <button onclick="closeModal('memberDetailModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
-                <button id="detail-save-btn" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
-                    <i data-lucide="save" class="w-4 h-4"></i>
-                    Save Changes
-                </button>
+            <!-- Sticky Footer -->
+            <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-white shrink-0">
+                <span class="text-[10px] text-slate-400 font-medium">Cooperative Member Records &bull; CDA Compliant</span>
+                <div class="flex items-center gap-3">
+                    <button onclick="closeModal('memberDetailModal')" class="px-5 py-2.5 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-colors">Close</button>
+                    <button id="detail-save-btn" class="px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-colors flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Save & Confirm Changes
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1174,25 +1340,43 @@
 
         function openEditAdminModal(id) {
             const adminList = JSON.parse(document.getElementById('admin-list-data').textContent);
+            const rolesData = JSON.parse(document.getElementById('roles-data').textContent);
             const admin = adminList.find(a => a.id === id);
             if (!admin) return;
 
             document.getElementById('edit_admin_id').value = admin.id;
             document.getElementById('edit_first_name').value = admin.first_name;
             document.getElementById('edit_last_name').value = admin.last_name;
-            document.getElementById('edit_email').value = admin.email;
+            document.getElementById('edit_email').value = admin.email || '';
             document.getElementById('edit_role').value = admin.role;
 
-            document.querySelectorAll('.edit-perm-checkbox').forEach(cb => cb.checked = false);
-            const perms = admin.sidebar_permissions;
-            if (Array.isArray(perms)) {
-                perms.forEach(p => {
-                    const cb = document.querySelector(`.edit-perm-checkbox[value="${p}"]`);
-                    if (cb) cb.checked = true;
-                });
-            }
+            updateEditRolePerms(admin.role, rolesData);
+
+            document.getElementById('edit_role').onchange = function() {
+                updateEditRolePerms(this.value, rolesData);
+            };
 
             openModal('editAdminModal');
+        }
+
+        function updateEditRolePerms(slug, rolesData) {
+            const container = document.getElementById('edit_role_perms_display');
+            const role = rolesData.find(r => r.slug === slug);
+            container.innerHTML = '';
+            if (!role || !role.sidebar_permissions) {
+                container.innerHTML = '<span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Full Access</span>';
+                return;
+            }
+            if (role.sidebar_permissions.length === 0) {
+                container.innerHTML = '<span class="text-xs font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded-full">No Access</span>';
+                return;
+            }
+            role.sidebar_permissions.forEach(p => {
+                const span = document.createElement('span');
+                span.className = 'text-xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded';
+                span.textContent = p;
+                container.appendChild(span);
+            });
         }
 
         function confirmDeleteAdmin(id, name) {
@@ -1225,14 +1409,14 @@
                 member = adminsData.find(m => m.id === memberId);
             }
             if (!member) return;
-            
+
             const initials = (member.first_name?.charAt(0) || '') + (member.last_name?.charAt(0) || '');
             const fullName = (member.first_name || '') + ' ' + (member.last_name || '');
-            
+
             document.getElementById('detail-avatar').textContent = initials.toUpperCase();
             document.getElementById('detail-name').textContent = fullName;
             document.getElementById('detail-middle-name').textContent = member.middle_name ? member.middle_name : '';
-            const isAdmin = member.role === 'admin';
+            const isAdmin = !['member', 'pending', 'inactive'].includes(String(member.role || '').toLowerCase());
             document.getElementById('detail-member-id').textContent = (isAdmin ? 'ADM-' : 'MEM-') + String(member.id).padStart(4, '0');
             document.getElementById('detail-email').textContent = member.email || 'N/A';
             document.getElementById('detail-phone').textContent = member.contact_no || 'N/A';
@@ -1240,13 +1424,26 @@
             document.getElementById('detail-sex').textContent = member.sex || 'N/A';
             document.getElementById('detail-civil-status').textContent = member.civil_status || 'N/A';
             document.getElementById('detail-address').textContent = member.present_address || 'N/A';
-            document.getElementById('detail-membership').textContent = member.membership_category || 'N/A';
+            document.getElementById('detail-membership').textContent = isAdmin ? 'Allied Workers' : (member.membership_category || 'N/A');
             document.getElementById('detail-citizenship').textContent = member.citizenship || 'N/A';
             document.getElementById('detail-pob').textContent = member.place_of_birth || 'N/A';
             document.getElementById('detail-blood-type').textContent = member.blood_type || 'N/A';
             document.getElementById('detail-height').textContent = member.height || 'N/A';
             document.getElementById('detail-weight').textContent = member.weight || 'N/A';
-            
+
+            // Duplicate fields in Personal & Family tab
+            document.getElementById('detail-dob-2').textContent = member.date_of_birth || 'N/A';
+            document.getElementById('detail-sex-2').textContent = member.sex || 'N/A';
+            document.getElementById('detail-civil-status-2').textContent = member.civil_status || 'N/A';
+            document.getElementById('detail-citizenship-2').textContent = member.citizenship || 'N/A';
+            document.getElementById('detail-pob-2').textContent = member.place_of_birth || 'N/A';
+            document.getElementById('detail-blood-type-2').textContent = member.blood_type || 'N/A';
+            document.getElementById('detail-height-2').textContent = member.height || 'N/A';
+            document.getElementById('detail-weight-2').textContent = member.weight || 'N/A';
+            document.getElementById('detail-address-2').textContent = member.present_address || 'N/A';
+            document.getElementById('detail-phone-2').textContent = member.contact_no || 'N/A';
+
+            // Profile pic
             const profilePic = document.getElementById('detail-profile-pic');
             const avatar = document.getElementById('detail-avatar');
             if (member.profile_picture) {
@@ -1257,18 +1454,28 @@
                 profilePic.classList.add('hidden');
                 avatar.classList.remove('hidden');
             }
-            
+
+            // Join date
+            const joinDate = member.created_at;
+            document.getElementById('detail-join-date').textContent = joinDate ? 'Member since ' + new Date(joinDate).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) : '';
+
+            // Family (Overview tab)
             document.getElementById('detail-spouse-name').textContent = member.spouse_name || 'Not specified';
-            document.getElementById('detail-spouse-dob').textContent = member.spouse_date_birth || 'Not specified';
             document.getElementById('detail-number-son').textContent = member.number_son || 0;
             document.getElementById('detail-number-daughter').textContent = member.number_daughter || 0;
-            
+            // Family (Personal tab)
+            document.getElementById('detail-spouse-name-2').textContent = member.spouse_name || 'Not specified';
+            document.getElementById('detail-spouse-dob-2').textContent = member.spouse_date_birth || 'Not specified';
+            document.getElementById('detail-number-son-2').textContent = member.number_son || 0;
+            document.getElementById('detail-number-daughter-2').textContent = member.number_daughter || 0;
+
+            // Skills
             const skillsEl = document.getElementById('detail-skills');
             if (member.skills && member.skills.trim()) {
                 const skillsArray = member.skills.split(',').map(s => s.trim()).filter(s => s);
                 if (skillsArray.length > 0) {
-                    skillsEl.innerHTML = skillsArray.map(skill => 
-                        `<span class="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full mr-2 mb-1">${skill}</span>`
+                    skillsEl.innerHTML = skillsArray.map(skill =>
+                        `<span class="inline-block px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-bold rounded-lg">${skill}</span>`
                     ).join('');
                 } else {
                     skillsEl.textContent = 'No skills specified';
@@ -1276,75 +1483,189 @@
             } else {
                 skillsEl.textContent = 'No skills specified';
             }
-            
+
+            // Gov IDs — primary
             document.getElementById('detail-sss-id').textContent = member.sss_id || 'Not provided';
             document.getElementById('detail-philhealth-id').textContent = member.philhealth_id || 'Not provided';
             document.getElementById('detail-pagibig-id').textContent = member.pagibig_id || 'Not provided';
             document.getElementById('detail-tin-id').textContent = member.tin_id || 'Not provided';
-            
+            // Gov IDs — duplicate tab
+            document.getElementById('detail-sss-id-2').textContent = member.sss_id || 'Not provided';
+            document.getElementById('detail-philhealth-id-2').textContent = member.philhealth_id || 'Not provided';
+            document.getElementById('detail-pagibig-id-2').textContent = member.pagibig_id || 'Not provided';
+            document.getElementById('detail-tin-id-2').textContent = member.tin_id || 'Not provided';
+
+            // Vehicles
             const vehiclesBody = document.getElementById('detail-vehicles-body');
             if (member.vehicles && member.vehicles.length > 0) {
                 vehiclesBody.innerHTML = member.vehicles.map(v => `
-                    <tr class="border-t border-green-100">
-                        <td class="px-4 py-3 text-sm text-gray-900">${v.vehicle_type || 'N/A'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900 font-mono">${v.plate_no || 'N/A'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900 text-center">${v.quantity || 1}</td>
+                    <tr class="border-t border-slate-100">
+                        <td class="px-5 py-3 text-xs font-semibold text-slate-800">${v.vehicle_type || 'N/A'}</td>
+                        <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${v.plate_no || 'N/A'}</td>
+                        <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${v.quantity || 1}</td>
                     </tr>
                 `).join('');
             } else {
-                vehiclesBody.innerHTML = '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-gray-500">No vehicles registered</td></tr>';
+                vehiclesBody.innerHTML = '<tr><td colspan="3" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="car" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No vehicles registered</p></td></tr>';
             }
-            
+
+            // Status badge
             const statusEl = document.getElementById('detail-status');
-            if (member.role === 'admin') {
-                statusEl.className = 'px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full';
+            if (['admin', 'general-manager'].includes(member.role)) {
+                statusEl.className = 'px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-extrabold uppercase rounded-full';
                 statusEl.textContent = 'Admin';
             } else if (member.role === 'Member' || member.role === 'member' || member.role === 'active') {
-                statusEl.className = 'px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full';
+                statusEl.className = 'px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-extrabold uppercase rounded-full';
                 statusEl.textContent = 'Active';
             } else if (member.role === 'pending' || member.role === 'Pending') {
-                statusEl.className = 'px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full';
+                statusEl.className = 'px-2.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-extrabold uppercase rounded-full';
                 statusEl.textContent = 'Pending';
             } else {
-                statusEl.className = 'px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full';
+                statusEl.className = 'px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-extrabold uppercase rounded-full';
                 statusEl.textContent = member.role || 'N/A';
             }
-            
-            const categoryEl = document.getElementById('detail-category');
-            categoryEl.textContent = member.membership_category || 'N/A';
-            
+
+            document.getElementById('detail-category').textContent = isAdmin ? 'Allied Workers' : (member.membership_category || 'N/A');
+
+            // Share Capital
             document.getElementById('detail-sc-amount').textContent = '₱' + (member.sc_total_amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
             document.getElementById('detail-sc-shares').textContent = member.sc_total_shares || 0;
-            
+
             const scStatusEl = document.getElementById('detail-sc-status');
             if (member.sc_status === 'Active') {
-                scStatusEl.className = 'inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full';
+                scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full';
                 scStatusEl.textContent = 'Active';
             } else if (member.sc_status === 'No Account') {
-                scStatusEl.className = 'inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full';
+                scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white/60 text-[10px] font-extrabold uppercase rounded-full';
                 scStatusEl.textContent = 'No Account';
             } else {
-                scStatusEl.className = 'inline-block px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full';
+                scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full';
                 scStatusEl.textContent = member.sc_status || 'Inactive';
             }
-            
-            const scSeeMore = document.getElementById('detail-sc-see-more');
-            scSeeMore.href = '/dashboard-sharecapitals?member=' + member.id;
-            
+
+            document.getElementById('detail-sc-see-more').href = '/dashboard-sharecapitals?member=' + member.id;
             document.getElementById('detail-send-sc-email').href = '/dashboard-members/send-share-email/' + member.id;
-            
-            // Populate Account Settings
-            const roleSelect = document.getElementById('detail-role');
-            roleSelect.value = member.role || 'member';
-            
+            document.getElementById('detail-send-sc-email-2').href = '/dashboard-members/send-share-email/' + member.id;
+
+            // Savings Card (hero balance cards)
+            document.getElementById('detail-savings-amount').textContent = '₱' + (member.savings_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+            const savingsStatusEl = document.getElementById('detail-savings-status');
+            if (member.savings_status === 'Active') {
+                savingsStatusEl.textContent = 'Savings account active';
+                savingsStatusEl.className = 'text-xs text-emerald-500 mt-1';
+            } else if (member.savings_status === 'No Account') {
+                savingsStatusEl.textContent = 'No savings account linked';
+                savingsStatusEl.className = 'text-xs text-slate-400 mt-1';
+            } else {
+                savingsStatusEl.textContent = member.savings_status || 'No savings account linked';
+                savingsStatusEl.className = 'text-xs text-slate-400 mt-1';
+            }
+            document.getElementById('detail-savings-see-more').href = '/dashboard-savings?member=' + member.id;
+
+            // Financials tab — Share Capital
+            document.getElementById('fin-sc-amount').textContent = '₱' + (member.sc_total_amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+            document.getElementById('fin-sc-shares').textContent = member.sc_total_shares || 0;
+            const finScStatusEl = document.getElementById('fin-sc-status');
+            if (member.sc_status === 'Active') {
+                finScStatusEl.textContent = 'Active';
+                finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600';
+            } else if (member.sc_status === 'No Account') {
+                finScStatusEl.textContent = 'No Account';
+                finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+            } else {
+                finScStatusEl.textContent = member.sc_status || 'Inactive';
+                finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+            }
+            document.getElementById('fin-sc-link').href = '/dashboard-sharecapitals?member=' + member.id;
+
+            // Financials tab — Savings
+            document.getElementById('fin-savings-amount').textContent = '₱' + (member.savings_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+            document.getElementById('fin-savings-interest').textContent = '₱' + (member.savings_interest || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+            const finSaStatusEl = document.getElementById('fin-savings-status');
+            if (member.savings_status === 'Active') {
+                finSaStatusEl.textContent = 'Active';
+                finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600';
+            } else if (member.savings_status === 'No Account') {
+                finSaStatusEl.textContent = 'No Account';
+                finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+            } else {
+                finSaStatusEl.textContent = member.savings_status || 'Inactive';
+                finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+            }
+            document.getElementById('fin-savings-link').href = '/dashboard-savings?member=' + member.id;
+
+            // Financials tab — Active Loans
+            document.getElementById('fin-loans-count').textContent = member.active_loans_count || 0;
+            const loansBody = document.getElementById('fin-loans-body');
+            if (member.active_loans && member.active_loans.length > 0) {
+                loansBody.innerHTML = member.active_loans.map(l => `
+                    <tr class="border-t border-slate-100 hover:bg-slate-50">
+                        <td class="px-4 py-3 text-xs font-mono font-bold text-indigo-600">${l.reference_no || 'N/A'}</td>
+                        <td class="px-4 py-3 text-xs font-semibold text-slate-800">${l.lending_type || 'N/A'}</td>
+                        <td class="px-4 py-3 text-xs font-mono font-bold text-slate-800 text-right">₱${(l.lending_amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+                        <td class="px-4 py-3 text-xs font-mono font-semibold text-slate-600 text-right">₱${(l.monthly_payment || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+                        <td class="px-4 py-3 text-xs font-mono font-bold text-amber-600 text-right">₱${(l.total_payment || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `).join('');
+            } else {
+                loansBody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No active loans</p></td></tr>';
+            }
+
+            document.getElementById('detail-role').value = member.role || 'member';
+
+            // Reset to Overview tab
+            switchMemberTab('overview');
+            filterBalanceCards('all');
+
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
-            
+
             openModal('memberDetailModal');
-            
-            // Store member ID for save button
             window.currentMemberId = member.id;
+        }
+
+        function switchMemberTab(tabName) {
+            document.querySelectorAll('.member-tab-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.member-tab-btn').forEach(b => {
+                b.classList.remove('border-indigo-600', 'text-indigo-600', 'bg-white');
+                b.classList.add('border-transparent', 'text-slate-400');
+            });
+            const panel = document.getElementById('tab-' + tabName);
+            if (panel) panel.classList.remove('hidden');
+            const btn = document.querySelector('.member-tab-btn[data-tab="' + tabName + '"]');
+            if (btn) {
+                btn.classList.add('border-indigo-600', 'text-indigo-600', 'bg-white');
+                btn.classList.remove('border-transparent', 'text-slate-400');
+            }
+        }
+
+        function filterBalanceCards(filter) {
+            const shareCard = document.getElementById('balance-card-share');
+            const savingsCard = document.getElementById('balance-card-savings');
+            shareCard.style.display = (filter === 'all' || filter === 'share') ? '' : 'none';
+            savingsCard.style.display = (filter === 'all' || filter === 'savings') ? '' : 'none';
+            document.querySelectorAll('.balance-filter-pill').forEach(pill => {
+                if (pill.dataset.filter === filter) {
+                    pill.classList.add('bg-slate-900', 'text-white');
+                    pill.classList.remove('text-slate-500');
+                } else {
+                    pill.classList.remove('bg-slate-900', 'text-white');
+                    pill.classList.add('text-slate-500');
+                }
+            });
+        }
+
+        function copyToClipboard(element) {
+            const text = element.textContent || element.innerText;
+            if (!text || text === '--' || text === 'N/A' || text === 'Not provided') return;
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 z-[99999] px-3 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl shadow-lg';
+                toast.textContent = 'Copied!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 1500);
+            });
         }
         
         document.getElementById('detail-save-btn').addEventListener('click', function() {

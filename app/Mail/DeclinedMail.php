@@ -20,7 +20,7 @@ class DeclinedMail extends Mailable
     public function build()
     {
         return $this->subject('Cooperative Membership Application Declined')
-                    ->from('your@email.com', 'Kingsland Pala-Pala Cooperative')
-                    ->view('emails.declined');
+            ->from('your@email.com', 'Kingsland Pala-Pala Cooperative')
+            ->view('emails.declined');
     }
 }

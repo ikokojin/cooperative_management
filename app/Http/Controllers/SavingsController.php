@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
+use App\Models\lending_repayments_tbl;
+use App\Models\savings_account_tbl;
+use App\Models\savings_transaction_tbl;
+use App\Models\SavingsInterestSetting;
+use App\Models\share_capital_account_tbl;
+use App\Models\share_capital_transaction_tbl;
+use App\Models\Users_tbl;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\savings_account_tbl;
-use App\Models\savings_transaction_tbl;
-use App\Models\share_capital_account_tbl;
-use App\Models\share_capital_transaction_tbl;
-use App\Models\TimeDeposit;
-use App\Models\Users_tbl;
-use App\Models\AuditLog;
-use Carbon\Carbon;
-use Illuminate\Validation\Rule;
 
 class SavingsController extends Controller
 {
@@ -54,7 +54,7 @@ class SavingsController extends Controller
         // Get or create savings account
         $savingsAccount = savings_account_tbl::where('user_id', $user->id)->first();
 
-        if (!$savingsAccount) {
+        if (! $savingsAccount) {
             $savingsAccount = savings_account_tbl::create([
                 'user_id' => $user->id,
                 'balance' => 0.00,
@@ -63,54 +63,49 @@ class SavingsController extends Controller
             ]);
         }
 
-        // ── Savings Breakdown: three independent buckets that sum to Total Savings Balance ──
-        $activeTd = TimeDeposit::where('savings_account_id', $savingsAccount->id)
-            ->where('status', 'active')
-            ->latest('opened_at')
-            ->first();
-
+        // ── Savings Balance ──
         $regularSavingsBalance = $this->computeSavingsBalance($savingsAccount->id);
-        $timeDepositBalance = (float) ($activeTd->balance ?? 0);
-        $interestAccruedBalance = (float) ($activeTd->interest_accrued_balance ?? 0);
+        $totalSavingsBalance = $regularSavingsBalance;
 
-        $totalSavingsBalance = $regularSavingsBalance + $timeDepositBalance + $interestAccruedBalance;
+        // Regular Savings rate + frequency — from the new interest settings table
+        $sirSettings = \App\Models\SavingsInterestSetting::getOrCreate();
+        $regularSavingsRate = (float) $sirSettings->annual_rate;
+        $regularSavingsFrequency = $sirSettings->frequency_label;
 
-        $regularSavingsPercent = $totalSavingsBalance > 0
-            ? round(($regularSavingsBalance / $totalSavingsBalance) * 100, 1)
-            : 0;
-        $timeDepositPercent = $totalSavingsBalance > 0
-            ? round(($timeDepositBalance / $totalSavingsBalance) * 100, 1)
-            : 0;
-        $interestAccruedPercent = $totalSavingsBalance > 0
-            ? round(($interestAccruedBalance / $totalSavingsBalance) * 100, 1)
-            : 0;
-
-        // Regular Savings rate + crediting frequency — pulled live from settings (not locked in, can change any time)
-        $regularSavingsSetting = \App\Models\Savings_settings_tbl::where('savings_type', 'Regular Savings')->first();
-        $regularSavingsRate = $regularSavingsSetting->interest_rate ?? 4.00;
-        $regularSavingsFrequency = $regularSavingsSetting->crediting_frequency ?? 'Monthly';
-
-        // Estimated interest accrued this quarter, prorated by days elapsed.
+        // Estimated interest accrued this period, prorated by days elapsed.
         // Actual crediting happens via the scheduled SavingsInterestService job.
-        $quarterStartMonth = (intdiv(Carbon::now()->month - 1, 3)) * 3 + 1;
-        $quarterStart = Carbon::create(Carbon::now()->year, $quarterStartMonth, 1)->startOfDay();
-        $daysElapsedInQuarter = $quarterStart->diffInDays(Carbon::now()) + 1;
+        $frequencyDivisor = $sirSettings->frequency_divisor;
+        $periodRate = $regularSavingsRate / 100 / $frequencyDivisor;
+
+        // Estimate how far into the current period we are (prorate fraction)
+        $now = Carbon::now();
+        $periodFraction = match ($sirSettings->release_frequency) {
+            'monthly' => $now->day / $now->daysInMonth,
+            'quarterly' => $daysElapsedInQuarter = Carbon::create($now->year, ((intdiv($now->month - 1, 3)) * 3) + 1, 1)->diffInDays($now) + 1,
+            'semi-annual' => $halfStartMonth = $now->month < 7 ? 1 : 7,
+            default => 1,
+        };
+        if ($sirSettings->release_frequency === 'semi-annual') {
+            $halfStart = Carbon::create($now->year, $halfStartMonth, 1)->startOfDay();
+            $periodFraction = $halfStart->diffInDays($now) + 1;
+            $periodDays = 182;
+            $periodFraction = $periodFraction / $periodDays;
+        } elseif ($sirSettings->release_frequency === 'annual') {
+            $periodFraction = $now->dayOfYear / 365;
+        } elseif ($sirSettings->release_frequency === 'monthly') {
+            $periodFraction = $now->day / $now->daysInMonth;
+        } else {
+            // quarterly
+            $qStartMonth = ((intdiv($now->month - 1, 3)) * 3) + 1;
+            $qStart = Carbon::create($now->year, $qStartMonth, 1)->startOfDay();
+            $qDays = $qStart->diffInDays($qStart->copy()->addMonths(3)->subDay()) + 1;
+            $periodFraction = ($qStart->diffInDays($now) + 1) / $qDays;
+        }
 
         $estimatedQuarterInterest = round(
-            $regularSavingsBalance * ($regularSavingsRate / 100) * ($daysElapsedInQuarter / 365),
+            $regularSavingsBalance * $periodRate * $periodFraction,
             2
         );
-
-
-        // Time Deposit display info — only meaningful once a TD is actually opened
-        $hasActiveTimeDeposit = $activeTd && (float) ($activeTd->goal_amount ?? 0) > 0;
-        $timeDepositRate = $activeTd->interest_rate ?? null;
-        $timeDepositMaturity = $activeTd && $activeTd->maturity_date
-            ? Carbon::parse($activeTd->maturity_date)->format('M d, Y')
-            : null;
-
-        $tdMaturityDate = $activeTd && $activeTd->maturity_date ? Carbon::parse($activeTd->maturity_date) : null;
-        $tdMatured = $hasActiveTimeDeposit && $tdMaturityDate && $tdMaturityDate->lte(Carbon::today());
 
         // List of years the member actually has transactions in (always includes current year)
         $availableGrowthYears = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
@@ -126,26 +121,27 @@ class SavingsController extends Controller
         if ($isCurrentYear) {
             // Rolling last 6 months ending this month
             $growthStart = Carbon::now()->startOfMonth()->subMonths(5);
-            $growthMonths = collect(range(5, 0))->map(fn($i) => Carbon::now()->subMonths($i));
+            $growthMonths = collect(range(5, 0))->map(fn ($i) => Carbon::now()->subMonths($i));
         } else {
             // Full calendar year Jan–Dec of the selected year
             $growthStart = Carbon::createFromDate($growthYear, 1, 1)->startOfMonth();
-            $growthMonths = collect(range(0, 11))->map(fn($i) => Carbon::createFromDate($growthYear, 1, 1)->addMonths($i));
+            $growthMonths = collect(range(0, 11))->map(fn ($i) => Carbon::createFromDate($growthYear, 1, 1)->addMonths($i));
         }
 
         $growthTxs = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
             ->where('transaction_date', '>=', $growthStart)
-            ->when(!$isCurrentYear, fn($q) => $q->whereYear('transaction_date', $growthYear))
+            ->when(! $isCurrentYear, fn ($q) => $q->whereYear('transaction_date', $growthYear))
             ->whereIn('type', ['deposit', 'withdrawal'])
+            ->whereRaw('LOWER(status) = ?', ['completed'])
             ->get()
-            ->groupBy(fn($tx) => Carbon::parse($tx->transaction_date)->format('Y-m'));
+            ->groupBy(fn ($tx) => Carbon::parse($tx->transaction_date)->format('Y-m'));
 
         $savingsGrowth = collect();
         foreach ($growthMonths as $month) {
             $key = $month->format('Y-m');
             $monthTxs = $growthTxs->get($key, collect());
 
-            $net = $monthTxs->sum(fn($tx) => $tx->type === 'deposit' ? (float) $tx->amount : -(float) $tx->amount);
+            $net = $monthTxs->sum(fn ($tx) => $tx->type === 'deposit' ? (float) $tx->amount : -(float) $tx->amount);
 
             $savingsGrowth->push([
                 'label' => $month->format('M'),
@@ -154,39 +150,15 @@ class SavingsController extends Controller
             ]);
         }
 
-        $maxGrowth = $savingsGrowth->max(fn($m) => max($m['net'], 0)) ?: 1;
+        $maxGrowth = $savingsGrowth->max(fn ($m) => max($m['net'], 0)) ?: 1;
 
         $savingsGrowth = $savingsGrowth->map(function ($m) use ($maxGrowth) {
             $m['height_percent'] = $m['net'] > 0
                 ? max(6, round(($m['net'] / $maxGrowth) * 78))
                 : 4;
+
             return $m;
         });
-
-        $tdHistory = TimeDeposit::where('savings_account_id', $savingsAccount->id)
-            ->orderByRaw("CASE WHEN status = 'claimed' THEN 1 ELSE 0 END")
-            ->orderBy('opened_at')
-            ->orderBy('created_at')
-            ->get()
-            ->map(function ($td) {
-                $isMatured = Carbon::parse($td->maturity_date)->lte(Carbon::today());
-                $isFullyFunded = (float) $td->balance >= (float) $td->goal_amount && (float) $td->goal_amount > 0;
-
-                if ($td->status === 'claimed') {
-                    $td->display_status = 'completed';
-                } elseif ($td->status === 'active' && $isMatured) {
-                    $td->display_status = 'matured';
-                } elseif ($td->status === 'active' && $isFullyFunded) {
-                    $td->display_status = 'goal_reached';
-                } else {
-                    $td->display_status = 'in_progress';
-                }
-
-                $td->display_balance = $td->status === 'claimed'
-                    ? (float) ($td->claimed_amount ?? 0)
-                    : (float) $td->balance;
-                return $td;
-            });
 
         $hasShareCapital = \Illuminate\Support\Facades\DB::table('share_capital_account_tbls')
             ->where('user_id', $user->id)
@@ -207,17 +179,17 @@ class SavingsController extends Controller
         $type = $request->query('type', 'all');
 
         $transactionsQuery = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
-            ->whereIn('type', ['deposit', 'withdrawal', 'td_release', ShareCapital::CONVERSION_TYPE]) // ★ CHANGED: td_release (TD claims) and savings→share capital conversions shown here too
+            ->whereIn('type', ['deposit', 'withdrawal', ShareCapital::CONVERSION_TYPE])
             ->orderBy('transaction_date', 'desc')
             ->orderBy('created_at', 'desc');
 
-        if (in_array($type, ['deposit', 'withdrawal', 'td_release'])) {
+        if (in_array($type, ['deposit', 'withdrawal'])) {
             $transactionsQuery->where('type', $type);
         }
 
         // ★ NEW: filter by reference no.
         if ($ref !== '') {
-            $transactionsQuery->where('reference_no', 'like', '%' . $ref . '%');
+            $transactionsQuery->where('reference_no', 'like', '%'.$ref.'%');
         }
 
         // ★ NEW: filter by specific date
@@ -251,9 +223,9 @@ class SavingsController extends Controller
         $availableStatuses = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
             ->whereNotNull('status')
             ->pluck('status')
-            ->map(fn($s) => ucfirst($s))
+            ->map(fn ($s) => ucfirst($s))
             ->unique()
-            ->sortBy(fn($s) => strtolower($s))
+            ->sortBy(fn ($s) => strtolower($s))
             ->values();
 
         // The QR the admin uploaded in Settings → Payment Methods Management
@@ -261,11 +233,13 @@ class SavingsController extends Controller
             ->where('is_active', true)
             ->first();
 
+        $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->orderBy('id')->get();
+
         return view(
             'members_components.savings',
             [
-                "username" => $username,
-                "email" => $email
+                'username' => $username,
+                'email' => $email,
             ],
             compact(
                 'savingsAccount',
@@ -283,392 +257,15 @@ class SavingsController extends Controller
                 'monthsActive',
                 'hasShareCapital',
                 'regularSavingsBalance',
-                'timeDepositBalance',
-                'interestAccruedBalance',
                 'totalSavingsBalance',
-                'regularSavingsPercent',
-                'timeDepositPercent',
-                'interestAccruedPercent',
                 'regularSavingsRate',
                 'regularSavingsFrequency',
-                'hasActiveTimeDeposit',
-                'timeDepositRate',
-                'timeDepositMaturity',
-                'tdMatured',
-                'tdHistory',
                 'savingsGrowth',
                 'estimatedQuarterInterest',
-                'gcashPaymentMethod'
+                'gcashPaymentMethod',
+                'paymentMethods'
             )
         );
-    }
-
-    public function TimeDeposit()
-    {
-        $user = Auth::user();
-        $username = Auth::check() ? Auth::user()->username : null;
-        $email = Auth::check() ? Auth::user()->email : null;
-
-        // ★ NEW: search/date/status filters for TD transaction history
-        $tdRef = trim((string) request()->query('td_ref', ''));
-        $tdDate = request()->query('td_date', '');
-        $tdStatus = strtolower(trim((string) request()->query('td_status', 'all')));
-
-        $savingsAccount = savings_account_tbl::where('user_id', $user->id)->first();
-
-        if (!$savingsAccount) {
-            $savingsAccount = savings_account_tbl::create([
-                'user_id' => $user->id,
-                'balance' => 0.00,
-                'status' => 'active',
-                'opened_at' => Carbon::today(),
-            ]);
-        }
-
-        $activeTd = TimeDeposit::where('savings_account_id', $savingsAccount->id)
-            ->where('status', 'active')
-            ->latest('opened_at')
-            ->first();
-
-        $regularSavingsBalance = (float) $savingsAccount->balance;
-        $tdBalance = (float) ($activeTd->balance ?? 0);
-        $tdGoalAmount = (float) ($activeTd->goal_amount ?? 0);
-        $tdRemaining = max(0, $tdGoalAmount - $tdBalance);
-        $hasActiveTimeDeposit = (bool) $activeTd && $tdGoalAmount > 0;
-        $tdRate = (float) ($activeTd->interest_rate ?? 0);
-        $tdTermMonths = (int) ($activeTd->term_months ?? 0);
-        $tdOpenedAt = $activeTd && $activeTd->opened_at ? Carbon::parse($activeTd->opened_at) : null;
-        $tdMaturityDate = $activeTd && $activeTd->maturity_date ? Carbon::parse($activeTd->maturity_date) : null;
-        $tdReferenceNo = $activeTd->reference_no ?? null;
-
-        $tdMatured = $hasActiveTimeDeposit && $tdMaturityDate && $tdMaturityDate->lte(Carbon::today());
-
-        // Goal progress — % of the TARGET amount that's been deposited so far
-        $goalProgressPercent = $tdGoalAmount > 0
-            ? min(100, (int) round(($tdBalance / $tdGoalAmount) * 100))
-            : 0;
-
-        $goalReached = $tdGoalAmount > 0 && $tdBalance >= $tdGoalAmount;
-
-        // Time-based stats (days to maturity, interest projection) — still tracked separately from goal progress
-        $daysToGo = 0;
-        $interestEarnedSoFar = 0.0;
-        $fullTermInterest = 0.0;
-        $projectedMaturityValue = 0.0;
-
-        if ($hasActiveTimeDeposit && $tdOpenedAt && $tdMaturityDate) {
-            $totalTermDays = max(1, $tdOpenedAt->diffInDays($tdMaturityDate));
-            $elapsedDays = min($totalTermDays, $tdOpenedAt->diffInDays(Carbon::today()));
-
-            $daysToGo = $tdMatured ? 0 : (int) Carbon::today()->diffInDays($tdMaturityDate);
-
-            $fullTermInterest = round($tdBalance * ($tdRate / 100) * ($tdTermMonths / 12), 2);
-            $interestEarnedSoFar = $tdMatured
-                ? $fullTermInterest
-                : round($fullTermInterest * ($elapsedDays / $totalTermDays), 2);
-            $projectedMaturityValue = $tdBalance + $fullTermInterest;
-        }
-
-        // ── Time-Deposit-specific transaction history (goal deposits + release/claim) ──
-        $tdTransactionsQuery = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
-            ->whereIn('type', ['td_open', 'td_lock', 'td_release'])
-            ->orderBy('transaction_date', 'desc')
-            ->orderBy('created_at', 'desc');
-
-        if ($tdRef !== '') {
-            $tdTransactionsQuery->where('reference_no', 'like', '%' . $tdRef . '%');
-        }
-
-        if ($tdDate !== '') {
-            $tdTransactionsQuery->whereDate('transaction_date', $tdDate);
-        }
-
-        if ($tdStatus !== 'all') {
-            $tdTransactionsQuery->where('status', $tdStatus);
-        }
-
-        $tdTransactions = $tdTransactionsQuery->paginate(10, ['*'], 'td_page')->withQueryString();
-
-        $availableTdStatuses = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
-            ->whereIn('type', ['td_open', 'td_lock', 'td_release'])
-            ->whereNotNull('status')
-            ->pluck('status')
-            ->map(fn($s) => ucfirst($s))
-            ->unique()
-            ->sortBy(fn($s) => strtolower($s))
-            ->values();
-
-        // ── Notifications feed ──
-        $notifications = collect();
-
-        if ($tdMatured) {
-            $notifications->push([
-                'icon' => 'fa-circle-check',
-                'color' => 'green',
-                'title' => 'Time Deposit matured',
-                'message' => 'Your Time Deposit matured on ' . $tdMaturityDate->format('M d, Y')
-                    . '. Claim it to move your balance + interest back to Regular Savings.',
-                'time' => null,
-            ]);
-        } elseif ($hasActiveTimeDeposit && $goalReached) {
-            $notifications->push([
-                'icon' => 'fa-bullseye',
-                'color' => 'green',
-                'title' => 'Goal reached!',
-                'message' => 'You\'ve fully funded your ₱' . number_format($tdGoalAmount, 2)
-                    . ' goal. It will mature on ' . $tdMaturityDate->format('M d, Y') . '.',
-                'time' => null,
-            ]);
-        } elseif ($hasActiveTimeDeposit && $daysToGo <= 30) {
-            $notifications->push([
-                'icon' => 'fa-calendar-days',
-                'color' => 'gold',
-                'title' => 'Maturity coming up',
-                'message' => 'Your Time Deposit matures in ' . $daysToGo . ' day' . ($daysToGo === 1 ? '' : 's')
-                    . ', on ' . $tdMaturityDate->format('M d, Y') . '.',
-                'time' => null,
-            ]);
-        }
-
-        $recentTdActivity = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
-            ->whereIn('type', ['td_open', 'td_lock', 'td_release'])
-            ->orderBy('transaction_date', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
-
-        foreach ($recentTdActivity as $tx) {
-            if ($tx->type === 'td_open') {
-                $icon = 'fa-bullseye';
-                $color = 'blue';
-                $title = 'Time Deposit opened';
-            } elseif ($tx->type === 'td_lock') {
-                $icon = 'fa-piggy-bank';
-                $color = 'blue';
-                $title = 'Deposited toward goal';
-            } else {
-                $icon = 'fa-hand-holding-dollar';
-                $color = 'green';
-                $title = 'Time Deposit claimed';
-            }
-
-            $notifications->push([
-                'icon' => $icon,
-                'color' => $color,
-                'title' => $title,
-                'message' => $tx->note ?? 'Time Deposit activity.',
-                'time' => Carbon::parse($tx->created_at)->diffForHumans(),
-            ]);
-        }
-
-        return view(
-            "members_components.savings_time_deposit",
-            [
-                "username" => $username,
-                "email" => $email,
-            ],
-            compact(
-                'savingsAccount',
-                'regularSavingsBalance',
-                'tdBalance',
-                'tdGoalAmount',
-                'tdRemaining',
-                'goalProgressPercent',
-                'goalReached',
-                'hasActiveTimeDeposit',
-                'tdRate',
-                'tdTermMonths',
-                'tdOpenedAt',
-                'tdMaturityDate',
-                'tdReferenceNo',
-                'tdMatured',
-                'daysToGo',
-                'interestEarnedSoFar',
-                'projectedMaturityValue',
-                'tdTransactions',
-                'tdRef',
-                'tdDate',
-                'tdStatus',
-                'availableTdStatuses',
-                'notifications'
-            )
-        );
-    }
-
-    public function adminCreditInterest(Request $request, \App\Services\SavingsInterestService $service)
-    {
-        $results = $service->creditForAllAccounts(force: (bool) $request->boolean('force'));
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Credited interest to ' . count($results) . ' account(s).',
-            'credited' => $results,
-        ]);
-    }
-
-    /**
-     * Deposit funds directly toward an active Time Deposit's goal.
-     * Independent of Regular Savings balance — the member can deposit
-     * whatever amount they want (e.g. cash/GCash), same as a Savings deposit.
-     */
-    public function depositToTimeDeposit(Request $request)
-    {
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-        ]);
-
-        $user = Auth::user();
-        $savingsAccount = savings_account_tbl::where('user_id', $user->id)->firstOrFail();
-
-        $activeTd = TimeDeposit::where('savings_account_id', $savingsAccount->id)
-            ->where('status', 'active')
-            ->latest('opened_at')
-            ->first();
-
-        if (!$activeTd) {
-            return back()->withErrors(['td_amount' => "You don't have an active Time Deposit goal to deposit into."]);
-        }
-
-        $goal = (float) $activeTd->goal_amount;
-        if ($goal <= 0) {
-            return back()->withErrors(['td_amount' => 'Your Time Deposit goal is not properly set. Please open a new Time Deposit.']);
-        }
-
-        $maturityDate = $activeTd->maturity_date ? Carbon::parse($activeTd->maturity_date) : null;
-        if ($maturityDate && $maturityDate->lte(Carbon::today())) {
-            return back()->withErrors(['td_amount' => 'This Time Deposit has already matured. Claim it before depositing further.']);
-        }
-
-        $current = (float) $activeTd->balance;
-        $remaining = max(0, $goal - $current);
-
-        if ($remaining <= 0) {
-            return back()->withErrors(['td_amount' => 'You\'ve already reached your Time Deposit goal.']);
-        }
-
-        if ($request->amount > $remaining) {
-            return back()->withErrors(['td_amount' => 'Amount exceeds the remaining goal balance of ₱' . number_format($remaining, 2)]);
-        }
-
-        // ★ CHANGED: No longer sourced from Regular Savings — this is a fresh,
-        // independent deposit straight into the Time Deposit, just like a
-        // Savings deposit. Regular Savings balance is untouched.
-        $newTdBalance = $current + $request->amount;
-        $referenceNo = 'TD-DEP-' . strtoupper(bin2hex(random_bytes(3))) . '-' . Carbon::today()->format('Ymd');
-
-        $activeTd->update(['balance' => $newTdBalance]);
-
-        savings_transaction_tbl::create([
-            'savings_account_id' => $savingsAccount->id,
-            'type' => 'td_lock',
-            'amount' => $request->amount,
-            'payment_method' => 'Cash', // ★ CHANGED: no longer "Internal Transfer" since no savings funds move
-            'balance_after' => $savingsAccount->balance, // ★ CHANGED: savings balance unaffected
-            'note' => "Deposited ₱" . number_format($request->amount, 2)
-                . " toward Time Deposit goal (₱" . number_format($newTdBalance, 2) . " / ₱" . number_format($goal, 2) . ")",
-            'reference_no' => $referenceNo,
-            'transaction_date' => Carbon::today(),
-            'status' => 'Completed',
-        ]);
-
-        AuditLog::log(
-            'Member Deposited to Time Deposit',
-            "Deposited ₱{$request->amount} toward Time Deposit goal (Ref: {$referenceNo})",
-            'savings',
-            $savingsAccount->id
-        );
-
-        return redirect()->route('TimeDeposit')
-            ->with('td_deposit_success', true)
-            ->with('td_deposit_amount', $request->amount)
-            ->with('td_deposit_reference', $referenceNo)
-            ->with('td_new_balance', $newTdBalance);
-    }
-
-    /**
-     * Open a Time Deposit — locks funds out of Regular Savings into td_balance.
-     * Only one active TD per account (matches your current schema).
-     */
-    public function openTimeDeposit(Request $request)
-    {
-        $request->validate([
-            'term_months' => 'required|integer|in:12',
-            'amount' => 'required|numeric|min:1000',
-        ]);
-
-        $user = Auth::user();
-        $savingsAccount = savings_account_tbl::where('user_id', $user->id)->firstOrFail();
-
-        // ★ CHANGED: only block if there's a genuinely active TD (status + real goal)
-        $hasGenuineActiveTd = TimeDeposit::where('savings_account_id', $savingsAccount->id)
-            ->where('status', 'active')
-            ->exists();
-
-        if ($hasGenuineActiveTd) {
-            return back()->withErrors(['amount' => 'You already have an active Time Deposit. Wait for it to mature before opening another.']);
-        }
-
-        $setting = \App\Models\Savings_settings_tbl::where('term_months', $request->term_months)
-            ->where('savings_type', 'like', 'Time Deposit%')
-            ->where('is_active', true)
-            ->first();
-
-        if (!$setting) {
-            return back()->withErrors(['amount' => 'That Time Deposit term is not currently available.']);
-        }
-
-        if ($request->amount < $setting->min_amount) {
-            return back()->withErrors(['amount' => 'Minimum goal amount for this term is ₱' . number_format($setting->min_amount, 2)]);
-        }
-
-        if ($request->amount <= 0) {
-            return back()->withErrors(['amount' => 'Invalid goal amount.']);
-        }
-
-        $referenceNo = 'TD-' . strtoupper(bin2hex(random_bytes(3))) . '-' . Carbon::today()->format('Ymd');
-        $maturityDate = Carbon::today()->addMonths((int) $request->term_months);
-
-        // ★ No funds move here — this only sets the goal and starts the term.
-        // ★ No funds move here — this only sets the goal and starts the term.
-
-        // ★ Keep a permanent history record alongside the live snapshot above
-        TimeDeposit::create([
-            'savings_account_id' => $savingsAccount->id,
-            'goal_amount' => $request->amount,
-            'balance' => 0,
-            'interest_rate' => $setting->interest_rate,
-            'term_months' => (int) $request->term_months,
-            'opened_at' => Carbon::today(),
-            'maturity_date' => $maturityDate,
-            'status' => 'active',
-            'reference_no' => $referenceNo,
-        ]);
-
-        savings_transaction_tbl::create([
-            'savings_account_id' => $savingsAccount->id,
-            'type' => 'td_open',
-            'amount' => $request->amount,
-            'payment_method' => 'Internal Transfer',
-            'balance_after' => $savingsAccount->balance, // no funds move on open
-            'note' => "Opened Time Deposit goal of ₱" . number_format($request->amount, 2)
-                . ", {$request->term_months}-month term, matures " . $maturityDate->format('M d, Y'),
-            'reference_no' => $referenceNo,
-            'transaction_date' => Carbon::today(),
-            'status' => 'completed',   // ← changed from 'active'
-        ]);
-
-        AuditLog::log(
-            'Member Opened Time Deposit Goal',
-            "Set a ₱{$request->amount} Time Deposit goal, {$request->term_months}-month term (Ref: {$referenceNo})",
-            'savings',
-            $savingsAccount->id
-        );
-
-        return redirect()->route('TimeDeposit')
-            ->with('td_success', true)
-            ->with('td_goal', $request->amount)
-            ->with('td_maturity', $maturityDate->format('M d, Y'))
-            ->with('td_reference', $referenceNo);
     }
 
     /**
@@ -677,12 +274,27 @@ class SavingsController extends Controller
     public function deposit(Request $request)
     {
 
-        $request->validate([
+        $activeMethods = \App\Models\PaymentMethod::where('is_active', true)
+            ->pluck('method_name')
+            ->map(fn ($m) => strtolower(trim($m)))
+            ->toArray();
+
+        $hasQr = \App\Models\PaymentMethod::where('method_name', $request->payment_method)
+            ->where('has_qr_code', true)
+            ->exists();
+
+        $rules = [
             'amount' => 'required|numeric|min:1',
             'note' => 'nullable|string|max:255',
-            'payment_method' => 'required|string|in:cash,gcash',
-            'gcash_proof' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
-        ]);
+            'payment_method' => ['required', 'string', \Illuminate\Validation\Rule::in($activeMethods)],
+        ];
+
+        if ($hasQr) {
+            $rules['gcash_proof'] = 'required|image|mimes:jpg,jpeg,png|max:5120';
+            $rules['gcash_reference_no'] = 'required|string|size:13';
+        }
+
+        $request->validate($rules);
 
         $gcashProofPath = $request->hasFile('gcash_proof')
             ? $request->file('gcash_proof')->store('documents/gcash_proofs', 'public')
@@ -696,29 +308,48 @@ class SavingsController extends Controller
         $hasShareCapital = false;
 
         if ($scAccount) {
-            [, $currentShares] = (new ShareCapital())->computeBalanceAndShares($scAccount);
+            [, $currentShares] = (new ShareCapital)->computeBalanceAndShares($scAccount);
             $hasShareCapital = $currentShares > 0;
         }
 
-        if (!$hasShareCapital) {
+        if (! $hasShareCapital) {
             return redirect()->route('Financial', ['tab' => 'savings'])
                 ->with('error', 'You must have an active Share Capital account before you can deposit or withdraw savings.');
         }
 
+        if ($hasQr && $request->gcash_reference_no) {
+            $refExists = savings_transaction_tbl::where('gcash_reference_no', $request->gcash_reference_no)
+                    ->where('status', '!=', 'voided')
+                    ->exists()
+                || share_capital_transaction_tbl::where('gcash_reference_no', $request->gcash_reference_no)
+                    ->where('status', '!=', 'voided')
+                    ->exists()
+                || lending_repayments_tbl::where('gcash_reference_no', $request->gcash_reference_no)
+                    ->where('status', '!=', 'voided')
+                    ->exists();
+            if ($refExists) {
+                return redirect()->route('Financial', ['tab' => 'savings'])
+                    ->with('error', 'This reference number has already been used for a transaction.');
+            }
+        }
+
         // Balance is NOT touched here — it only changes once an admin approves this
-// transaction. balance_after reflects the current (unchanged) balance so
-// the receipt/history row is accurate while the request is still pending.
+        // transaction. balance_after reflects the current (unchanged) balance so
+        // the receipt/history row is accurate while the request is still pending.
         savings_transaction_tbl::create([
             'savings_account_id' => $savingsAccount->id,
             'type' => 'deposit',
             'amount' => $request->amount,
             'payment_method' => $request->payment_method,
+            'gcash_number' => $request->gcash_number,
+            'gcash_reference_no' => $hasQr ? $request->gcash_reference_no : null,
             'gcash_proof_path' => $gcashProofPath,
             'balance_after' => $savingsAccount->balance,
             'note' => $request->note,
             'reference_no' => $referenceNo,
             'transaction_date' => Carbon::today(),
             'status' => 'pending',
+            'created_by' => Auth::id(),
         ]);
 
         AuditLog::log(
@@ -728,12 +359,17 @@ class SavingsController extends Controller
             $savingsAccount->id
         );
 
+        $memberUser = Auth::user();
+        $memberName = trim(($memberUser->first_name ?? '').' '.($memberUser->last_name ?? '')) ?: 'Member';
+
         return redirect()->route('Financial', ['tab' => 'savings'])
             ->with('deposit_success', true)
             ->with('deposit_amount', $request->amount)
             ->with('deposit_reference', $referenceNo)
             ->with('deposit_balance', $savingsAccount->balance)
-            ->with('deposit_pending', true);
+            ->with('deposit_pending', true)
+            ->with('deposit_member', $memberName)
+            ->with('deposit_method', ucfirst($request->payment_method));
     }
 
     /**
@@ -744,13 +380,8 @@ class SavingsController extends Controller
         $request->validate([
             'amount' => 'required|numeric|min:1',
             'note' => 'nullable|string|max:255',
-            'payment_method' => 'required|string|in:cash,gcash',
-            'gcash_proof' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'gcash_number' => 'required|string|max:20',
         ]);
-
-        $gcashProofPath = $request->hasFile('gcash_proof')
-            ? $request->file('gcash_proof')->store('documents/gcash_proofs', 'public')
-            : null;
 
         $user = Auth::user();
         $savingsAccount = savings_account_tbl::where('user_id', $user->id)->firstOrFail();
@@ -759,11 +390,11 @@ class SavingsController extends Controller
         $hasShareCapital = false;
 
         if ($scAccount) {
-            [, $currentShares] = (new ShareCapital())->computeBalanceAndShares($scAccount);
+            [, $currentShares] = (new ShareCapital)->computeBalanceAndShares($scAccount);
             $hasShareCapital = $currentShares > 0;
         }
 
-        if (!$hasShareCapital) {
+        if (! $hasShareCapital) {
             return redirect()->route('Financial', ['tab' => 'savings'])
                 ->with('error', 'You must have an active Share Capital account before you can deposit or withdraw savings.');
         }
@@ -771,43 +402,47 @@ class SavingsController extends Controller
         $availableBalance = $this->computeSavingsBalance($savingsAccount->id);
 
         if ($request->amount > $availableBalance) {
-            return back()->withErrors(['amount' => 'Insufficient balance. Available: ₱ ' . number_format($availableBalance, 2)]);
+            return back()->withErrors(['amount' => 'Insufficient balance. Available: ₱ '.number_format($availableBalance, 2)]);
         }
 
         $referenceNo = $this->generateReferenceNo('withdrawal');
 
-        // Balance is NOT deducted here — only once an admin approves the request.
         savings_transaction_tbl::create([
             'savings_account_id' => $savingsAccount->id,
             'type' => 'withdrawal',
             'amount' => $request->amount,
-            'payment_method' => $request->payment_method,
-            'gcash_proof_path' => $gcashProofPath,
+            'payment_method' => 'gcash',
+            'gcash_number' => $request->gcash_number,
             'balance_after' => $savingsAccount->balance,
             'note' => $request->note,
             'reference_no' => $referenceNo,
             'transaction_date' => Carbon::today(),
             'status' => 'pending',
+            'created_by' => Auth::id(),
         ]);
 
         AuditLog::log(
             'Member Savings Withdrawal Request',
-            "Requested withdrawal of ₱{$request->amount} from savings, pending approval (Ref: {$referenceNo})",
+            "Requested withdrawal of ₱{$request->amount} from savings, pending disbursement via GCash to {$request->gcash_number} (Ref: {$referenceNo})",
             'savings',
             $savingsAccount->id
         );
+
+        $memberName = trim(($user->first_name ?? '').' '.($user->last_name ?? '')) ?: 'Member';
 
         return redirect()->route('Financial', ['tab' => 'savings'])
             ->with('withdraw_success', true)
             ->with('withdraw_amount', $request->amount)
             ->with('withdraw_reference', $referenceNo)
             ->with('withdraw_balance', $savingsAccount->balance)
-            ->with('withdraw_pending', true);
+            ->with('withdraw_pending', true)
+            ->with('withdraw_member', $memberName)
+            ->with('withdraw_method', 'GCash');
     }
 
     public function payViaGcash(Request $request)
     {
-        if (!env('PAYMONGO_SECRET_KEY')) {
+        if (! env('PAYMONGO_SECRET_KEY')) {
             return redirect()->back()->with('error', 'Payment gateway is not configured yet.');
         }
 
@@ -859,12 +494,15 @@ class SavingsController extends Controller
     public function computeSavingsBalance($savingsAccountId): float
     {
         $credits = savings_transaction_tbl::where('savings_account_id', $savingsAccountId)
-            ->where('type', 'deposit')
+            ->whereIn('type', ['deposit', 'interest_credit'])
             ->whereRaw('LOWER(status) = ?', ['completed'])
             ->sum('amount');
 
         $debits = savings_transaction_tbl::where('savings_account_id', $savingsAccountId)
-            ->where('type', 'withdrawal')
+            ->where(function ($q) {
+                $q->where('type', 'withdrawal')
+                  ->orWhere('type', ShareCapital::CONVERSION_TYPE);
+            })
             ->whereRaw('LOWER(status) = ?', ['completed'])
             ->sum('amount');
 
@@ -886,7 +524,7 @@ class SavingsController extends Controller
         // Check if this is admin requesting - find transaction by reference_no
         $tx = savings_transaction_tbl::where('reference_no', $referenceNo)->first();
 
-        if (!$tx) {
+        if (! $tx) {
             // Fall back to member lookup
             $savingsAccount = savings_account_tbl::where('user_id', $user->id)->firstOrFail();
             $tx = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
@@ -894,11 +532,16 @@ class SavingsController extends Controller
                 ->firstOrFail();
         }
 
+        // Receipt is only available for completed transactions
+        if (strtolower($tx->status ?? '') !== 'completed') {
+            abort(403, 'Receipt is only available for completed transactions.');
+        }
+
         // Get user for the transaction
         $savingsAccount = savings_account_tbl::find($tx->savings_account_id);
         $transactionUser = $savingsAccount ? Users_tbl::find($savingsAccount->user_id) : null;
 
-        if (!$transactionUser) {
+        if (! $transactionUser) {
             $transactionUser = $user;
         }
 
@@ -906,7 +549,6 @@ class SavingsController extends Controller
         $typeConfig = [
             'deposit' => ['label' => 'Deposit', 'title' => 'Deposit Successful!', 'color' => 'green'],
             'withdrawal' => ['label' => 'Withdrawal', 'title' => 'Withdrawal Successful!', 'color' => 'red'],
-            'td_lock' => ['label' => 'Time Deposit Lock', 'title' => 'Time Deposit Opened!', 'color' => 'blue'],
             'interest_credit' => ['label' => 'Interest Credit', 'title' => 'Interest Credited!', 'color' => 'blue'],
         ];
 
@@ -914,10 +556,10 @@ class SavingsController extends Controller
         $type = $cfg['label'];
         $date = \Carbon\Carbon::parse($tx->transaction_date)->format('F d, Y');
         $time = \Carbon\Carbon::parse($tx->created_at)->format('h:i A');
-        $amount = 'PHP ' . number_format($tx->amount, 2);
-        $balance = 'PHP ' . number_format($tx->balance_after, 2);
+        $amount = 'PHP '.number_format($tx->amount, 2);
+        $balance = 'PHP '.number_format($tx->balance_after, 2);
         $note = $tx->note ?? 'N/A';
-        $member = $transactionUser->first_name . ' ' . $transactionUser->last_name;
+        $member = $transactionUser->first_name.' '.$transactionUser->last_name;
         $isDeposit = $cfg['color'] === 'green';
 
         // Font paths
@@ -1017,7 +659,7 @@ class SavingsController extends Controller
             imagettftext($img, 9, 0, 50, $y, $muted, $fontRegular, $row[0]);
 
             // Value (right-aligned)
-            $val = strlen($row[1]) > 38 ? substr($row[1], 0, 38) . '...' : $row[1];
+            $val = strlen($row[1]) > 38 ? substr($row[1], 0, 38).'...' : $row[1];
             $bbox = imagettfbbox(9, 0, $fontSemiBold, $val);
             $valW = $bbox[2] - $bbox[0];
             $valX = $w - 50 - $valW;
@@ -1050,7 +692,8 @@ class SavingsController extends Controller
 
         // Check if request is for inline view (for admin modal display)
         if ($request->query('view') === 'inline') {
-            $base64 = 'data:image/jpeg;base64,' . base64_encode($imageData);
+            $base64 = 'data:image/jpeg;base64,'.base64_encode($imageData);
+
             return response()->json(['image' => $base64]);
         }
 
@@ -1069,15 +712,26 @@ class SavingsController extends Controller
             'member_id' => 'required|exists:users_tbls,id',
             'amount' => 'required|numeric|min:1',
             'type' => 'required|string|in:deposit,withdrawal',
-            'payment_method' => ['nullable', 'string', Rule::requiredIf($request->type === 'deposit'), 'in:cash'],
+            'payment_method' => ['nullable', 'string', 'in:cash,gcash'],
+            'gcash_number' => 'nullable|string|max:20',
             'note' => 'nullable|string|max:255',
         ]);
+
+        // Segregation of duties: an Allied Worker may not process their own
+        // member account (self-processing block). Only the GM may do so.
+        if (\App\Services\SoDGuard::actingAsStaff() && ! \App\Services\SoDGuard::isGeneralManager()
+            && (int) Auth::id() === (int) $request->member_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot process a transaction for your own member account (self-processing is blocked).',
+            ], 422);
+        }
 
         // Get member's savings account
         $savingsAccount = savings_account_tbl::where('user_id', $request->member_id)->first();
 
         // If no savings account exists, create one
-        if (!$savingsAccount) {
+        if (! $savingsAccount) {
             $savingsAccount = savings_account_tbl::create([
                 'user_id' => $request->member_id,
                 'balance' => 0,
@@ -1094,10 +748,18 @@ class SavingsController extends Controller
             if ($savingsAccount->balance < $amount) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Insufficient balance. Available: ₱' . number_format($savingsAccount->balance, 2)
+                    'message' => 'Insufficient balance. Available: ₱'.number_format($savingsAccount->balance, 2),
                 ], 422);
             }
             $newBalance = $savingsAccount->balance - $amount;
+
+            $settings = SavingsInterestSetting::getOrCreate();
+            if ($settings->maintaining_balance > 0 && $newBalance < $settings->maintaining_balance) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This withdrawal would bring balance below the maintaining balance of ₱'.number_format($settings->maintaining_balance, 2).'. Minimum required: ₱'.number_format($settings->maintaining_balance, 2),
+                ], 422);
+            }
         } else {
             $newBalance = $savingsAccount->balance + $amount;
         }
@@ -1114,109 +776,30 @@ class SavingsController extends Controller
             'type' => $type,
             'amount' => $amount,
             'payment_method' => $request->payment_method,
+            'gcash_number' => $request->gcash_number,
             'balance_after' => $newBalance,
             'note' => $request->note,
             'reference_no' => $referenceNo,
             'transaction_date' => Carbon::today(),
-            'status' => 'Completed', // ★ NEW
+            'status' => 'Completed',
+            'created_by' => Auth::id(),
+            'approved_by' => Auth::id(),
         ]);
 
         $member = Users_tbl::find($request->member_id);
         AuditLog::log(
-            'Admin ' . ucfirst($type) . ' Savings',
-            ucfirst($type) . " of ₱{$amount} to/from {$member?->first_name} {$member?->last_name} (Ref: {$referenceNo})",
+            'Admin '.ucfirst($type).' Savings',
+            ucfirst($type)." of ₱{$amount} to/from {$member?->first_name} {$member?->last_name} (Ref: {$referenceNo})",
             'savings',
             $savingsAccount->id
         );
 
         return response()->json([
             'success' => true,
-            'message' => ucfirst($type) . ' of ₱' . number_format($amount, 2) . ' successful!',
+            'message' => ucfirst($type).' of ₱'.number_format($amount, 2).' successful!',
             'reference_no' => $referenceNo,
             'new_balance' => $newBalance,
         ]);
-    }
-
-    /**
-     * Member claims a matured Time Deposit — principal + interest goes back to Regular Savings.
-     */
-    public function claimTimeDeposit(Request $request)
-    {
-        $user = Auth::user();
-        $savingsAccount = savings_account_tbl::where('user_id', $user->id)->firstOrFail();
-
-        $activeTd = TimeDeposit::where('savings_account_id', $savingsAccount->id)
-            ->where('status', 'active')
-            ->latest('opened_at')
-            ->first();
-
-        if (!$activeTd) {
-            return back()->withErrors(['td' => "You don't have an active Time Deposit to claim."]);
-        }
-
-        if ((float) $activeTd->goal_amount <= 0 && (float) $activeTd->balance <= 0) {
-            return back()->withErrors(['td' => 'This Time Deposit has no funds to claim.']);
-        }
-
-        $maturityDate = $activeTd->maturity_date ? Carbon::parse($activeTd->maturity_date) : null;
-
-        if (!$maturityDate || $maturityDate->gt(Carbon::today())) {
-            return back()->withErrors([
-                'td' => 'This Time Deposit is not yet matured. It will be available on '
-                    . ($maturityDate ? $maturityDate->format('M d, Y') : 'N/A') . '.'
-            ]);
-        }
-
-        $principal = (float) $activeTd->balance;
-        $rate = (float) $activeTd->interest_rate;
-        $termMonths = (int) $activeTd->term_months;
-
-        // Interest for the full locked term, at the rate snapshotted when the TD was opened
-        $interest = round($principal * ($rate / 100) * ($termMonths / 12), 2);
-        $totalRelease = $principal + $interest;
-
-        $newBalance = $savingsAccount->balance + $totalRelease;
-        $referenceNo = 'TD-CLM-' . strtoupper(bin2hex(random_bytes(3))) . '-' . Carbon::today()->format('Ymd');
-
-        // ★ RESTORED: pay out to Regular Savings and fully reset the TD slot
-        $savingsAccount->update(['balance' => $newBalance]);
-
-        $activeTd->update([
-            'balance' => 0,
-            // ★ NEW: preserve what was actually released, so history/UI can
-            // still show the real payout amount after balance resets to 0.
-            'claimed_amount' => $totalRelease,
-            'claimed_principal' => $principal,
-            'claimed_interest' => $interest,
-            'status' => 'claimed',
-            'claim_reference_no' => $referenceNo,
-            'claimed_at' => Carbon::now(),
-        ]);
-
-        savings_transaction_tbl::create([
-            'savings_account_id' => $savingsAccount->id,
-            'type' => 'td_release',
-            'amount' => $totalRelease,
-            'payment_method' => 'Internal Transfer',
-            'balance_after' => $newBalance,
-            'note' => "Time Deposit matured — principal ₱" . number_format($principal, 2)
-                . " + interest ₱" . number_format($interest, 2),
-            'reference_no' => $referenceNo,
-            'transaction_date' => Carbon::today(),
-            'status' => 'completed',
-        ]);
-
-        AuditLog::log(
-            'Member Claimed Time Deposit',
-            "Claimed matured Time Deposit: principal ₱{$principal} + interest ₱{$interest} = ₱{$totalRelease} (Ref: {$referenceNo})",
-            'savings',
-            $savingsAccount->id
-        );
-
-        return redirect()->route('savings.index')
-            ->with('td_claim_success', true)
-            ->with('td_claim_amount', $totalRelease)
-            ->with('td_claim_reference', $referenceNo);
     }
 
     /**
@@ -1227,6 +810,7 @@ class SavingsController extends Controller
         $savingsAccount = savings_account_tbl::where('user_id', $memberId)->first();
         $balance = $savingsAccount ? $savingsAccount->balance : 0;
         $member = Users_tbl::with('otherinfo')->find($memberId);
+
         return response()->json([
             'balance' => $balance,
             'contact_no' => $member?->otherinfo?->contact_no,
@@ -1240,6 +824,7 @@ class SavingsController extends Controller
     {
         $account = share_capital_account_tbl::where('user_id', $memberId)->first();
         $balance = $account ? $account->total_amount : 0;
+
         return response()->json(['balance' => $balance]);
     }
 
@@ -1265,7 +850,7 @@ class SavingsController extends Controller
 
         $savingsAccount = savings_account_tbl::where('user_id', $memberId)->first();
 
-        if (!$savingsAccount) {
+        if (! $savingsAccount) {
             return response()->json([
                 'success' => false,
                 'message' => 'Member does not have a savings account.',
@@ -1275,7 +860,16 @@ class SavingsController extends Controller
         if ($amount > $savingsAccount->balance) {
             return response()->json([
                 'success' => false,
-                'message' => 'Insufficient savings balance. Available: ₱' . number_format($savingsAccount->balance, 2),
+                'message' => 'Insufficient savings balance. Available: ₱'.number_format($savingsAccount->balance, 2),
+            ], 422);
+        }
+
+        $settings = SavingsInterestSetting::getOrCreate();
+        $remainingBalance = $savingsAccount->balance - $amount;
+        if ($settings->maintaining_balance > 0 && $remainingBalance < $settings->maintaining_balance) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This conversion would bring savings balance below the maintaining balance of ₱'.number_format($settings->maintaining_balance, 2).'. Minimum required: ₱'.number_format($settings->maintaining_balance, 2),
             ], 422);
         }
 
@@ -1285,7 +879,7 @@ class SavingsController extends Controller
         if ($shares < 1) {
             return response()->json([
                 'success' => false,
-                'message' => 'Minimum conversion amount is ₱' . number_format($amountPerShare, 2) . ' (1 share).',
+                'message' => 'Minimum conversion amount is ₱'.number_format($amountPerShare, 2).' (1 share).',
             ], 422);
         }
 
@@ -1301,8 +895,8 @@ class SavingsController extends Controller
         // When an idempotency key is supplied, reuse it to build the reference so a retry
         // resolves to the same reference and is detected as already processed.
         $referenceNo = $request->idempotency_key
-            ? 'SCP-CONV-' . strtoupper($request->idempotency_key)
-            : 'SCP-CONV-' . strtoupper(bin2hex(random_bytes(8)));
+            ? 'SCP-CONV-'.strtoupper($request->idempotency_key)
+            : 'SCP-CONV-'.strtoupper(bin2hex(random_bytes(8)));
 
         // Idempotency guard: a previous successful run already wrote both ledger rows
         // with this reference. Replay without touching balances again.
@@ -1314,7 +908,7 @@ class SavingsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'This conversion was already processed (Ref: ' . $referenceNo . '). No changes were made.',
+                'message' => 'This conversion was already processed (Ref: '.$referenceNo.'). No changes were made.',
                 'converted_amount' => $convertedAmount,
                 'shares' => $shares,
                 'reference_no' => $referenceNo,
@@ -1380,7 +974,7 @@ class SavingsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Successfully converted ₱' . number_format($convertedAmount, 2) . ' (' . $shares . ' share(s)) to Share Capital.',
+                'message' => 'Successfully converted ₱'.number_format($convertedAmount, 2).' ('.$shares.' share(s)) to Share Capital.',
                 'converted_amount' => $convertedAmount,
                 'shares' => $shares,
                 'reference_no' => $referenceNo,
@@ -1389,9 +983,10 @@ class SavingsController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Conversion failed: ' . $e->getMessage(),
+                'message' => 'Conversion failed: '.$e->getMessage(),
             ], 500);
         }
     }

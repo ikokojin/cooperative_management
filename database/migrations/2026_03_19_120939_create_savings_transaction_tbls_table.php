@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('savings_transaction_tbls', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("savings_account_id")
-                ->constrained("savings_account_tbls")
-                ->onDelete("cascade");
-            $table->enum("type", ['deposit','withdrawal','interest','penalty_offset']);
-            $table->decimal("amount", 12, 2);
-            $table->string("payment_method")->nullable();
-            $table->decimal("balance_after", 12, 2);
-            $table->string("note")->nullable();
-            $table->string("reference_no")->nullable();
-            $table->date("transaction_date");
+            $table->foreignId('savings_account_id')
+                ->constrained('savings_account_tbls')
+                ->onDelete('cascade');
+            $table->enum('type', ['deposit', 'withdrawal', 'interest', 'penalty_offset']);
+            $table->decimal('amount', 12, 2);
+            $table->string('payment_method')->nullable();
+            $table->decimal('balance_after', 12, 2);
+            $table->string('note')->nullable();
+            $table->string('reference_no')->nullable();
+            $table->date('transaction_date');
             $table->timestamps();
         });
     }

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\ResignationRequest_tbl;
-use App\Models\Users_tbl;
 use App\Models\share_capital_account_tbl;
 use App\Models\share_capital_transaction_tbl;
-use App\Models\AuditLog;
+use App\Models\Users_tbl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +47,7 @@ class ResignationController extends Controller
 
             AuditLog::log(
                 'Requested Resignation',
-                "User #{$user->id} ({$user->first_name} {$user->last_name}) submitted resignation request" . ($request->withdraw_share_capital ? ' with share capital withdrawal' : ''),
+                "User #{$user->id} ({$user->first_name} {$user->last_name}) submitted resignation request".($request->withdraw_share_capital ? ' with share capital withdrawal' : ''),
                 'resignation',
                 $user->id
             );
@@ -59,6 +59,7 @@ class ResignationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to submit resignation request.',
@@ -88,7 +89,7 @@ class ResignationController extends Controller
                 $user->status = 'resignation_pending';
                 $user->save();
 
-                $message = 'Resignation approved. 60-day holding period started. Release date: ' . $resignation->release_date->format('M d, Y');
+                $message = 'Resignation approved. 60-day holding period started. Release date: '.$resignation->release_date->format('M d, Y');
             } else {
                 $user->status = 'inactive';
                 $user->save();
@@ -106,7 +107,7 @@ class ResignationController extends Controller
 
             AuditLog::log(
                 'Approved Resignation',
-                "Approved resignation for {$user->first_name} {$user->last_name} (ID: {$id})" . ($resignation->withdraw_share_capital ? ' - with share capital withdrawal' : ''),
+                "Approved resignation for {$user->first_name} {$user->last_name} (ID: {$id})".($resignation->withdraw_share_capital ? ' - with share capital withdrawal' : ''),
                 'resignation',
                 $id
             );
@@ -115,7 +116,8 @@ class ResignationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to approve resignation: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Failed to approve resignation: '.$e->getMessage());
         }
     }
 
@@ -149,7 +151,8 @@ class ResignationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to reject resignation: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Failed to reject resignation: '.$e->getMessage());
         }
     }
 
@@ -161,7 +164,7 @@ class ResignationController extends Controller
             return redirect()->back()->with('error', 'Resignation must be approved first.');
         }
 
-        if (!$resignation->withdraw_share_capital) {
+        if (! $resignation->withdraw_share_capital) {
             return redirect()->back()->with('error', 'This member opted to leave share capital.');
         }
 
@@ -171,13 +174,14 @@ class ResignationController extends Controller
 
         if (now()->lt($resignation->release_date)) {
             $daysLeft = now()->diffInDays($resignation->release_date);
+
             return redirect()->back()->with('error', "60-day holding period not yet over. {$daysLeft} day(s) remaining.");
         }
 
         $user = $resignation->user;
         $scAccount = share_capital_account_tbl::where('user_id', $user->id)->first();
 
-        if (!$scAccount || $scAccount->total_amount <= 0) {
+        if (! $scAccount || $scAccount->total_amount <= 0) {
             return redirect()->back()->with('error', 'No share capital balance to release.');
         }
 
@@ -192,7 +196,7 @@ class ResignationController extends Controller
                 'shares' => $shares,
                 'total_amount' => $amount,
                 'payment_method' => 'Cash',
-                'reference_no' => 'RESIGN-REL-' . now()->format('YmdHis'),
+                'reference_no' => 'RESIGN-REL-'.now()->format('YmdHis'),
                 'note' => 'Full share capital release upon resignation',
                 'status' => 'Completed',
                 'transaction_date' => now()->format('Y-m-d'),
@@ -206,7 +210,7 @@ class ResignationController extends Controller
             $resignation->is_released = true;
             $resignation->save();
 
-            $user->status = 'resigned';
+            $user->status = 'inactive';
             $user->save();
 
             DB::commit();
@@ -218,11 +222,12 @@ class ResignationController extends Controller
                 $id
             );
 
-            return redirect()->back()->with('success', "Share capital released: ₱" . number_format($amount, 2) . " paid out to {$user->first_name} {$user->last_name}.");
+            return redirect()->back()->with('success', 'Share capital released: ₱'.number_format($amount, 2)." paid out to {$user->first_name} {$user->last_name}.");
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to release share capital: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Failed to release share capital: '.$e->getMessage());
         }
     }
 

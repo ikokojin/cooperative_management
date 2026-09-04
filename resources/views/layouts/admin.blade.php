@@ -9,6 +9,7 @@
     <link href="{{ asset('vendor/fonts/inter.css') }}" rel="stylesheet">
     <script src="{{ asset('vendor/chart.js/chart.umd.js') }}"></script>
     <script src="{{ asset('vendor/lucide/lucide.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -401,7 +402,9 @@
 
                 <!-- Navigation -->
                 @php
-                    $perms = auth()->user()?->sidebar_permissions;
+                    $user = auth()->user();
+                    $role = $user ? \App\Models\Role::where('slug', $user->role)->first() : null;
+                    $perms = $role?->sidebar_permissions;
                     $hasFullAccess = is_null($perms);
                 @endphp
                 <nav class="flex-1 p-2.5 space-y-0.5 overflow-y-auto">
@@ -412,11 +415,18 @@
                         <span>Dashboard</span>
                     </a>
                     @endif
+                    @if($hasFullAccess || in_array('members', $perms))
+                    <a href="{{ route('dashboard.members') }}"
+                        class="sidebar-link justify-start {{ request()->routeIs('dashboard.members') ? 'active' : '' }}">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                        <span>Accounts</span>
+                    </a>
+                    @endif
                     @if($hasFullAccess || in_array('lendings', $perms))
                     <a href="{{ route('lendings') }}"
                         class="sidebar-link justify-start {{ request()->routeIs('lendings') ? 'active' : '' }}">
                         <i data-lucide="banknote" class="w-5 h-5"></i>
-                        <span>Assistance Management</span>
+                        <span>Loans</span>
                     </a>
                     @endif
                     @if($hasFullAccess || in_array('payments', $perms))
@@ -426,39 +436,11 @@
                         <span>Payments</span>
                     </a>
                     @endif
-                    @if($hasFullAccess || in_array('members', $perms))
-                    <a href="{{ route('dashboard.members') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('dashboard.members') ? 'active' : '' }}">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                        <span>Accounts</span>
-                    </a>
-                    @endif
-                    @if($hasFullAccess || in_array('seminars', $perms))
-                    <a href="{{ route('seminars.index') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('seminars.*') ? 'active' : '' }}">
-                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-                        <span>Seminars</span>
-                    </a>
-                    @endif
-                    @if($hasFullAccess || in_array('savings', $perms))
-                    <a href="{{ route('savings') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('savings') ? 'active' : '' }}">
-                        <i data-lucide="piggy-bank" class="w-5 h-5"></i>
-                        <span>Savings</span>
-                    </a>
-                    @endif
-                    @if($hasFullAccess || in_array('sharecapitals', $perms))
-                    <a href="{{ route('sharecapitals') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('sharecapitals') ? 'active' : '' }}">
-                        <i data-lucide="coins" class="w-5 h-5"></i>
-                        <span>Share Capital</span>
-                    </a>
-                    @endif
-                    @if($hasFullAccess || in_array('notifications', $perms))
-                    <a href="{{ route('notifications.index') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
-                        <i data-lucide="inbox" class="w-5 h-5"></i>
-                        <span>Communication</span>
+                    @if($hasFullAccess || in_array('finance', $perms))
+                    <a href="{{ route('financial.activity') }}"
+                        class="sidebar-link justify-start {{ request()->routeIs('financial.activity') ? 'active' : '' }}">
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                        <span>Finance</span>
                     </a>
                     @endif
                     @if($hasFullAccess || in_array('reports', $perms))
@@ -468,14 +450,13 @@
                         <span>Reports</span>
                     </a>
                     @endif
-                    @if($hasFullAccess || in_array('finance', $perms))
-                    <a href="{{ route('financial.activity') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('financial.activity') ? 'active' : '' }}">
-                        <i data-lucide="wallet" class="w-5 h-5"></i>
-                        <span>Finance</span>
+                    @if($hasFullAccess || in_array('seminars', $perms))
+                    <a href="{{ route('seminars.index') }}"
+                        class="sidebar-link justify-start {{ request()->routeIs('seminars.*') ? 'active' : '' }}">
+                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                        <span>Seminar</span>
                     </a>
                     @endif
-                    
                     @if($hasFullAccess || in_array('audit-logs', $perms))
                     <a href="{{ route('admin.audit-logs.index') }}"
                         class="sidebar-link justify-start {{ request()->routeIs('admin.audit-logs.index') ? 'active' : '' }}">
@@ -488,6 +469,13 @@
                         class="sidebar-link justify-start {{ request()->routeIs('officers.committees') ? 'active' : '' }}">
                         <i data-lucide="briefcase" class="w-5 h-5"></i>
                         <span>Officers & Committees</span>
+                    </a>
+                    @endif
+                    @if($user?->isGeneralManager() || $user?->isMainAdmin())
+                    <a href="{{ route('allied-workers.index') }}"
+                        class="sidebar-link justify-start {{ request()->routeIs('allied-workers.*') ? 'active' : '' }}">
+                        <i data-lucide="handshake" class="w-5 h-5"></i>
+                        <span>Allied Workers</span>
                     </a>
                     @endif
                     @if($hasFullAccess || in_array('settings', $perms))
@@ -545,12 +533,16 @@
 
                     <!-- Right Side -->
                     <div class="flex items-center gap-4">
-                        <!-- Notifications -->
-                        <a href="{{ route('notifications.index') }}" class="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                            <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
-                            <span class="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full"></span>
-                        </a>
-
+                        @if(session('aw_mode'))
+                        <form action="{{ route('allied-workers.switch-to-member') }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg px-3 py-2 transition-colors">
+                                <i data-lucide="arrow-left-to-line" class="w-4 h-4"></i>
+                                Return to Member mode
+                            </button>
+                        </form>
+                        @endif
                         <!-- Settings Link -->
                         <a href="{{ route('settings') }}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                             title="Settings">
@@ -671,8 +663,9 @@
         // Close modal on escape
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(modal => {
+                document.querySelectorAll('.modal-overlay:not(.hidden), #memberDetailModal:not(.hidden)').forEach(modal => {
                     modal.classList.add('hidden');
+                    modal.style.display = 'none';
                 });
                 document.body.style.overflow = 'auto';
             }

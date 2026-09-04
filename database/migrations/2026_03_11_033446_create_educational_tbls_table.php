@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('educational_tbls', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")
-                  ->constrained("users_tbls")
-                  ->onDelete("cascade");
-            $table->string("educational_level")->nullable();
-            $table->string("status")->nullable();
-            $table->string("specify")->nullable();
+            $table->foreignId('user_id')
+                ->constrained('users_tbls')
+                ->onDelete('cascade');
+            $table->string('educational_level')->nullable();
+            $table->string('status')->nullable();
+            $table->string('specify')->nullable();
             $table->timestamps();
         });
     }

@@ -84,7 +84,7 @@
                             </div>
                         </div>
                         <div class="flex gap-1">
-                            <button class="p-1.5 hover:bg-white rounded-lg transition-colors" title="Edit" onclick="editOfficer({{ $officer->id }}, '{{ $officer->user_id }}', '{{ addslashes($officer->position) }}', '{{ $officer->term_start?->format('Y-m-d') }}', '{{ $officer->term_end?->format('Y-m-d') }}')">
+                            <button class="p-1.5 hover:bg-white rounded-lg transition-colors" title="Edit" onclick="editOfficer({{ $officer->id }}, '{{ $officer->user_id }}', '{{ addslashes($officer->position) }}', '{{ $officer->term_start?->format('Y-m-d') }}')">
                                 <i data-lucide="pencil" class="w-4 h-4 text-gray-500"></i>
                             </button>
                             <button class="p-1.5 hover:bg-white rounded-lg transition-colors" title="Remove" onclick="deleteOfficer({{ $officer->id }})">
@@ -163,10 +163,6 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Term Start</label>
                     <input type="date" name="term_start" class="input" style="width: 100%;">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Term End</label>
-                    <input type="date" name="term_end" class="input" style="width: 100%;">
-                </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeModal('addOfficerModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
@@ -186,7 +182,7 @@
             new TomSelect('#officerMemberSelect', { maxOptions: 200, placeholder: 'Search for a member...' });
         });
 
-        function editOfficer(id, userId, position, termStart, termEnd) {
+        function editOfficer(id, userId, position, termStart) {
             const form = document.getElementById('addOfficerForm');
             form.setAttribute('data-edit-id', id);
 
@@ -195,7 +191,6 @@
 
             form.querySelector('[name="position"]').value = position;
             form.querySelector('[name="term_start"]').value = termStart || '';
-            form.querySelector('[name="term_end"]').value = termEnd || '';
 
             document.getElementById('officerModalTitle').textContent = 'Edit Officer';
             openModal('addOfficerModal');

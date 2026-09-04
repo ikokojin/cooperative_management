@@ -13,9 +13,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         lending_program_tbl::observe(LendingProgramObserver::class);
-        
 
         View::composer('components.navbar2', NavbarComposer::class);
     }
-    
 }

@@ -3,7 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         DB::statement("ALTER TABLE savings_settings_tbls MODIFY crediting_frequency ENUM('Monthly', 'Quarterly', 'At Maturity') DEFAULT 'Quarterly'");

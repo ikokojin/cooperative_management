@@ -37,16 +37,16 @@ class LoanRepaymentPatronageSource implements PatronageSource
         if ($basis === 'net_repayment') {
             return (float) $query->sum(DB::raw(
                 'CASE WHEN (interest_paid IS NULL OR service_fee_paid IS NULL) '
-                . 'THEN amount_paid '
-                . 'ELSE (COALESCE(interest_paid, 0) + COALESCE(service_fee_paid, 0)) END'
+                .'THEN amount_paid '
+                .'ELSE (COALESCE(interest_paid, 0) + COALESCE(service_fee_paid, 0)) END'
             ));
         }
 
         // Default: total_repayment (includes late fees)
         return (float) $query->sum(DB::raw(
             'CASE WHEN (interest_paid IS NULL OR service_fee_paid IS NULL) '
-            . 'THEN amount_paid '
-            . 'ELSE (COALESCE(interest_paid, 0) + COALESCE(service_fee_paid, 0) + COALESCE(late_fee, 0)) END'
+            .'THEN amount_paid '
+            .'ELSE (COALESCE(interest_paid, 0) + COALESCE(service_fee_paid, 0) + COALESCE(late_fee, 0)) END'
         ));
     }
 
@@ -80,7 +80,19 @@ class LoanRepaymentPatronageSource implements PatronageSource
 
     private function getPatronageBasis(int $year): string
     {
+        // The stored dividend_distributions.patronage_basis is the authoritative
+        // snapshot for an already-generated distribution. Only fall back to the
+        // live DividendSetting when no snapshot exists (e.g. brand-new year).
+        $stored = DB::table('dividend_distributions')
+            ->where('year', $year)
+            ->value('patronage_basis');
+
+        if (! empty($stored)) {
+            return $stored;
+        }
+
         $setting = DividendSetting::where('year', $year)->first();
+
         return $setting->patronage_basis ?? 'total_repayment';
     }
 }

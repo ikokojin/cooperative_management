@@ -33,6 +33,20 @@
         </div>
     @endif
 
+    @if($errors->any())
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                <span class="font-semibold text-red-800">Please fix the following errors:</span>
+            </div>
+            <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Seminars</h1>
@@ -80,6 +94,7 @@
                         <th>Member</th>
                         <th class="text-center">Completed</th>
                         <th class="text-center">Status</th>
+                        <th class="text-center">Scheduled Seminar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,10 +125,17 @@
                                 <span class="badge badge-warning">Incomplete</span>
                             @endif
                         </td>
+                        <td class="text-center">
+                            @if(!empty($user->scheduled_seminar))
+                                <span class="badge badge-primary">{{ $user->scheduled_seminar }}</span>
+                            @else
+                                <span class="badge badge-gray">No Schedule</span>
+                            @endif
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="3" class="text-center py-12">
+                        <td colspan="4" class="text-center py-12">
                             <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                                 <i data-lucide="users" class="w-8 h-8 text-gray-300"></i>
                             </div>
@@ -169,152 +191,6 @@
         @endif
     </div>
 
-    <!-- Seminar Passcodes -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <i data-lucide="key-round" class="w-5 h-5 text-amber-500"></i>
-                Seminar Passcodes
-            </h2>
-            <p class="text-sm text-gray-500">Share the code with members after the session — they enter it on their Seminars page to mark it complete. Codes expire automatically.</p>
-        </div>
-        <div class="divide-y divide-gray-100">
-            @php
-                $coreTypeLabels = ['pmes' => 'PMES', 'fundamentals' => 'Fundamentals of Coops', 'finance' => 'Cooperative Finance'];
-            @endphp
-            @foreach(['pmes', 'fundamentals', 'finance'] as $coreSlug)
-            @php $pc = $passcodes[$coreSlug] ?? null; @endphp
-            <div class="px-6 py-4 flex items-center justify-between gap-4">
-                <div>
-                    <span class="text-sm font-semibold text-gray-900">{{ $coreTypeLabels[$coreSlug] }}</span>
-                    <div class="flex items-center gap-2 mt-1">
-                        @if($pc)
-                            <code class="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">{{ $pc->passcode }}</code>
-                            <span class="text-xs {{ $pc->expires_at && now()->gt(\Carbon\Carbon::parse($pc->expires_at)) ? 'text-red-500' : 'text-gray-500' }}">
-                                expires {{ \Carbon\Carbon::parse($pc->expires_at)->format('M d, Y h:i A') }}
-                            </span>
-                        @else
-                            <span class="text-xs text-gray-400">No passcode set</span>
-                        @endif
-                    </div>
-                </div>
-                <button onclick="openPasscodeModal('{{ $coreSlug }}', '{{ $coreTypeLabels[$coreSlug] }}')" class="btn btn-secondary btn-sm">
-                    <i data-lucide="{{ $pc ? 'refresh-cw' : 'key-round' }}" class="w-4 h-4"></i>
-                    {{ $pc ? 'Regenerate' : 'Set Passcode' }}
-                </button>
-            </div>
-            @endforeach
-        </div>
-    </div>
-
-    <!-- Upcoming Seminars -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i>
-                Upcoming Seminars
-                @if($upcomingSeminars->count() > 0)
-                    <span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">{{ $upcomingSeminars->count() }}</span>
-                @endif
-            </h2>
-        </div>
-        @forelse($upcomingSeminars as $seminar)
-        <div class="p-4 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl {{ $seminar->seminar_type === 'pmes' ? 'bg-purple-100' : ($seminar->seminar_type === 'fundamentals' ? 'bg-blue-100' : 'bg-emerald-100') }} flex items-center justify-center">
-                        <i data-lucide="{{ $seminar->seminar_type === 'pmes' ? 'clipboard-list' : ($seminar->seminar_type === 'fundamentals' ? 'book-open' : 'trending-up') }}" class="w-6 h-6 {{ $seminar->seminar_type === 'pmes' ? 'text-purple-600' : ($seminar->seminar_type === 'fundamentals' ? 'text-blue-600' : 'text-emerald-600') }}"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-900 capitalize">{{ str_replace('_', ' ', $seminar->seminar_type) }}</h4>
-                        <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($seminar->schedule_datetime)->format('M d, Y h:i A') }}</p>
-                        <div class="flex items-center gap-2 mt-1">
-                            @if($seminar->delivery_type === 'online')
-                                <span class="badge badge-info">Online</span>
-                                <a href="{{ $seminar->online_link }}" target="_blank" class="text-xs text-primary-600 hover:underline flex items-center gap-1">
-                                    <i data-lucide="external-link" class="w-3 h-3"></i>
-                                    Join Link
-                                </a>
-                            @else
-                                <span class="badge badge-info">F2F</span>
-                                <span class="text-xs text-gray-500">{{ $seminar->meetup_place }}{{ $seminar->exact_venue ? ' - ' . $seminar->exact_venue : '' }}</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-gray-400">{{ $seminar->attendees->count() }} attendee(s)</span>
-                    <button onclick="openAttendanceModal({{ $seminar->id }})" class="btn btn-primary btn-xs px-3 py-1.5">
-                        <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>
-                        Manage Attendance
-                    </button>
-                </div>
-            </div>
-        </div>
-        @empty
-        <div class="p-8 text-center">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                <i data-lucide="calendar" class="w-8 h-8 text-gray-300"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-1">No upcoming seminars</h3>
-            <p class="text-sm text-gray-500">Schedule a seminar using the button above.</p>
-        </div>
-        @endforelse
-    </div>
-
-    <!-- Past Seminars -->
-    @if($pastSeminars->count() > 0)
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <i data-lucide="archive" class="w-5 h-5 text-gray-400"></i>
-                Past Seminars
-                <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{{ $pastSeminars->count() }}</span>
-            </h2>
-        </div>
-        @foreach($pastSeminars as $seminar)
-        <div class="p-4 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl {{ $seminar->seminar_type === 'pmes' ? 'bg-purple-100' : ($seminar->seminar_type === 'fundamentals' ? 'bg-blue-100' : 'bg-emerald-100') }} flex items-center justify-center opacity-60">
-                        <i data-lucide="{{ $seminar->seminar_type === 'pmes' ? 'clipboard-list' : ($seminar->seminar_type === 'fundamentals' ? 'book-open' : 'trending-up') }}" class="w-6 h-6 {{ $seminar->seminar_type === 'pmes' ? 'text-purple-600' : ($seminar->seminar_type === 'fundamentals' ? 'text-blue-600' : 'text-emerald-600') }}"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 capitalize">{{ str_replace('_', ' ', $seminar->seminar_type) }}</h4>
-                        <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($seminar->schedule_datetime)->format('M d, Y h:i A') }}</p>
-                        <div class="flex items-center gap-2 mt-1">
-                            @if($seminar->delivery_type === 'online')
-                                <span class="badge badge-info">Online</span>
-                                <a href="{{ $seminar->online_link }}" target="_blank" class="text-xs text-primary-600 hover:underline flex items-center gap-1">
-                                    <i data-lucide="external-link" class="w-3 h-3"></i>
-                                    Join Link
-                                </a>
-                            @else
-                                <span class="badge badge-info">F2F</span>
-                                <span class="text-xs text-gray-500">{{ $seminar->meetup_place }}{{ $seminar->exact_venue ? ' - ' . $seminar->exact_venue : '' }}</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    @php
-                        $attended = $seminar->attendees->where('status', 'attended')->count();
-                        $total = $seminar->attendees->count();
-                    @endphp
-                    <span class="text-xs {{ $attended === $total && $total > 0 ? 'text-green-600' : 'text-gray-400' }}">
-                        {{ $attended }}/{{ $total }} attended
-                    </span>
-                    <button onclick="openAttendanceModal({{ $seminar->id }})" class="btn btn-secondary btn-xs px-3 py-1.5">
-                        <i data-lucide="eye" class="w-3.5 h-3.5"></i>
-                        View
-                    </button>
-                </div>
-            </div>
-        </div>
-        @endforeach
-    </div>
-    @endif
-
     <!-- Schedule Seminar Modal -->
     <div id="scheduleSeminarModal" class="modal-overlay hidden">
         <div class="modal max-w-2xl">
@@ -339,16 +215,16 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Seminar Type <span class="text-red-500">*</span></label>
-                        <select name="seminar_type" class="input" required>
+                        <select name="seminar_type" class="input" required onchange="togglePasscodeFields()">
                             <option value="">Select...</option>
                             @foreach($seminarTypes as $type)
-                                <option value="{{ $type->slug }}">{{ $type->label }}</option>
+                                <option value="{{ $type->slug }}" {{ old('seminar_type') === $type->slug ? 'selected' : '' }} {{ in_array($type->slug, \App\Http\Controllers\SeminarController::CORE_TYPES) ? 'data-core="1"' : '' }}>{{ $type->label }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Schedule Date & Time <span class="text-red-500">*</span></label>
-                        <input type="datetime-local" name="schedule_datetime" class="input" required>
+                        <input type="datetime-local" name="schedule_datetime" class="input" required value="{{ old('schedule_datetime') }}">
                     </div>
                 </div>
 
@@ -356,11 +232,11 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Type <span class="text-red-500">*</span></label>
                     <div class="flex gap-4">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="delivery_type" value="online" class="w-4 h-4 text-primary-600" onchange="toggleDeliveryFields()" checked>
+                            <input type="radio" name="delivery_type" value="online" class="w-4 h-4 text-primary-600" onchange="toggleDeliveryFields()" {{ old('delivery_type', 'online') === 'online' ? 'checked' : '' }}>
                             <span class="text-sm text-gray-700">Online</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="delivery_type" value="f2f" class="w-4 h-4 text-primary-600" onchange="toggleDeliveryFields()">
+                            <input type="radio" name="delivery_type" value="f2f" class="w-4 h-4 text-primary-600" onchange="toggleDeliveryFields()" {{ old('delivery_type') === 'f2f' ? 'checked' : '' }}>
                             <span class="text-sm text-gray-700">Face-to-Face</span>
                         </label>
                     </div>
@@ -369,37 +245,71 @@
                 <div id="onlineFields" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Online Link <span class="text-red-500">*</span></label>
-                        <input type="url" name="online_link" class="input" placeholder="https://meet.google.com/...">
+                        <input type="url" name="online_link" class="input" placeholder="https://meet.google.com/..." value="{{ old('online_link') }}">
                     </div>
                 </div>
 
                 <div id="f2fFields" class="space-y-4" style="display:none">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Meetup Place <span class="text-red-500">*</span></label>
-                        <input type="text" name="meetup_place" class="input" placeholder="e.g. Coop Hall, Main Office">
+                        <input type="text" name="meetup_place" class="input" placeholder="e.g. Coop Hall, Main Office" value="{{ old('meetup_place') }}">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Exact Venue <span class="text-red-500">*</span></label>
-                        <input type="text" name="exact_venue" class="input" placeholder="e.g. Room 201, 2nd Floor">
+                        <input type="text" name="exact_venue" class="input" placeholder="e.g. Room 201, 2nd Floor" value="{{ old('exact_venue') }}">
+                    </div>
+                </div>
+
+                <div id="passcodeFields" class="space-y-4">
+                    <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
+                        <i data-lucide="key-round" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i>
+                        <p id="passcodeHint"></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Seminar Passcode <span class="text-red-500" id="passcodeRequiredStar">*</span></label>
+                            <div class="relative">
+                                <input type="text" name="passcode" id="passcodeInput" class="input pr-28" placeholder="Generate a code" required maxlength="64" value="{{ old('passcode') }}">
+                                <button type="button" onclick="generatePasscode()" class="btn btn-primary btn-xs px-2 py-1 absolute right-1.5 top-1/2 -translate-y-1/2" title="Generate a random passcode">
+                                    <i data-lucide="dices" class="w-3.5 h-3.5"></i>
+                                    Generate
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Valid Days</label>
+                            <input type="number" name="valid_days" class="input" value="{{ old('valid_days', 1) }}" min="1" max="365">
+                        </div>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Select Attendees <span class="text-red-500">*</span></label>
-                    <div class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 space-y-2">
-                        @foreach($users as $user)
-                        <label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                            <input type="checkbox" name="attendees[]" value="{{ $user->id }}" class="w-4 h-4 text-primary-600 rounded border-gray-300">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full {{ $user->role === 'pending' ? 'bg-gradient-to-br from-yellow-400 to-orange-400' : 'bg-gradient-to-br from-primary-400 to-primary-600' }} flex items-center justify-center">
-                                    <span class="text-white font-bold text-xs">{{ strtoupper(substr($user->first_name, 0, 1)) }}{{ strtoupper(substr($user->last_name ?? '', 0, 1)) }}</span>
-                                </div>
-                                <span class="text-sm text-gray-700">{{ $user->first_name }} {{ $user->last_name }}</span>
-                            </div>
-                        </label>
-                        @endforeach
+
+                    <div id="attendeeSearchBox" class="relative mb-2">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                        <input type="text" id="attendeeSearchInput" placeholder="Type a name to search members..."
+                            class="input pl-10" autocomplete="off">
+                        <div id="attendeeDropdown" class="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto hidden">
+                        </div>
+                    </div>
+
+                    <div id="selectedAttendees" class="flex flex-wrap gap-2 mb-2 min-h-[32px]">
+                        @if(old('attendees'))
+                            @foreach(old('attendees') as $attId)
+                                <span class="inline-flex items-center gap-1.5 bg-primary-50 text-primary-700 text-xs font-medium px-2.5 py-1 rounded-full" data-id="{{ $attId }}">
+                                    <span class="attendee-name">Member #{{ $attId }}</span>
+                                    <button type="button" onclick="removeAttendee({{ $attId }})" class="hover:text-primary-900">&times;</button>
+                                </span>
+                            @endforeach
+                        @endif
+                    </div>
+
+                    <div class="max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1 hidden" id="attendeeChecklist">
                     </div>
                 </div>
+
+                <div id="attendeesHiddenInputs"></div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
                     <button type="button" onclick="closeModal('scheduleSeminarModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
@@ -515,54 +425,6 @@
         </div>
     </div>
 
-    <!-- Set Passcode Modal -->
-    <div id="passcodeModal" class="modal-overlay hidden">
-        <div class="modal max-w-md">
-            <div style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="key-round" class="w-5 h-5" style="color: #fff;"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold" style="color: #fff; margin: 0;">Set Seminar Passcode</h2>
-                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a one-time code members enter to complete this seminar</p>
-                        </div>
-                    </div>
-                    <button onclick="closeModal('passcodeModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
-                    </button>
-                </div>
-            </div>
-            <form method="POST" action="{{ route('seminars.save-passcode') }}" class="p-6 space-y-5">
-                @csrf
-                <input type="hidden" name="seminar_type" id="passcodeSeminarType">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Seminar Type</label>
-                    <p id="passcodeSeminarLabel" class="text-sm font-semibold text-gray-900">--</p>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Passcode <span class="text-red-500">*</span></label>
-                        <input type="text" name="passcode" class="input" placeholder="e.g. COOP2026" required maxlength="64">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Valid Days <span class="text-red-500">*</span></label>
-                        <input type="number" name="valid_days" class="input" value="1" required min="1" max="365">
-                    </div>
-                </div>
-                <p class="text-xs text-gray-500">Validity defaults to 1 day. The code expires automatically after the set number of days and can be regenerated anytime.</p>
-                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button type="button" onclick="closeModal('passcodeModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
-                    <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
-                        <i data-lucide="key-round" class="w-4 h-4"></i>
-                        Save Passcode
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
         function toggleDeliveryFields() {
             const online = document.querySelector('input[name="delivery_type"][value="online"]').checked;
@@ -575,6 +437,24 @@
             onlineLink.required = online;
             meetupPlace.required = !online;
             exactVenue.required = !online;
+        }
+
+        function generatePasscode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            const arr = new Uint32Array(3);
+            crypto.getRandomValues(arr);
+            const input = document.getElementById('passcodeInput');
+            input.value = 'coop' + Array.from(arr, n => chars[n % chars.length]).join('');
+            input.focus();
+        }
+
+        function togglePasscodeFields() {
+            const input = document.getElementById('passcodeInput');
+            const star = document.getElementById('passcodeRequiredStar');
+            const hint = document.getElementById('passcodeHint');
+            input.required = true;
+            star.textContent = '*';
+            hint.textContent = 'Enter a passcode members will use to mark this seminar complete. The code expires after the set number of days.';
         }
 
         function openMemberModal(userId) {
@@ -603,6 +483,22 @@
                     </div>
                 </div>`;
 
+            if (user.scheduled_seminar) {
+                html += `
+                    <div class="mb-5 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Scheduled Seminar</span>
+                            <span class="text-xs font-medium text-blue-600">${user.scheduled_seminar}</span>
+                        </div>
+                        ${user.scheduled_passcode ? `
+                        <div class="mt-2 flex items-center justify-between bg-white rounded-lg border border-blue-200 px-3 py-2">
+                            <span class="text-xs font-medium text-blue-700">Member Passcode</span>
+                            <code class="text-sm font-mono font-bold text-blue-900 tracking-wider">${user.scheduled_passcode}</code>
+                        </div>` : ''}
+                        <p class="text-xs text-blue-600 mt-2">Share this code with ${user.first_name} so they can mark the seminar complete.</p>
+                    </div>`;
+            }
+
             types.forEach(t => {
                 const attended = coreSlugs.includes(t.slug)
                     ? completion[t.slug + '_completed'] === true
@@ -623,12 +519,6 @@
 
             document.getElementById('memberSeminarBody').innerHTML = html;
             lucide.createIcons();
-        }
-
-        function openPasscodeModal(slug, label) {
-            document.getElementById('passcodeSeminarType').value = slug;
-            document.getElementById('passcodeSeminarLabel').textContent = label;
-            openModal('passcodeModal');
         }
 
         function openAttendanceModal(seminarId) {
@@ -723,6 +613,114 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             toggleDeliveryFields();
+            togglePasscodeFields();
+
+            @if($errors->any())
+                openModal('scheduleSeminarModal');
+            @endif
+        });
+
+        /* ═══ ATTENDEE AJAX AUTOCOMPLETE ═══ */
+        const selectedAttendeeMap = {};
+        let attendeeSearchTimeout = null;
+
+        (function initAttendeesFromOld() {
+            @if(old('attendees'))
+                @foreach(old('attendees') as $attId)
+                    selectedAttendeeMap[{{ $attId }}] = { id: {{ $attId }}, first_name: 'Member', last_name: '#{{ $attId }}' };
+                @endforeach
+                renderSelectedAttendees();
+            @endif
+        })();
+
+        document.getElementById('attendeeSearchInput')?.addEventListener('input', function() {
+            clearTimeout(attendeeSearchTimeout);
+            const q = this.value.trim();
+            if (q.length < 2) {
+                document.getElementById('attendeeDropdown').classList.add('hidden');
+                return;
+            }
+            attendeeSearchTimeout = setTimeout(() => {
+                fetch('{{ route("seminars.member-search") }}?q=' + encodeURIComponent(q), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(members => {
+                    const dropdown = document.getElementById('attendeeDropdown');
+                    if (members.length === 0) {
+                        dropdown.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">No members found</div>';
+                        dropdown.classList.remove('hidden');
+                        return;
+                    }
+                    dropdown.innerHTML = members.map(m => {
+                        const already = selectedAttendeeMap[m.id];
+                        const initials = (m.first_name?.[0] || '') + (m.last_name?.[0] || '');
+                        const roleBg = m.role === 'pending' ? 'from-yellow-400 to-orange-400' : 'from-primary-400 to-primary-600';
+                        return `<div class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer ${already ? 'opacity-50' : ''}"
+                            onclick="${already ? '' : `addAttendee(${m.id}, '${m.first_name.replace(/'/g, "\\'")}', '${(m.last_name || '').replace(/'/g, "\\'")}')`}">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br ${roleBg} flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-xs">${initials}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-700">${m.first_name} ${m.last_name || ''}</span>
+                                <span class="text-xs text-gray-400 block">${m.email}</span>
+                            </div>
+                            ${already ? '<span class="ml-auto text-xs text-gray-400">Added</span>' : ''}
+                        </div>`;
+                    }).join('');
+                    dropdown.classList.remove('hidden');
+                });
+            }, 300);
+        });
+
+        document.getElementById('attendeeSearchInput')?.addEventListener('blur', function() {
+            setTimeout(() => document.getElementById('attendeeDropdown').classList.add('hidden'), 200);
+        });
+
+        function addAttendee(id, firstName, lastName) {
+            if (selectedAttendeeMap[id]) return;
+            selectedAttendeeMap[id] = { id, first_name: firstName, last_name: lastName };
+            document.getElementById('attendeeSearchInput').value = '';
+            document.getElementById('attendeeDropdown').classList.add('hidden');
+            syncAttendeesInput();
+            renderSelectedAttendees();
+        }
+
+        function removeAttendee(id) {
+            delete selectedAttendeeMap[id];
+            syncAttendeesInput();
+            renderSelectedAttendees();
+        }
+
+        function syncAttendeesInput() {
+            const container = document.getElementById('attendeesHiddenInputs');
+            container.innerHTML = '';
+            Object.keys(selectedAttendeeMap).forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'attendees[]';
+                input.value = id;
+                container.appendChild(input);
+            });
+        }
+
+        function renderSelectedAttendees() {
+            const container = document.getElementById('selectedAttendees');
+            const entries = Object.values(selectedAttendeeMap);
+            container.innerHTML = entries.map(m => {
+                return `<span class="inline-flex items-center gap-1.5 bg-primary-50 text-primary-700 text-xs font-medium px-2.5 py-1 rounded-full">
+                    <span class="attendee-name">${m.first_name} ${m.last_name || ''}</span>
+                    <button type="button" onclick="removeAttendee(${m.id})" class="hover:text-primary-900">&times;</button>
+                </span>`;
+            }).join('');
+        }
+
+        document.querySelector('#scheduleSeminarModal form')?.addEventListener('submit', function(e) {
+            if (Object.keys(selectedAttendeeMap).length === 0) {
+                e.preventDefault();
+                showToast('Validation Error', 'Please select at least one attendee.', 'error');
+                return;
+            }
         });
     </script>
 @endsection

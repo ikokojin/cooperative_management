@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\Dividend;
 use App\Models\DividendSetting;
 use App\Models\PatronageRefundDistribution;
-use App\Models\Users_tbl;
-use App\Models\share_capital_account_tbl;
 use App\Models\savings_account_tbl;
 use App\Models\savings_transaction_tbl;
-use App\Models\AuditLog;
+use App\Models\share_capital_account_tbl;
+use App\Models\Users_tbl;
 use App\Services\PatronageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,7 +74,9 @@ class DividendController extends Controller
         $dividendSetting = DividendSetting::where('year', $year)->first();
         $dividendFundPercentage = $dividendSetting ? $dividendSetting->dividend_fund_percentage : 60.00;
         $patronageFundPercentage = $dividendSetting ? $dividendSetting->patronage_fund_percentage : 40.00;
-        $patronageBasis = $dividendSetting ? $dividendSetting->patronage_basis : 'total_repayment';
+        $patronageBasis = ($distribution && ! empty($distribution->patronage_basis))
+            ? $distribution->patronage_basis
+            : ($dividendSetting ? $dividendSetting->patronage_basis : 'total_repayment');
         $reserveFundPercentage = $dividendSetting ? $dividendSetting->reserve_fund_percentage : 10.00;
         $cetfPercentage = $dividendSetting ? $dividendSetting->cetf_percentage : 10.00;
         $cdfPercentage = $dividendSetting ? $dividendSetting->cdf_percentage : 3.00;
@@ -110,20 +112,33 @@ class DividendController extends Controller
         );
     }
 
+    private function ensureGeneralManager()
+    {
+        if (! \App\Services\SoDGuard::isGeneralManager()) {
+            abort(403, 'Only the General Manager can access disbursal management.');
+        }
+    }
+
     public function tablePartial(Request $request)
     {
+        $this->ensureGeneralManager();
+
         $data = $this->getDividendData($request);
+
         return view('admin_components.dividends_table_partial', $data);
     }
 
     public function patronageTablePartial(Request $request)
     {
         $data = $this->getDividendData($request);
+
         return view('admin_components.patronage_table_partial', $data);
     }
 
     public function index(Request $request)
     {
+        $this->ensureGeneralManager();
+
         $data = $this->getDividendData($request);
 
         if ($request->ajax()) {
@@ -135,6 +150,8 @@ class DividendController extends Controller
 
     public function calculate(Request $request)
     {
+        $this->ensureGeneralManager();
+
         $validator = Validator::make($request->all(), [
             'net_surplus' => 'required|numeric|min:1',
             'year' => 'required|integer|min:2000|max:2100',
@@ -153,6 +170,7 @@ class DividendController extends Controller
             ->where('year', $year)
             ->first();
 
+        $reusePatronageBasis = null;
         if ($existingDistribution) {
             // Check if regeneration is allowed (only pending records)
             $hasApproved = Dividend::where('year', $year)->where('status', 'approved')->exists()
@@ -163,7 +181,13 @@ class DividendController extends Controller
 
             if ($hasApproved || $hasDisbursed) {
                 return redirect()->route('dividends.index', ['year' => $year])
-                    ->with('error', 'Cannot regenerate. Approved or disbursed records exist for year ' . $year . '. Reset the annual distribution first.');
+                    ->with('error', 'Cannot regenerate. Approved or disbursed records exist for year '.$year.'. Reset the annual distribution first.');
+            }
+
+            // Preserve the previously stored patronage basis so a regeneration
+            // keeps the year's snapshot authoritative (strict freeze).
+            if (! empty($existingDistribution->patronage_basis)) {
+                $reusePatronageBasis = $existingDistribution->patronage_basis;
             }
 
             // Only pending records exist — delete and regenerate
@@ -174,6 +198,12 @@ class DividendController extends Controller
         }
 
         $dividendSetting = DividendSetting::getForYear($year);
+
+        // Freeze: on regeneration reuse the stored basis; only a brand-new
+        // distribution (or one that went through resetDistribution) captures
+        // the current setting.
+        $patronageBasisForInsert = $reusePatronageBasis
+            ?: ($dividendSetting->patronage_basis ?: 'total_repayment');
 
         $reserveFundPct = (float) $dividendSetting->reserve_fund_percentage;
         $cetfPct = (float) $dividendSetting->cetf_percentage;
@@ -228,6 +258,7 @@ class DividendController extends Controller
                 'remaining_surplus' => $remainingSurplus,
                 'dividend_pool' => $dividendPool,
                 'patronage_refund_pool' => $patronageRefundPool,
+                'patronage_basis' => $patronageBasisForInsert,
                 'status' => 'draft',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -258,17 +289,18 @@ class DividendController extends Controller
 
             AuditLog::log(
                 'Calculated Dividends',
-                "Generated dividend calculations for year {$year} with net surplus of ₱" . number_format($netSurplus, 2),
+                "Generated dividend calculations for year {$year} with net surplus of ₱".number_format($netSurplus, 2),
                 'dividend',
                 null
             );
 
             return redirect()->route('dividends.index', ['year' => $year])
-                ->with('success', "Distribution for {$year} generated successfully. Dividend pool: ₱" . number_format($dividendPool, 2) . ". Generate patronage refund allocations separately.");
+                ->with('success', "Distribution for {$year} generated successfully. Dividend pool: ₱".number_format($dividendPool, 2).'. Generate patronage refund allocations separately.');
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Failed to generate calculations: ' . $e->getMessage());
+                ->with('error', 'Failed to generate calculations: '.$e->getMessage());
         }
     }
 
@@ -288,7 +320,7 @@ class DividendController extends Controller
             ->where('year', $year)
             ->first();
 
-        if (!$distribution) {
+        if (! $distribution) {
             return redirect()->route('dividends.index', ['year' => $year])
                 ->with('error', 'Generate the annual distribution first before calculating patronage refunds.');
         }
@@ -299,42 +331,44 @@ class DividendController extends Controller
 
         if ($hasApproved || $hasDisbursed) {
             return redirect()->route('dividends.index', ['year' => $year])
-                ->with('error', 'Cannot generate patronage refunds. Approved or disbursed patronage refund records exist for year ' . $year . '. Reset the distribution first.');
+                ->with('error', 'Cannot generate patronage refunds. Approved or disbursed patronage refund records exist for year '.$year.'. Reset the distribution first.');
         }
 
         try {
             // Delete any existing pending patronage refund records and regenerate
             PatronageRefundDistribution::where('year', $year)->where('status', 'pending')->delete();
 
-            $patronageService = new PatronageService();
+            $patronageService = new PatronageService;
             $patronageService->generatePatronageRefundDistributions($year);
 
             AuditLog::log(
                 'Generated Patronage Refund Calculations',
-                "Generated patronage refund allocations for year {$year}. Pool: ₱" . number_format($distribution->patronage_refund_pool, 2),
+                "Generated patronage refund allocations for year {$year}. Pool: ₱".number_format($distribution->patronage_refund_pool, 2),
                 'patronage_refund',
                 null
             );
 
             return redirect()->route('dividends.index', ['year' => $year])
-                ->with('success', 'Patronage refund allocations generated for ' . $year . '.');
+                ->with('success', 'Patronage refund allocations generated for '.$year.'.');
         } catch (\RuntimeException $e) {
             return redirect()->route('dividends.index', ['year' => $year])
                 ->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             return redirect()->back()
-                ->with('error', 'Failed to generate patronage refunds: ' . $e->getMessage());
+                ->with('error', 'Failed to generate patronage refunds: '.$e->getMessage());
         }
     }
 
     public function resetDistribution(Request $request, $year)
     {
+        $this->ensureGeneralManager();
+
         $hasDisbursed = Dividend::where('year', $year)->where('status', 'disbursed')->exists()
             || PatronageRefundDistribution::where('year', $year)->where('status', 'disbursed')->exists();
 
         if ($hasDisbursed) {
             return redirect()->back()
-                ->with('error', 'Cannot reset distribution for ' . $year . '. Disbursed records exist — money has already been released.');
+                ->with('error', 'Cannot reset distribution for '.$year.'. Disbursed records exist — money has already been released.');
         }
 
         DB::beginTransaction();
@@ -345,6 +379,7 @@ class DividendController extends Controller
 
             DB::table('dividend_distributions')->where('year', $year)->update([
                 'status' => 'draft',
+                'patronage_basis' => null,
                 'updated_at' => now(),
             ]);
 
@@ -358,16 +393,19 @@ class DividendController extends Controller
             );
 
             return redirect()->route('dividends.index', ['year' => $year])
-                ->with('success', 'Distribution for ' . $year . ' has been reset. You can now regenerate.');
+                ->with('success', 'Distribution for '.$year.' has been reset. You can now regenerate.');
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Failed to reset distribution: ' . $e->getMessage());
+                ->with('error', 'Failed to reset distribution: '.$e->getMessage());
         }
     }
 
     public function update(Request $request, $id)
     {
+        $this->ensureGeneralManager();
+
         $validator = Validator::make($request->all(), [
             'approved_amount' => 'required|numeric|min:0',
         ]);
@@ -388,7 +426,7 @@ class DividendController extends Controller
 
         AuditLog::log(
             'Updated Dividend',
-            "Updated dividend for {$dividend->user->first_name} {$dividend->user->last_name} (Year: {$dividend->year}) from ₱" . number_format($oldAmount, 2) . " to ₱" . number_format($dividend->approved_amount, 2),
+            "Updated dividend for {$dividend->user->first_name} {$dividend->user->last_name} (Year: {$dividend->year}) from ₱".number_format($oldAmount, 2).' to ₱'.number_format($dividend->approved_amount, 2),
             'dividend',
             $id
         );
@@ -402,6 +440,8 @@ class DividendController extends Controller
 
     public function approve($id)
     {
+        $this->ensureGeneralManager();
+
         $dividend = Dividend::findOrFail($id);
 
         if ($dividend->status !== 'pending') {
@@ -417,7 +457,7 @@ class DividendController extends Controller
 
         AuditLog::log(
             'Approved Dividend',
-            "Approved dividend for {$dividend->user->first_name} {$dividend->user->last_name} (Year: {$dividend->year}) - ₱" . number_format($dividend->approved_amount, 2),
+            "Approved dividend for {$dividend->user->first_name} {$dividend->user->last_name} (Year: {$dividend->year}) - ₱".number_format($dividend->approved_amount, 2),
             'dividend',
             $id
         );
@@ -430,6 +470,8 @@ class DividendController extends Controller
 
     public function approveAll(Request $request)
     {
+        $this->ensureGeneralManager();
+
         $year = $request->get('year', now()->year);
 
         $pendingDividends = Dividend::where('year', $year)->where('status', 'pending')->get();
@@ -445,19 +487,21 @@ class DividendController extends Controller
 
         AuditLog::log(
             'Approved All Dividends',
-            "Bulk approved " . $pendingDividends->count() . " pending dividends for year {$year}.",
+            'Bulk approved '.$pendingDividends->count()." pending dividends for year {$year}.",
             'dividend',
             null
         );
 
         return response()->json([
             'success' => true,
-            'message' => $pendingDividends->count() . ' dividend(s) approved.',
+            'message' => $pendingDividends->count().' dividend(s) approved.',
         ]);
     }
 
     public function disburseOne(Request $request, $id)
     {
+        $this->ensureGeneralManager();
+
         $dividend = Dividend::with('user')->findOrFail($id);
         $disbursementType = $request->get('disbursement_type', 'savings');
 
@@ -502,7 +546,7 @@ class DividendController extends Controller
                     'payment_method' => 'Dividend',
                     'balance_after' => $savingsAccount->balance,
                     'note' => "Dividend payout for year {$dividend->year}",
-                    'reference_no' => 'DIV-' . $dividend->year . '-' . str_pad($dividend->id, 5, '0', STR_PAD_LEFT),
+                    'reference_no' => 'DIV-'.$dividend->year.'-'.str_pad($dividend->id, 5, '0', STR_PAD_LEFT),
                     'transaction_date' => now()->toDateString(),
                     'status' => 'Completed',
                     'created_at' => now(),
@@ -526,7 +570,7 @@ class DividendController extends Controller
 
             AuditLog::log(
                 'Disbursed Dividend',
-                "Disbursed dividend for {$dividend->user->first_name} {$dividend->user->last_name} (Year: {$dividend->year}) - ₱" . number_format($dividend->approved_amount, 2) . " to {$disbursementType}",
+                "Disbursed dividend for {$dividend->user->first_name} {$dividend->user->last_name} (Year: {$dividend->year}) - ₱".number_format($dividend->approved_amount, 2)." to {$disbursementType}",
                 'dividend',
                 $id
             );
@@ -540,15 +584,18 @@ class DividendController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Disbursement failed: ' . $e->getMessage(),
+                'message' => 'Disbursement failed: '.$e->getMessage(),
             ], 500);
         }
     }
 
     public function disburseAll(Request $request, $year = null)
     {
+        $this->ensureGeneralManager();
+
         $year = $year ?? $request->get('year', now()->year);
         $disbursementType = $request->get('disbursement_type', 'savings');
         $isAjax = $request->ajax();
@@ -561,6 +608,7 @@ class DividendController extends Controller
             if ($isAjax) {
                 return response()->json(['success' => false, 'message' => 'No approved dividends to disburse.'], 400);
             }
+
             return redirect()->back()->with('error', 'No approved dividends to disburse.');
         }
 
@@ -592,7 +640,7 @@ class DividendController extends Controller
                         'payment_method' => 'Dividend',
                         'balance_after' => $savingsAccount->balance,
                         'note' => "Dividend payout for year {$year}",
-                        'reference_no' => 'DIV-' . $year . '-' . str_pad($dividend->id, 5, '0', STR_PAD_LEFT),
+                        'reference_no' => 'DIV-'.$year.'-'.str_pad($dividend->id, 5, '0', STR_PAD_LEFT),
                         'transaction_date' => now()->toDateString(),
                         'status' => 'Completed',
                         'created_at' => now(),
@@ -622,7 +670,7 @@ class DividendController extends Controller
             $totalDisbursed = $approvedDividends->sum('approved_amount');
             AuditLog::log(
                 'Disbursed Dividends',
-                "Disbursed all approved dividends for year {$year} to {$disbursementType} accounts. Total: ₱" . number_format($totalDisbursed, 2) . " ({$approvedDividends->count()} members)",
+                "Disbursed all approved dividends for year {$year} to {$disbursementType} accounts. Total: ₱".number_format($totalDisbursed, 2)." ({$approvedDividends->count()} members)",
                 'dividend',
                 null
             );
@@ -630,9 +678,10 @@ class DividendController extends Controller
             if ($isAjax) {
                 $partialView = view('admin_components.dividends_table_partial', $this->getDividendData($request))->render();
                 $remainingApproved = Dividend::where('year', $year)->where('status', 'approved')->count();
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Successfully disbursed ' . $approvedDividends->count() . ' dividend(s) for year ' . $year . '.',
+                    'message' => 'Successfully disbursed '.$approvedDividends->count().' dividend(s) for year '.$year.'.',
                     'disbursedCount' => $approvedDividends->count(),
                     'html' => $partialView,
                     'approvedCount' => $remainingApproved,
@@ -645,10 +694,11 @@ class DividendController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             if ($isAjax) {
-                return response()->json(['success' => false, 'message' => 'Disbursement failed: ' . $e->getMessage()], 500);
+                return response()->json(['success' => false, 'message' => 'Disbursement failed: '.$e->getMessage()], 500);
             }
+
             return redirect()->back()
-                ->with('error', 'Disbursement failed: ' . $e->getMessage());
+                ->with('error', 'Disbursement failed: '.$e->getMessage());
         }
     }
 
@@ -676,7 +726,7 @@ class DividendController extends Controller
 
         AuditLog::log(
             'Updated Patronage Refund',
-            "Updated patronage refund for {$record->user->first_name} {$record->user->last_name} (Year: {$record->year}) from ₱" . number_format($oldAmount, 2) . " to ₱" . number_format($record->amount, 2),
+            "Updated patronage refund for {$record->user->first_name} {$record->user->last_name} (Year: {$record->year}) from ₱".number_format($oldAmount, 2).' to ₱'.number_format($record->amount, 2),
             'patronage_refund',
             $id
         );
@@ -705,7 +755,7 @@ class DividendController extends Controller
 
         AuditLog::log(
             'Approved Patronage Refund',
-            "Approved patronage refund for {$record->user->first_name} {$record->user->last_name} (Year: {$record->year}) - ₱" . number_format($record->amount, 2),
+            "Approved patronage refund for {$record->user->first_name} {$record->user->last_name} (Year: {$record->year}) - ₱".number_format($record->amount, 2),
             'patronage_refund',
             $id
         );
@@ -733,14 +783,14 @@ class DividendController extends Controller
 
         AuditLog::log(
             'Approved All Patronage Refunds',
-            "Bulk approved " . $pending->count() . " pending patronage refunds for year {$year}.",
+            'Bulk approved '.$pending->count()." pending patronage refunds for year {$year}.",
             'patronage_refund',
             null
         );
 
         return response()->json([
             'success' => true,
-            'message' => $pending->count() . ' patronage refund(s) approved.',
+            'message' => $pending->count().' patronage refund(s) approved.',
         ]);
     }
 
@@ -788,7 +838,7 @@ class DividendController extends Controller
                 'payment_method' => 'Patronage Refund',
                 'balance_after' => $savingsAccount->balance,
                 'note' => "Patronage refund for year {$record->year}",
-                'reference_no' => 'PAT-' . $record->year . '-' . str_pad($record->id, 5, '0', STR_PAD_LEFT),
+                'reference_no' => 'PAT-'.$record->year.'-'.str_pad($record->id, 5, '0', STR_PAD_LEFT),
                 'transaction_date' => now()->toDateString(),
                 'status' => 'Completed',
                 'created_at' => now(),
@@ -799,7 +849,7 @@ class DividendController extends Controller
 
             AuditLog::log(
                 'Disbursed Patronage Refund',
-                "Disbursed patronage refund for {$record->user->first_name} {$record->user->last_name} (Year: {$record->year}) - ₱" . number_format($record->amount, 2) . " to savings",
+                "Disbursed patronage refund for {$record->user->first_name} {$record->user->last_name} (Year: {$record->year}) - ₱".number_format($record->amount, 2).' to savings',
                 'patronage_refund',
                 $id
             );
@@ -813,9 +863,10 @@ class DividendController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Disbursement failed: ' . $e->getMessage(),
+                'message' => 'Disbursement failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -833,6 +884,7 @@ class DividendController extends Controller
             if ($isAjax) {
                 return response()->json(['success' => false, 'message' => 'No approved patronage refunds to disburse.'], 400);
             }
+
             return redirect()->back()->with('error', 'No approved patronage refunds to disburse.');
         }
 
@@ -863,7 +915,7 @@ class DividendController extends Controller
                     'payment_method' => 'Patronage Refund',
                     'balance_after' => $savingsAccount->balance,
                     'note' => "Patronage refund for year {$year}",
-                    'reference_no' => 'PAT-' . $year . '-' . str_pad($record->id, 5, '0', STR_PAD_LEFT),
+                    'reference_no' => 'PAT-'.$year.'-'.str_pad($record->id, 5, '0', STR_PAD_LEFT),
                     'transaction_date' => now()->toDateString(),
                     'status' => 'Completed',
                     'created_at' => now(),
@@ -876,7 +928,7 @@ class DividendController extends Controller
             $totalDisbursed = $approvedRecords->sum('amount');
             AuditLog::log(
                 'Disbursed Patronage Refunds',
-                "Disbursed all approved patronage refunds for year {$year}. Total: ₱" . number_format($totalDisbursed, 2) . " ({$approvedRecords->count()} members)",
+                "Disbursed all approved patronage refunds for year {$year}. Total: ₱".number_format($totalDisbursed, 2)." ({$approvedRecords->count()} members)",
                 'patronage_refund',
                 null
             );
@@ -884,9 +936,10 @@ class DividendController extends Controller
             if ($isAjax) {
                 $partialView = view('admin_components.patronage_table_partial', $this->getDividendData($request))->render();
                 $remainingApproved = PatronageRefundDistribution::where('year', $year)->where('status', 'approved')->count();
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Successfully disbursed ' . $approvedRecords->count() . ' patronage refund(s) for year ' . $year . '.',
+                    'message' => 'Successfully disbursed '.$approvedRecords->count().' patronage refund(s) for year '.$year.'.',
                     'disbursedCount' => $approvedRecords->count(),
                     'html' => $partialView,
                     'approvedCount' => $remainingApproved,
@@ -898,15 +951,18 @@ class DividendController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             if ($isAjax) {
-                return response()->json(['success' => false, 'message' => 'Disbursement failed: ' . $e->getMessage()], 500);
+                return response()->json(['success' => false, 'message' => 'Disbursement failed: '.$e->getMessage()], 500);
             }
+
             return redirect()->back()
-                ->with('error', 'Disbursement failed: ' . $e->getMessage());
+                ->with('error', 'Disbursement failed: '.$e->getMessage());
         }
     }
 
     public function disburseBoth(Request $request, $year = null)
     {
+        $this->ensureGeneralManager();
+
         $year = $year ?? $request->get('year', now()->year);
         $isAjax = $request->ajax();
 
@@ -918,6 +974,7 @@ class DividendController extends Controller
             if ($isAjax) {
                 return response()->json(['success' => false, 'message' => $msg], 400);
             }
+
             return redirect()->back()->with('error', $msg);
         }
 
@@ -945,7 +1002,7 @@ class DividendController extends Controller
                     'payment_method' => 'Dividend',
                     'balance_after' => $savingsAccount->balance,
                     'note' => "Dividend payout for year {$year}",
-                    'reference_no' => 'DIV-' . $year . '-' . str_pad($dividend->id, 5, '0', STR_PAD_LEFT),
+                    'reference_no' => 'DIV-'.$year.'-'.str_pad($dividend->id, 5, '0', STR_PAD_LEFT),
                     'transaction_date' => now()->toDateString(),
                     'status' => 'Completed',
                     'created_at' => now(),
@@ -974,7 +1031,7 @@ class DividendController extends Controller
                     'payment_method' => 'Patronage Refund',
                     'balance_after' => $savingsAccount->balance,
                     'note' => "Patronage refund for year {$year}",
-                    'reference_no' => 'PAT-' . $year . '-' . str_pad($record->id, 5, '0', STR_PAD_LEFT),
+                    'reference_no' => 'PAT-'.$year.'-'.str_pad($record->id, 5, '0', STR_PAD_LEFT),
                     'transaction_date' => now()->toDateString(),
                     'status' => 'Completed',
                     'created_at' => now(),
@@ -992,7 +1049,7 @@ class DividendController extends Controller
             $totalPatronage = $approvedPatronage->sum('amount');
             AuditLog::log(
                 'Disbursed Dividends and Patronage Refunds',
-                "Disbursed both dividends (₱" . number_format($totalDividends, 2) . ", {$approvedDividends->count()} members) and patronage refunds (₱" . number_format($totalPatronage, 2) . ", {$approvedPatronage->count()} members) for year {$year}.",
+                'Disbursed both dividends (₱'.number_format($totalDividends, 2).", {$approvedDividends->count()} members) and patronage refunds (₱".number_format($totalPatronage, 2).", {$approvedPatronage->count()} members) for year {$year}.",
                 'dividend',
                 null
             );
@@ -1014,10 +1071,11 @@ class DividendController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             if ($isAjax) {
-                return response()->json(['success' => false, 'message' => 'Disbursement failed: ' . $e->getMessage()], 500);
+                return response()->json(['success' => false, 'message' => 'Disbursement failed: '.$e->getMessage()], 500);
             }
+
             return redirect()->back()
-                ->with('error', 'Disbursement failed: ' . $e->getMessage());
+                ->with('error', 'Disbursement failed: '.$e->getMessage());
         }
     }
 
@@ -1025,6 +1083,8 @@ class DividendController extends Controller
 
     public function updateFundPercentage(Request $request)
     {
+        $this->ensureGeneralManager();
+
         $validator = Validator::make($request->all(), [
             'year' => 'required|integer|min:2000|max:2100',
             'dividend_fund_percentage' => 'required|numeric|min:1|max:99',
@@ -1050,7 +1110,7 @@ class DividendController extends Controller
             ->where('year', $year)
             ->first();
 
-        if (!$distribution) {
+        if (! $distribution) {
             return response()->json(['success' => false, 'message' => 'No distribution found for this year.'], 404);
         }
 
@@ -1083,17 +1143,6 @@ class DividendController extends Controller
                 'updated_at' => now(),
             ]);
 
-            $totalShareCapital = Dividend::where('year', $year)->sum('share_capital_amount');
-            if ($totalShareCapital > 0) {
-                Dividend::where('year', $year)->where('status', 'pending')->each(function ($dividend) use ($newDividendPool, $totalShareCapital) {
-                    $recommended = round(($dividend->share_capital_amount / $totalShareCapital) * $newDividendPool, 2);
-                    $dividend->update([
-                        'recommended_amount' => $recommended,
-                        'approved_amount' => $recommended,
-                    ]);
-                });
-            }
-
             DB::commit();
 
             AuditLog::log(
@@ -1116,7 +1165,8 @@ class DividendController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'Update failed: ' . $e->getMessage()], 500);
+
+            return response()->json(['success' => false, 'message' => 'Update failed: '.$e->getMessage()], 500);
         }
     }
 
@@ -1151,7 +1201,7 @@ class DividendController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Patronage basis updated to: ' . str_replace('_', ' ', $basis),
+            'message' => 'Patronage basis updated to: '.str_replace('_', ' ', $basis),
             'patronage_basis' => $basis,
         ]);
     }
@@ -1160,7 +1210,10 @@ class DividendController extends Controller
     {
         $record = PatronageRefundDistribution::with('user')->findOrFail($id);
 
-        $basis = DividendSetting::where('year', $record->year)->value('patronage_basis') ?? 'total_repayment';
+        $basis = DB::table('dividend_distributions')
+            ->where('year', $record->year)
+            ->value('patronage_basis')
+            ?? (DividendSetting::where('year', $record->year)->value('patronage_basis') ?? 'total_repayment');
 
         $loanRepayments = DB::table('lending_repayments_tbls')
             ->join('lending_program_tbls', 'lending_repayments_tbls.lending_id', '=', 'lending_program_tbls.id')
@@ -1230,7 +1283,7 @@ class DividendController extends Controller
             'success' => true,
             'basis' => $basis,
             'record' => [
-                'member_name' => trim(($record->user->first_name ?? 'Unknown') . ' ' . ($record->user->last_name ?? '')),
+                'member_name' => trim(($record->user->first_name ?? 'Unknown').' '.($record->user->last_name ?? '')),
                 'year' => $record->year,
                 'total_patronage' => $record->total_patronage,
                 'allocation_ratio' => $record->allocation_ratio,
@@ -1239,7 +1292,7 @@ class DividendController extends Controller
             ],
             'loan_repayments' => $repayments,
             'fallback_count' => $fallbackCount,
-            'additional_records' => $additionalRecords->map(fn($r) => [
+            'additional_records' => $additionalRecords->map(fn ($r) => [
                 'source' => $r->source,
                 'description' => $r->description,
                 'amount' => $r->amount,

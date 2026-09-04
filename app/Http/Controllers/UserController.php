@@ -2,35 +2,37 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ApprovedMail;
+use App\Mail\DeclinedMail;
+use App\Mail\ShareCapital as ShareCapitalMail;
+use App\Models\AuditLog;
+use App\Models\CooperativeTransaction;
+use App\Models\Dividend;
 use App\Models\educational_tbl;
-use App\Models\Otherinfo_tbl;
-use App\Models\Spouse_tbl;
-use App\Models\Users_tbl;
-use App\Models\Membervehi_tbl;
 use App\Models\Family_tbl;
+use App\Models\lending_program_tbl;
+use App\Models\lending_repayments_tbl;
+use App\Models\lending_status_tbl;
+use App\Models\Loan_settings_tbl;
+use App\Models\LoanEligibilitySetting;
 use App\Models\Membergovern_ids_tbl;
+use App\Models\Membervehi_tbl;
+use App\Models\Otherinfo_tbl;
 use App\Models\savings_account_tbl;
 use App\Models\savings_transaction_tbl;
+use App\Models\SavingsInterestSetting;
 use App\Models\share_capital_account_tbl;
 use App\Models\share_capital_transaction_tbl;
-use App\Models\lending_program_tbl;
-use App\Models\lending_status_tbl;
-use App\Models\lending_repayments_tbl;
-use App\Models\Loan_settings_tbl;
-use App\Models\Dividend;
-use App\Models\CooperativeTransaction;
+use App\Models\Spouse_tbl;
 use App\Models\system_settings_tbl;
-use Illuminate\Support\Facades\Hash;
-use App\Models\AuditLog;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use App\Models\Users_tbl;
 use Carbon\Carbon;
-use App\Mail\ApprovedMail;
-use App\Mail\ShareCapital as ShareCapitalMail;
-use App\Mail\DeclinedMail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -38,17 +40,17 @@ class UserController extends Controller
 
     public function __construct()
     {
-        $this->getUser = new Users_tbl();
+        $this->getUser = new Users_tbl;
     }
 
     public function sharingCapital()
     {
-        return view("ShareCapitalForm.share_capital_form");
+        return view('ShareCapitalForm.share_capital_form');
     }
 
     public function shareCapitalForm($id)
     {
-        return view("ShareCapitalForm.share_capital_form");
+        return view('ShareCapitalForm.share_capital_form');
     }
 
     public function applicationForm($id)
@@ -61,7 +63,7 @@ class UserController extends Controller
         $governmentIds = Membervehi_tbl::where('user_id', $id)->first();
 
         // Check if already submitted (has contact_no or any filled data)
-        $alreadySubmitted = $other && !empty($other->contact_no);
+        $alreadySubmitted = $other && ! empty($other->contact_no);
 
         return view('members_components.application_form', compact(
             'user',
@@ -172,14 +174,14 @@ class UserController extends Controller
             $user = Users_tbl::findOrFail($request->id);
             $previousRole = $user->role;
 
-            if ($request->has('role') && in_array($request->role, ['admin', 'officer']) && !auth()->user()->isMainAdmin()) {
+            if ($request->has('role') && in_array($request->role, ['admin', 'officer']) && ! auth()->user()->isMainAdmin()) {
                 return response()->json(['success' => false, 'message' => 'Only the main admin can assign admin or officer roles.'], 403);
             }
 
             $fillable = ['first_name', 'middle_name', 'last_name', 'email', 'contact_no', 'date_of_birth', 'present_address', 'permanent_address', 'sex', 'civil_status', 'citizenship', 'place_of_birth', 'blood_type', 'height', 'weight', 'role'];
 
             $data = $request->only($fillable);
-            $data = array_filter($data, fn($value) => $value !== null && $value !== '');
+            $data = array_filter($data, fn ($value) => $value !== null && $value !== '');
 
             $user->update($data);
 
@@ -286,7 +288,7 @@ class UserController extends Controller
 
             return redirect()->back()->with('success', 'Member added successfully!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error adding member: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error adding member: '.$e->getMessage());
         }
     }
 
@@ -300,6 +302,7 @@ class UserController extends Controller
             $id
         );
         Mail::to($user->email)->sendNow(new ShareCapitalMail($user));
+
         return redirect()->back()->with('success', 'Share capital email sent to member!');
     }
 
@@ -308,7 +311,7 @@ class UserController extends Controller
 
         $getTheUsers = $this->getUser->getAllUser();
 
-        return view("landingpage_components.static", compact("getTheUsers"));
+        return view('landingpage_components.static', compact('getTheUsers'));
     }
 
     // public function applicationForm()
@@ -318,80 +321,80 @@ class UserController extends Controller
 
     public function UserDirection()
     {
-        return view("landingpage_components.index");
+        return view('landingpage_components.index');
     }
 
     public function LoginPage()
     {
-        return view("login");
+        return view('login');
     }
 
     public function index()
     {
-        return view("landingpage_components.index");
+        return view('landingpage_components.index');
     }
 
     public function RegisterPage()
     {
-        return view("register");
+        return view('register');
     }
 
     public function AboutUs()
     {
         $officers = \App\Models\officer_tbl::with('user')->orderBy('sort_order')->get();
-        return view("landingpage_components.about", compact('officers'));
+
+        return view('landingpage_components.about', compact('officers'));
     }
 
     public function ServicesPage()
     {
-        return view("landingpage_components.services");
+        return view('landingpage_components.services');
     }
 
     public function BlogsPage()
     {
-        return view("landingpage_components.blogs");
+        return view('landingpage_components.blogs');
     }
 
     public function ContactPage()
     {
-        return view("landingpage_components.contact");
+        return view('landingpage_components.contact');
     }
 
     public function Navbar()
     {
-        return view("navbar");
+        return view('navbar');
     }
 
     public function LoanApplication()
     {
-        return view("members_components.loan_application");
+        return view('members_components.loan_application');
     }
 
     public function Savings()
     {
-        return view("members_components.savings");
+        return view('members_components.savings');
     }
 
     public function ShareCapital()
     {
-        return view("members_components.share_capital");
+        return view('members_components.share_capital');
     }
 
     public function LoanStatus()
     {
-        return view("members_components.loan_status");
+        return view('members_components.loan_status');
     }
 
     public function ProfileMember()
     {
-        return view("members_components.profile");
+        return view('members_components.profile');
     }
 
     public function DriverPortal()
     {
-        return view("members_components.driver_portal");
+        return view('members_components.driver_portal');
     }
-
 
     public function dashboard_admin()
     {
@@ -422,7 +425,7 @@ class UserController extends Controller
             ->map(function ($req) {
                 return [
                     'id' => $req->id,
-                    'name' => $req->user ? $req->user->first_name . ' ' . $req->user->last_name : 'Unknown',
+                    'name' => $req->user ? $req->user->first_name.' '.$req->user->last_name : 'Unknown',
                     'withdraw' => $req->withdraw_share_capital,
                     'time' => $req->created_at ? $req->created_at->diffForHumans() : 'N/A',
                     'created_at' => $req->created_at,
@@ -455,13 +458,13 @@ class UserController extends Controller
             ->map(function ($user) {
                 return [
                     'id' => $user->id,
-                    'name' => $user->first_name . ' ' . $user->last_name,
+                    'name' => $user->first_name.' '.$user->last_name,
                     'initials' => strtoupper(substr($user->first_name, 0, 1)),
                     'type' => 'Member Registration',
                     'amount' => null,
                     'time' => $user->created_at ? $user->created_at->diffForHumans() : 'N/A',
                     'created_at' => $user->created_at,
-                    'route' => 'dashboard.members'
+                    'route' => 'dashboard.members',
                 ];
             });
 
@@ -474,13 +477,13 @@ class UserController extends Controller
             ->map(function ($loan) {
                 return [
                     'id' => $loan->id,
-                    'name' => ($loan->user->first_name ?? 'Unknown') . ' ' . ($loan->user->last_name ?? ''),
+                    'name' => ($loan->user->first_name ?? 'Unknown').' '.($loan->user->last_name ?? ''),
                     'initials' => strtoupper(substr($loan->user->first_name ?? 'U', 0, 1)),
                     'type' => 'Loan Application',
                     'amount' => $loan->lending_amount,
                     'time' => $loan->created_at ? $loan->created_at->diffForHumans() : 'N/A',
                     'created_at' => $loan->created_at,
-                    'route' => 'lendings'
+                    'route' => 'lendings',
                 ];
             });
 
@@ -493,15 +496,118 @@ class UserController extends Controller
             ->get()
             ->map(function ($tx) {
                 $user = $tx->shareCapitalAccount && $tx->shareCapitalAccount->user ? $tx->shareCapitalAccount->user : null;
+
                 return [
                     'id' => $tx->id,
-                    'name' => $user ? $user->first_name . ' ' . $user->last_name : 'Unknown',
+                    'name' => $user ? $user->first_name.' '.$user->last_name : 'Unknown',
                     'initials' => $user ? strtoupper(substr($user->first_name, 0, 1)) : 'U',
                     'type' => 'Withdraw Share Capital',
                     'amount' => $tx->total_amount,
                     'time' => $tx->created_at ? $tx->created_at->diffForHumans() : 'N/A',
                     'created_at' => $tx->created_at,
-                    'route' => 'sharecapitals'
+                    'route' => 'sharecapitals',
+                ];
+            });
+
+        // 4. Savings Deposits
+        $pendingSavingsDepositsCount = savings_transaction_tbl::where('type', 'deposit')
+            ->whereRaw('LOWER(status) = ?', ['pending'])
+            ->count();
+
+        $pendingSavingsDepositsList = savings_transaction_tbl::with('savingsAccount.user')
+            ->where('type', 'deposit')
+            ->whereRaw('LOWER(status) = ?', ['pending'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($tx) {
+                $user = $tx->savingsAccount && $tx->savingsAccount->user ? $tx->savingsAccount->user : null;
+
+                return [
+                    'id' => $tx->id,
+                    'name' => $user ? $user->first_name.' '.$user->last_name : 'Unknown',
+                    'initials' => $user ? strtoupper(substr($user->first_name, 0, 1)) : 'U',
+                    'type' => 'Savings Deposit',
+                    'amount' => $tx->amount,
+                    'time' => $tx->created_at ? $tx->created_at->diffForHumans() : 'N/A',
+                    'created_at' => $tx->created_at,
+                    'route' => 'savings',
+                ];
+            });
+
+        // 5. Savings Withdrawals
+        $pendingSavingsWithdrawalsCount = savings_transaction_tbl::where('type', 'withdrawal')
+            ->whereRaw('LOWER(status) = ?', ['pending'])
+            ->count();
+
+        $pendingSavingsWithdrawalsList = savings_transaction_tbl::with('savingsAccount.user')
+            ->where('type', 'withdrawal')
+            ->whereRaw('LOWER(status) = ?', ['pending'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($tx) {
+                $user = $tx->savingsAccount && $tx->savingsAccount->user ? $tx->savingsAccount->user : null;
+
+                return [
+                    'id' => $tx->id,
+                    'name' => $user ? $user->first_name.' '.$user->last_name : 'Unknown',
+                    'initials' => $user ? strtoupper(substr($user->first_name, 0, 1)) : 'U',
+                    'type' => 'Savings Withdrawal',
+                    'amount' => $tx->amount,
+                    'time' => $tx->created_at ? $tx->created_at->diffForHumans() : 'N/A',
+                    'created_at' => $tx->created_at,
+                    'route' => 'savings',
+                ];
+            });
+
+        // 6. Share Capital Deposits
+        $pendingShareCapitalDepositsCount = share_capital_transaction_tbl::where('type', 'Deposit')
+            ->where('status', 'Pending')
+            ->count();
+
+        $pendingShareCapitalDepositsList = share_capital_transaction_tbl::with('shareCapitalAccount.user')
+            ->where('type', 'Deposit')
+            ->where('status', 'Pending')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($tx) {
+                $user = $tx->shareCapitalAccount && $tx->shareCapitalAccount->user ? $tx->shareCapitalAccount->user : null;
+
+                return [
+                    'id' => $tx->id,
+                    'name' => $user ? $user->first_name.' '.$user->last_name : 'Unknown',
+                    'initials' => $user ? strtoupper(substr($user->first_name, 0, 1)) : 'U',
+                    'type' => 'Share Capital Deposit',
+                    'amount' => $tx->total_amount,
+                    'time' => $tx->created_at ? $tx->created_at->diffForHumans() : 'N/A',
+                    'created_at' => $tx->created_at,
+                    'route' => 'sharecapitals',
+                ];
+            });
+
+        // 7. Loan Payments
+        $pendingLoanPaymentsCount = lending_repayments_tbl::where('status', 'Pending')
+            ->count();
+
+        $pendingLoanPaymentsList = lending_repayments_tbl::with(['lending.user', 'user'])
+            ->where('status', 'Pending')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($tx) {
+                $user = $tx->user ?? ($tx->lending && $tx->lending->user ? $tx->lending->user : null);
+
+                return [
+                    'id' => $tx->id,
+                    'name' => $user ? $user->first_name.' '.$user->last_name : 'Unknown',
+                    'initials' => $user ? strtoupper(substr($user->first_name, 0, 1)) : 'U',
+                    'type' => 'Loan Payment',
+                    'amount' => $tx->amount_paid,
+                    'time' => $tx->created_at ? $tx->created_at->diffForHumans() : 'N/A',
+                    'created_at' => $tx->created_at,
+                    'route' => 'payments',
                 ];
             });
 
@@ -519,12 +625,12 @@ class UserController extends Controller
                     'type' => 'savings',
                     'subtype' => $tx->type,
                     'title' => $tx->type === 'deposit' ? 'Savings Deposit' : 'Savings Withdrawal',
-                    'user' => ($tx->savingsAccount->user->first_name ?? 'Unknown') . ' ' . ($tx->savingsAccount->user->last_name ?? ''),
+                    'user' => ($tx->savingsAccount->user->first_name ?? 'Unknown').' '.($tx->savingsAccount->user->last_name ?? ''),
                     'initials' => strtoupper(substr($tx->savingsAccount->user->first_name ?? 'U', 0, 1)),
                     'amount' => $tx->amount,
                     'status' => 'Completed',
                     'time' => $tx->created_at ? $tx->created_at->diffForHumans() : 'N/A',
-                    'created_at' => $tx->created_at
+                    'created_at' => $tx->created_at,
                 ];
             });
 
@@ -535,16 +641,17 @@ class UserController extends Controller
             ->get()
             ->map(function ($tx) {
                 $user = $tx->shareCapitalAccount && $tx->shareCapitalAccount->user ? $tx->shareCapitalAccount->user : null;
+
                 return [
                     'type' => 'share_capital',
                     'subtype' => strtolower($tx->type),
-                    'title' => ucfirst($tx->type) . ' Share Capital',
-                    'user' => $user ? $user->first_name . ' ' . $user->last_name : 'Unknown',
+                    'title' => ucfirst($tx->type).' Share Capital',
+                    'user' => $user ? $user->first_name.' '.$user->last_name : 'Unknown',
                     'initials' => $user ? strtoupper(substr($user->first_name, 0, 1)) : 'U',
                     'amount' => $tx->total_amount,
                     'status' => ucfirst($tx->status),
                     'time' => $tx->created_at ? $tx->created_at->diffForHumans() : 'N/A',
-                    'created_at' => $tx->created_at
+                    'created_at' => $tx->created_at,
                 ];
             });
 
@@ -562,11 +669,11 @@ class UserController extends Controller
                 return [
                     'type' => 'member',
                     'title' => $user->role === 'pending' ? 'New Member Registration' : 'Member Activated',
-                    'user' => $user->first_name . ' ' . $user->last_name,
+                    'user' => $user->first_name.' '.$user->last_name,
                     'initials' => strtoupper(substr($user->first_name, 0, 1)),
                     'status' => $user->role === 'pending' ? 'Pending' : 'Active',
                     'time' => $user->created_at ? $user->created_at->diffForHumans() : 'N/A',
-                    'created_at' => $user->created_at
+                    'created_at' => $user->created_at,
                 ];
             });
 
@@ -598,10 +705,10 @@ class UserController extends Controller
         $memberActivity = [
             'active' => $totalUsers > 0 ? round(($activeMembers / $totalUsers) * 100) : 0,
             'new' => $totalUsers > 0 ? round(($pendingMembers / $totalUsers) * 100) : 0,
-            'inactive' => 0
+            'inactive' => 0,
         ];
 
-        // Loans by Type (for loan distribution) — dynamic from loan_settings_tbls
+        // Loans by Type (for loan distribution) â€” dynamic from loan_settings_tbls
         $allLoans = lending_program_tbl::whereIn('status', ['Approved', 'Completed'])->with('user')->get();
 
         $loanSettingsList = Loan_settings_tbl::where('is_active', true)->orderBy('loan_type')->get();
@@ -641,11 +748,25 @@ class UserController extends Controller
                     'type' => $tx->type,
                     'reference_no' => $tx->reference_no,
                     'created_at' => $tx->created_at,
-                    'user_name' => $tx->savingsAccount && $tx->savingsAccount->user ? $tx->savingsAccount->user->first_name . ' ' . $tx->savingsAccount->user->last_name : 'Unknown'
+                    'user_name' => $tx->savingsAccount && $tx->savingsAccount->user ? $tx->savingsAccount->user->first_name.' '.$tx->savingsAccount->user->last_name : 'Unknown',
                 ];
             });
 
-        return view("admin_components.dashboard", compact(
+        // Announcements
+        $announcements = \App\Models\Announcements_tbl::with(['user', 'comments.user', 'likes'])
+            ->withCount('likes', 'comments')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+        $currentUser = Auth::user();
+
+        // Polls
+        $polls = \App\Models\AnnouncementPoll_tbl::with(['user', 'votes'])
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('admin_components.dashboard', compact(
             'totalMembers',
             'totalSavings',
             'totalShareCapital',
@@ -659,6 +780,14 @@ class UserController extends Controller
             'pendingMembersCount',
             'pendingLoansCount',
             'pendingWithdrawalsCount',
+            'pendingSavingsDepositsCount',
+            'pendingSavingsDepositsList',
+            'pendingSavingsWithdrawalsCount',
+            'pendingSavingsWithdrawalsList',
+            'pendingShareCapitalDepositsCount',
+            'pendingShareCapitalDepositsList',
+            'pendingLoanPaymentsCount',
+            'pendingLoanPaymentsList',
             'pendingResignationsCount',
             'pendingResignationsList',
             'upcomingSeminars',
@@ -670,21 +799,46 @@ class UserController extends Controller
             'loanTypeCounts',
             'loansByTypeDetails',
             'loanTypes',
-            'auditLogs'
+            'auditLogs',
+            'announcements',
+            'polls',
+            'currentUser'
         ));
     }
 
     public function dashboard_members(Request $request)
     {
-        $query = Users_tbl::query()->where('role', '!=', 'admin');
+        // Auto-transition resignation_pending â†’ inactive when release_date has passed
+        Users_tbl::where('status', 'resignation_pending')
+            ->whereIn('id', function ($q) {
+                $q->select('user_id')
+                    ->from('resignation_requests_tbls')
+                    ->where('status', 'approved')
+                    ->where('withdraw_share_capital', true)
+                    ->where('is_released', false)
+                    ->where('release_date', '<=', now()->toDateString());
+            })
+            ->update(['status' => 'inactive']);
+
+        $query = Users_tbl::query();
+
+        if (! auth()->user()?->isMainAdmin()) {
+            $query->whereIn('role', ['member', 'pending', 'inactive']);
+        }
 
         $status = $request->get('filter', 'all');
         if ($status === 'pending') {
             $query->where('role', 'pending');
         } elseif ($status === 'active') {
-            $query->where('role', 'member');
+            $query->where(function ($q) {
+                $q->where('role', 'member')
+                    ->orWhereNotIn('role', ['member', 'pending', 'inactive']);
+            });
         } elseif ($status === 'inactive') {
-            $query->where('role', 'inactive');
+            $query->where(function ($q) {
+                $q->where('role', 'inactive')
+                    ->orWhere('status', 'inactive');
+            });
         }
 
         $members = $query->orderBy('id', 'asc')->paginate(10);
@@ -732,14 +886,14 @@ class UserController extends Controller
 
         $memberCategoryCounts = DB::table('otherinfo_tbls')
             ->join('users_tbls', 'otherinfo_tbls.user_id', '=', 'users_tbls.id')
-            ->where('users_tbls.role', '!=', 'admin')
+            ->where('users_tbls.role', 'member')
             ->select('otherinfo_tbls.membership_category', DB::raw('COUNT(*) as count'))
             ->groupBy('otherinfo_tbls.membership_category')
             ->pluck('count', 'membership_category');
 
         $adminCategoryCounts = DB::table('otherinfo_tbls')
             ->join('users_tbls', 'otherinfo_tbls.user_id', '=', 'users_tbls.id')
-            ->where('users_tbls.role', 'admin')
+            ->whereIn('users_tbls.role', ['admin', 'general-manager'])
             ->select('otherinfo_tbls.membership_category', DB::raw('COUNT(*) as count'))
             ->groupBy('otherinfo_tbls.membership_category')
             ->pluck('count', 'membership_category');
@@ -756,6 +910,9 @@ class UserController extends Controller
             ->whereIn('user_id', $memberIds)
             ->get()
             ->keyBy('user_id');
+
+        $scAccountIds = $shareCapitals->pluck('id')->filter()->values()->toArray();
+        $paidUpByAccount = \App\Http\Controllers\ShareCapital::paidUpForAccounts($scAccountIds);
 
         $otherInfo = DB::table('otherinfo_tbls')
             ->whereIn('user_id', $memberIds)
@@ -777,11 +934,23 @@ class UserController extends Controller
             ->get()
             ->groupBy('user_id');
 
-        $members->getCollection()->transform(function ($member) use ($shareCapitals, $otherInfo, $spouseInfo, $govIds, $vehicles) {
+        $savingsAccounts = DB::table('savings_account_tbls')
+            ->whereIn('user_id', $memberIds)
+            ->get()
+            ->keyBy('user_id');
+
+        $activeLoans = DB::table('lending_program_tbls')
+            ->whereIn('user_id', $memberIds)
+            ->where('status', 'Approved')
+            ->get()
+            ->groupBy('user_id');
+
+        $members->getCollection()->transform(function ($member) use ($shareCapitals, $otherInfo, $spouseInfo, $govIds, $vehicles, $savingsAccounts, $activeLoans, $paidUpByAccount) {
             $sc = $shareCapitals->get($member->id);
-            $member->sc_total_amount = $sc->total_amount ?? 0;
-            $member->sc_total_shares = $sc->total_shares ?? 0;
-            $member->sc_status = $sc->status ?? 'No Account';
+            $scLedger = $sc ? ($paidUpByAccount[$sc->id] ?? ['shares' => 0, 'amount' => 0]) : ['shares' => 0, 'amount' => 0];
+            $member->sc_total_amount = $scLedger['amount'];
+            $member->sc_total_shares = $scLedger['shares'];
+            $member->sc_status = $sc ? ($sc->status ?? 'No Account') : 'No Account';
 
             $other = $otherInfo->get($member->id);
             $member->profile_picture = $other->profile_picture ?? null;
@@ -810,10 +979,28 @@ class UserController extends Controller
                 ];
             })->values()->toArray();
 
+            $sa = $savingsAccounts->get($member->id);
+            $member->savings_balance = $sa ? (new \App\Http\Controllers\SavingsController)->computeSavingsBalance($sa->id) : 0;
+            $member->savings_status = $sa ? ($sa->status ?? 'No Account') : 'No Account';
+            $member->savings_interest = $sa ? ($sa->interest_accrued_balance ?? 0) : 0;
+
+            $loans = $activeLoans->get($member->id, collect());
+            $member->active_loans = $loans->map(function ($l) {
+                return [
+                    'id' => $l->id,
+                    'reference_no' => $l->reference_no,
+                    'lending_type' => $l->lending_type,
+                    'lending_amount' => $l->lending_amount,
+                    'monthly_payment' => $l->monthly_payment,
+                    'total_payment' => $l->total_payment,
+                ];
+            })->values()->toArray();
+            $member->active_loans_count = $loans->count();
+
             return $member;
         });
 
-        return view("admin_components.members", compact('members', 'pendingRequests', 'adminList', 'memberCategoryCounts', 'adminCategoryCounts', 'resignationRequests', 'inProcessResignations', 'resignees', 'roles', 'roleCounts'));
+        return view('admin_components.members', compact('members', 'pendingRequests', 'adminList', 'memberCategoryCounts', 'adminCategoryCounts', 'resignationRequests', 'inProcessResignations', 'resignees', 'roles', 'roleCounts'));
     }
 
     public function dashboard_savings(Request $request)
@@ -879,9 +1066,34 @@ class UserController extends Controller
         $totalWithdrawals = savings_transaction_tbl::where('type', 'withdrawal')->sum('amount') ?? 0;
 
         $totalSavingsBalance = savings_account_tbl::sum('balance') ?? 0;
-        $activeSavingsAccounts = savings_account_tbl::where('status', 'active')->count();
+        $savingsAccounts = savings_account_tbl::with('user')->orderByDesc('balance')->get();
 
-        $allMembers = Users_tbl::whereIn('role', ['member', 'pending'])
+        $sirSettings = SavingsInterestSetting::getOrCreate();
+        $minBalanceForInterest = (float) $sirSettings->min_balance_for_interest;
+
+        $eligibleAccounts = [];
+        $notEligibleAccounts = [];
+
+        foreach ($savingsAccounts as $account) {
+            $reasons = [];
+            if ($account->status !== 'active') {
+                $reasons[] = 'Account is not active';
+            }
+            if ((float) $account->balance < $minBalanceForInterest) {
+                $reasons[] = 'Balance below minimum (â‚±'.number_format($minBalanceForInterest, 2).' required)';
+            }
+            if (empty($reasons)) {
+                $eligibleAccounts[] = $account;
+            } else {
+                $notEligibleAccounts[] = ['account' => $account, 'reasons' => $reasons];
+            }
+        }
+
+        $eligibleCount = count($eligibleAccounts);
+        $notEligibleCount = count($notEligibleAccounts);
+        $activeSavingsAccounts = count($eligibleAccounts);
+
+        $allMembers = Users_tbl::memberCandidates()
             ->select('id', 'first_name', 'last_name')
             ->orderBy('first_name')
             ->get();
@@ -909,7 +1121,7 @@ class UserController extends Controller
             $monthlyData[] = [
                 'name' => $monthDate->format('F'),
                 'year' => $monthDate->format('Y'),
-                'amount' => $amount
+                'amount' => $amount,
             ];
             if ($amount > $maxAmount) {
                 $maxAmount = $amount;
@@ -927,7 +1139,7 @@ class UserController extends Controller
 
         $highestMonth = [
             'name' => 'N/A',
-            'amount' => 0
+            'amount' => 0,
         ];
         foreach ($monthlyData as $data) {
             if ($data['amount'] > $highestMonth['amount']) {
@@ -957,7 +1169,7 @@ class UserController extends Controller
             $monthlyWithdrawalData[] = [
                 'name' => $monthDate->format('F'),
                 'year' => $monthDate->format('Y'),
-                'amount' => $amount
+                'amount' => $amount,
             ];
             if ($amount > $maxWithdrawalAmount) {
                 $maxWithdrawalAmount = $amount;
@@ -973,11 +1185,11 @@ class UserController extends Controller
             $data['bar_height'] = $maxWithdrawalAmount > 0 ? ($data['amount'] / $maxWithdrawalAmount) * 150 : 0;
         }
 
-        \Log::info('Monthly Withdrawal Data (' . count($monthlyWithdrawalData) . ' months): ' . json_encode($monthlyWithdrawalData));
+        \Log::info('Monthly Withdrawal Data ('.count($monthlyWithdrawalData).' months): '.json_encode($monthlyWithdrawalData));
 
         $highestWithdrawalMonth = [
             'name' => 'N/A',
-            'amount' => 0
+            'amount' => 0,
         ];
         foreach ($monthlyWithdrawalData as $data) {
             if ($data['amount'] > $highestWithdrawalMonth['amount']) {
@@ -987,7 +1199,19 @@ class UserController extends Controller
 
         $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->orderBy('id')->get();
 
-        return view("admin_components.savings", compact(
+        $pendingWithdrawals = savings_transaction_tbl::with('savingsAccount.user.otherinfo')
+            ->where('type', 'withdrawal')
+            ->whereRaw('LOWER(status) = ?', ['pending'])
+            ->latest()
+            ->get();
+
+        $pendingDeposits = savings_transaction_tbl::with('savingsAccount.user.otherinfo')
+            ->where('type', 'deposit')
+            ->whereRaw('LOWER(status) = ?', ['pending'])
+            ->latest()
+            ->get();
+
+        return view('admin_components.savings', compact(
             'transactions',
             'currentBalance',
             'monthlyAvg',
@@ -1005,6 +1229,14 @@ class UserController extends Controller
             'activeSavingsAccounts',
             'monthlyWithdrawalAvg',
             'paymentMethods',
+            'eligibleCount',
+            'notEligibleCount',
+            'eligibleAccounts',
+            'notEligibleAccounts',
+            'sirSettings',
+            'savingsAccounts',
+            'pendingWithdrawals',
+            'pendingDeposits',
         ));
     }
 
@@ -1016,7 +1248,15 @@ class UserController extends Controller
 
         $transaction = savings_transaction_tbl::findOrFail($id);
 
-        if (!in_array($transaction->type, ['deposit', 'withdrawal'])) {
+        // Segregation of duties: the creator cannot be the approver unless GM.
+        if (! \App\Services\SoDGuard::canFinalize($transaction)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
+
+        if (! in_array($transaction->type, ['deposit', 'withdrawal'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'This transaction type cannot be approved/rejected here.',
@@ -1037,7 +1277,7 @@ class UserController extends Controller
             if ($transaction->type === 'withdrawal' && $savingsAccount->balance < $transaction->amount) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Insufficient balance to approve this withdrawal. Available: ₱' . number_format($savingsAccount->balance, 2),
+                    'message' => 'Insufficient balance to approve this withdrawal. Available: â‚±'.number_format($savingsAccount->balance, 2),
                 ], 400);
             }
 
@@ -1047,20 +1287,21 @@ class UserController extends Controller
 
             $savingsAccount->update(['balance' => $newBalance]);
 
+            $transaction->approved_by = Auth::id();
             $transaction->status = 'Completed';
             $transaction->balance_after = $newBalance;
             $transaction->save();
 
             AuditLog::log(
-                'Approved Savings ' . ucfirst($transaction->type),
-                "Approved {$transaction->type} of ₱{$transaction->amount} (Ref: {$transaction->reference_no})",
+                'Approved Savings '.ucfirst($transaction->type),
+                "Approved {$transaction->type} of â‚±{$transaction->amount} (Ref: {$transaction->reference_no})",
                 'savings',
                 $id
             );
 
             return response()->json([
                 'success' => true,
-                'message' => ucfirst($transaction->type) . ' approved successfully.',
+                'message' => ucfirst($transaction->type).' approved successfully.',
                 'new_balance' => $newBalance,
             ]);
         } else {
@@ -1068,27 +1309,217 @@ class UserController extends Controller
             $transaction->save();
 
             AuditLog::log(
-                'Rejected Savings ' . ucfirst($transaction->type),
-                "Rejected {$transaction->type} of ₱{$transaction->amount} (Ref: {$transaction->reference_no})",
+                'Rejected Savings '.ucfirst($transaction->type),
+                "Rejected {$transaction->type} of â‚±{$transaction->amount} (Ref: {$transaction->reference_no})",
                 'savings',
                 $id
             );
 
             return response()->json([
                 'success' => true,
-                'message' => ucfirst($transaction->type) . ' request rejected.',
+                'message' => ucfirst($transaction->type).' request rejected.',
             ]);
         }
     }
 
+    public function disburseSavingsWithdrawal(Request $request, $id)
+    {
+        $request->validate([
+            'admin_receipt' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+        ]);
+
+        $transaction = savings_transaction_tbl::findOrFail($id);
+
+        if (! \App\Services\SoDGuard::canFinalize($transaction)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
+
+        if ($transaction->type !== 'withdrawal') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only withdrawal transactions can be disbursed.',
+            ], 400);
+        }
+
+        if (strtolower($transaction->status) !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This transaction has already been processed.',
+            ], 400);
+        }
+
+        $savingsAccount = savings_account_tbl::findOrFail($transaction->savings_account_id);
+
+        if ($savingsAccount->balance < $transaction->amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient balance to disburse this withdrawal. Available: â‚±'.number_format($savingsAccount->balance, 2),
+            ], 400);
+        }
+
+        $receiptPath = $request->file('admin_receipt')->store('admin_receipts', 'public');
+
+        $newBalance = $savingsAccount->balance - $transaction->amount;
+
+        $savingsAccount->update(['balance' => $newBalance]);
+
+        $transaction->status = 'Completed';
+        $transaction->balance_after = $newBalance;
+        $transaction->gcash_proof_path = $receiptPath;
+        $transaction->save();
+
+        $memberId = $savingsAccount->user_id;
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $memberId,
+            'title' => 'Savings Withdrawal Disbursed',
+            'message' => 'Your savings withdrawal of â‚±'.number_format($transaction->amount, 2).' has been disbursed via GCash (Ref: '.$transaction->reference_no.'). Your new savings balance is â‚±'.number_format($newBalance, 2).'.',
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Disbursed Savings Withdrawal',
+            "Disbursed withdrawal of â‚±{$transaction->amount} (Ref: {$transaction->reference_no}). New balance: â‚±{$newBalance}",
+            'savings',
+            $id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Withdrawal disbursed successfully. Member has been notified.',
+            'new_balance' => $newBalance,
+        ]);
+    }
+
+    public function completeSavingsDeposit(Request $request, $id)
+    {
+        $transaction = savings_transaction_tbl::findOrFail($id);
+
+        if (! \App\Services\SoDGuard::canFinalize($transaction)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
+
+        if ($transaction->type !== 'deposit') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only deposit transactions can be completed here.',
+            ], 400);
+        }
+
+        if (strtolower($transaction->status) !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This transaction has already been processed.',
+            ], 400);
+        }
+
+        $savingsAccount = savings_account_tbl::findOrFail($transaction->savings_account_id);
+
+        $newBalance = $savingsAccount->balance + $transaction->amount;
+
+        $savingsAccount->update(['balance' => $newBalance]);
+
+        $transaction->status = 'Completed';
+        $transaction->balance_after = $newBalance;
+        $transaction->save();
+
+        $memberId = $savingsAccount->user_id;
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $memberId,
+            'title' => 'Savings Deposit Confirmed',
+            'message' => 'Your savings deposit of â‚±'.number_format($transaction->amount, 2).' has been confirmed. Your new savings balance is â‚±'.number_format($newBalance, 2).'. (Ref: '.$transaction->reference_no.')',
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Completed Savings Deposit',
+            "Confirmed deposit of â‚±{$transaction->amount} (Ref: {$transaction->reference_no}). New balance: â‚±{$newBalance}",
+            'savings',
+            $id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Deposit confirmed successfully. Member has been notified.',
+            'new_balance' => $newBalance,
+        ]);
+    }
+
+    public function voidSavingsDeposit(Request $request, $id)
+    {
+        $request->validate([
+            'void_reason' => 'required|string|in:wrong_amount,duplicate_payment,fraudulent,other_member,technical_error,other',
+        ]);
+
+        $transaction = savings_transaction_tbl::findOrFail($id);
+
+        if (! \App\Services\SoDGuard::canFinalize($transaction)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
+
+        if ($transaction->type !== 'deposit') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only deposit transactions can be voided.',
+            ], 400);
+        }
+
+        if (strtolower($transaction->status) !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending deposits can be voided.',
+            ], 400);
+        }
+
+        $transaction->update([
+            'status' => 'voided',
+            'void_reason' => $request->void_reason,
+            'voided_by' => Auth::id(),
+            'voided_at' => now(),
+        ]);
+
+        $savingsAccount = savings_account_tbl::findOrFail($transaction->savings_account_id);
+        $memberId = $savingsAccount->user_id;
+
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $memberId,
+            'title' => 'Savings Deposit Voided',
+            'message' => 'Your savings deposit of â‚±'.number_format($transaction->amount, 2).' has been voided by the admin. Reason: '.str_replace('_', ' ', ucfirst($transaction->void_reason)).'. (Ref: '.$transaction->reference_no.')',
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Voided Savings Deposit',
+            "Voided deposit of â‚±{$transaction->amount} (Ref: {$transaction->reference_no}). Reason: {$transaction->void_reason}",
+            'savings',
+            $id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Deposit voided successfully. Member has been notified.',
+        ]);
+    }
 
     public function dashboard_lendings(Request $request)
     {
-        $statusFilter = $request->get('status', 'all');
+        $statusFilter = $request->get('status', 'pending');
         $search = $request->get('search', '');
 
         $query = lending_program_tbl::with(['user', 'repayments' => function ($q) {
-            $q->select('id', 'lending_id', 'payment_number'); }]);
+            $q->select('id', 'lending_id', 'payment_number');
+        }]);
 
         if ($statusFilter !== 'all') {
             $query->where('status', ucfirst($statusFilter));
@@ -1108,11 +1539,13 @@ class UserController extends Controller
 
         $loans = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        $allMembers = Users_tbl::where('role', 'Member')
+        $allMembers = Users_tbl::memberCandidates()
             ->orderBy('first_name')
             ->get();
 
         $loanSettings = Loan_settings_tbl::pluck('interest_rate', 'loan_type')->toArray();
+
+        $loanChargeSettings = Loan_settings_tbl::where('is_active', true)->get()->keyBy('loan_type');
 
         $lateFeeSettings = Loan_settings_tbl::first();
         $lateFeePercentage = $lateFeeSettings->late_fee_percentage ?? 2.00;
@@ -1120,7 +1553,7 @@ class UserController extends Controller
 
         $penalizedLoans = $this->calculatePenalties($lateFeePercentage, $gracePeriodMonths);
 
-        return view("admin_components.lending", compact('loans', 'statusFilter', 'search', 'allMembers', 'loanSettings', 'lateFeePercentage', 'gracePeriodMonths', 'penalizedLoans'));
+        return view('admin_components.lending', compact('loans', 'statusFilter', 'search', 'allMembers', 'loanSettings', 'loanChargeSettings', 'lateFeePercentage', 'gracePeriodMonths', 'penalizedLoans'));
     }
 
     private function calculatePenalties($lateFeePercentage, $gracePeriodMonths)
@@ -1135,13 +1568,13 @@ class UserController extends Controller
         foreach ($approvedLoans as $loan) {
             $termMonths = (int) filter_var($loan->lending_type_term, FILTER_SANITIZE_NUMBER_INT);
 
-            if (!$loan->due_date && $loan->created_at) {
+            if (! $loan->due_date && $loan->created_at) {
                 $dueDate = $loan->created_at->addMonths($termMonths);
                 $loan->due_date = $dueDate->format('Y-m-d');
                 $loan->save();
             }
 
-            if (!$loan->due_date) {
+            if (! $loan->due_date) {
                 continue;
             }
 
@@ -1155,25 +1588,14 @@ class UserController extends Controller
                 if ($monthsOverdue > 0) {
                     $lateFee = $loan->lending_amount * ($lateFeePercentage / 100) * $monthsOverdue;
 
-                    $loan->late_fee = $lateFee;
-                    $loan->penalty_applied_at = now();
-                    $loan->save();
-
-                    AuditLog::log(
-                        'Applied Late Penalty',
-                        "Applied ₱{$lateFee} late fee to loan #{$loan->id} ({$monthsOverdue} month(s) overdue)",
-                        'loan_penalty',
-                        $loan->id
-                    );
-
                     $penalizedLoans[] = [
                         'id' => $loan->id,
-                        'member_name' => ($loan->user->first_name ?? 'Unknown') . ' ' . ($loan->user->last_name ?? ''),
+                        'member_name' => ($loan->user->first_name ?? 'Unknown').' '.($loan->user->last_name ?? ''),
                         'lending_amount' => $loan->lending_amount,
                         'due_date' => $loan->due_date,
                         'months_overdue' => $monthsOverdue,
                         'late_fee' => $lateFee,
-                        'status' => 'Overdue'
+                        'status' => 'Overdue',
                     ];
                 }
             }
@@ -1186,12 +1608,12 @@ class UserController extends Controller
     {
         $request->validate([
             'late_fee_percentage' => 'required|numeric|min:0|max:100',
-            'grace_period_months' => 'required|integer|min:0|max:12'
+            'grace_period_months' => 'required|integer|min:0|max:12',
         ]);
 
         Loan_settings_tbl::query()->update([
             'late_fee_percentage' => $request->late_fee_percentage,
-            'grace_period_months' => $request->grace_period_months
+            'grace_period_months' => $request->grace_period_months,
         ]);
 
         AuditLog::log(
@@ -1213,16 +1635,44 @@ class UserController extends Controller
             'lending_type_term' => 'required|string',
             'monthly_income' => 'required|numeric|min:0',
             'purpose_loan' => 'required|string',
-            'monthly_payment' => 'required|numeric',
-            'total_payment' => 'required|numeric',
-            'total_interest' => 'required|numeric',
         ]);
 
         $member = Users_tbl::findOrFail($request->member_id);
 
+        // Server-authoritative calculation: never trust the client-computed
+        // monthly_payment / total_payment / total_interest hidden fields.
+        $settings = DB::table('loan_settings_tbls')
+            ->where('loan_type', $request->lending_type)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $settings) {
+            return redirect()->back()
+                ->with('error', 'Loan settings are not configured for this loan type.');
+        }
+
+        $loanCalc = new \App\Services\LoanCalculationService;
+        $schedule = $loanCalc->buildSchedule(
+            (float) $request->lending_amount,
+            (float) $settings->interest_rate,
+            (int) filter_var($request->lending_type_term, FILTER_SANITIZE_NUMBER_INT)
+        );
+
         $latestLoan = lending_program_tbl::orderBy('reference_no', 'desc')->first();
         $newRefNumber = $latestLoan ? intval(substr($latestLoan->reference_no, 4)) + 1 : 1;
-        $referenceNo = 'LN-' . str_pad($newRefNumber, 4, '0', STR_PAD_LEFT);
+        $referenceNo = 'LN-'.str_pad($newRefNumber, 4, '0', STR_PAD_LEFT);
+
+        // Compute charges from the configured loan settings — mirrors the member
+        // application path (lendingController@lendingProgram) so admin-created
+        // loans carry the same fee breakdown.
+        $principal = (float) $request->lending_amount;
+        $termMonths = (int) filter_var($request->lending_type_term, FILTER_SANITIZE_NUMBER_INT);
+        $processingFee = round($principal * ($settings->processing_fee_rate / 100), 2);
+        $serviceFee = round($principal * ($settings->service_fee_rate / 100), 2);
+        $loanProtectionFee = round($settings->loan_protection_fee * $termMonths, 2);
+        $retentionRateApplied = $settings->retention_unpaid_rate;
+        $retentionAmount = round($principal * ($retentionRateApplied / 100), 2);
+        $netProceeds = round($principal - $processingFee - $serviceFee - $loanProtectionFee - $retentionAmount, 2);
 
         $loan = lending_program_tbl::create([
             'user_id' => $request->member_id,
@@ -1231,13 +1681,22 @@ class UserController extends Controller
             'lending_amount' => $request->lending_amount,
             'lending_type_term' => $request->lending_type_term,
             'monthly_income' => $request->monthly_income,
-            'monthly_payment' => $request->monthly_payment,
-            'total_payment' => $request->total_payment,
-            'total_interest' => $request->total_interest,
+            'monthly_payment' => $loanCalc->averageMonthlyPayment($schedule),
+            'total_payment' => $schedule['total_payment'],
+            'total_interest' => $schedule['total_interest'],
+            'processing_fee_rate' => $processingFee,
+            'service_fee_rate' => $serviceFee,
+            'loan_protection_fee' => $loanProtectionFee,
+            'retention_paid_rate' => $retentionRateApplied == $settings->retention_paid_rate ? $retentionAmount : 0,
+            'retention_unpaid_rate' => $retentionRateApplied == $settings->retention_unpaid_rate ? $retentionAmount : 0,
+            'net_proceeds' => $netProceeds,
             'purpose_loan' => $request->purpose_loan,
             'status' => 'Approved',
             'due_date' => now()->addMonths((int) filter_var($request->lending_type_term, FILTER_SANITIZE_NUMBER_INT))->format('Y-m-d'),
         ]);
+
+        // Persist the installment schedule so repayments allocate per-installment.
+        $loanCalc->persistSchedule($loan->id, $schedule);
 
         if ($request->hasFile('valid_id')) {
             $loan->valid_id = $request->file('valid_id')->store('loan_documents', 'public');
@@ -1249,12 +1708,12 @@ class UserController extends Controller
 
         AuditLog::log(
             'Admin Created Loan',
-            "Created {$request->lending_type} loan of ₱{$request->lending_amount} for {$member->first_name} {$member->last_name} (Ref: {$referenceNo})",
+            "Created {$request->lending_type} loan of â‚±{$request->lending_amount} for {$member->first_name} {$member->last_name} (Ref: {$referenceNo})",
             'loan',
             $loan->id
         );
 
-        return redirect()->back()->with('success', 'Loan created successfully for ' . $member->first_name . ' ' . $member->last_name);
+        return redirect()->back()->with('success', 'Loan created successfully for '.$member->first_name.' '.$member->last_name);
     }
 
     public function approveLoan(Request $request, $id)
@@ -1266,7 +1725,7 @@ class UserController extends Controller
         $user = $loan->user;
         AuditLog::log(
             'Approved Loan',
-            "Approved loan (Ref: {$loan->reference_no}) for {$user->first_name} {$user->last_name} - ₱" . number_format($loan->lending_amount, 2),
+            "Approved loan (Ref: {$loan->reference_no}) for {$user->first_name} {$user->last_name} - â‚±".number_format($loan->lending_amount, 2),
             'loan',
             $id
         );
@@ -1277,7 +1736,7 @@ class UserController extends Controller
     public function declineLoan(Request $request, $id)
     {
         $request->validate([
-            'decline_reason' => 'required|string|max:500'
+            'decline_reason' => 'required|string|max:500',
         ]);
 
         $loan = lending_program_tbl::findOrFail($id);
@@ -1295,8 +1754,6 @@ class UserController extends Controller
 
         return redirect()->back()->with('error', 'Loan application declined.');
     }
-
-
 
     public function dashboard_sharecapitals(Request $request)
     {
@@ -1336,20 +1793,24 @@ class UserController extends Controller
 
         $perShareValue = ShareCapital::PAR_VALUE;
 
-        $deposits = share_capital_transaction_tbl::whereIn('type', ['Deposit', 'Subscription', ShareCapital::CONVERSION_TYPE])
-            ->whereIn('status', ['Completed', 'completed'])
-            ->sum('shares') ?? 0;
+        $accounts = share_capital_account_tbl::with('user')->get();
 
-        $withdrawals = share_capital_transaction_tbl::where('type', 'Withdrawal')
-            ->whereIn('status', ['Approved', 'approved'])
-            ->sum('shares') ?? 0;
+        $paidUp = ShareCapital::paidUpForAccounts($accounts->pluck('id')->all());
 
-        $totalShares = $deposits - $withdrawals;
-        $currentValue = $totalShares * $perShareValue;
+        $eligibleAccounts = collect($paidUp)
+            ->filter(fn ($stats) => $stats['shares'] >= ShareCapital::ELIGIBLE_SHARES)
+            ->count();
 
-        $lastContribution = share_capital_transaction_tbl::orderBy('created_at', 'desc')->first();
+        $shareCapitalAccounts = $accounts
+            ->each(function ($account) use ($paidUp) {
+                $stats = $paidUp[$account->id] ?? ['shares' => 0.0, 'amount' => 0.0];
+                $account->paid_up_shares = $stats['shares'];
+                $account->paid_up_amount = $stats['amount'];
+            })
+            ->sortByDesc('paid_up_amount')
+            ->values();
 
-        $allMembers = Users_tbl::whereIn('role', ['member', 'pending'])
+        $allMembers = Users_tbl::memberCandidates()
             ->select('id', 'first_name', 'last_name')
             ->orderBy('first_name')
             ->get();
@@ -1363,19 +1824,24 @@ class UserController extends Controller
 
         $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->orderBy('id')->get();
 
-        return view("admin_components.sharecapitals", compact(
+        $pendingSCDeposits = share_capital_transaction_tbl::with('shareCapitalAccount.user')
+            ->where('type', 'Deposit')
+            ->where('status', 'Pending')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return view('admin_components.sharecapitals', compact(
             'transactions',
             'totalContributions',
-            'currentValue',
             'perShareValue',
-            'lastContribution',
+            'eligibleAccounts',
+            'shareCapitalAccounts',
             'allMembers',
             'pendingReleases',
-            'paymentMethods'
+            'paymentMethods',
+            'pendingSCDeposits'
         ));
     }
-
-
 
     public function adminStoreShareCapital(Request $request)
     {
@@ -1387,6 +1853,16 @@ class UserController extends Controller
             'note' => 'nullable|string|max:255',
         ]);
 
+        // Segregation of duties: an Allied Worker may not process their own
+        // member account (self-processing block). Only the GM may do so.
+        if (\App\Services\SoDGuard::actingAsStaff() && ! \App\Services\SoDGuard::isGeneralManager()
+            && (int) Auth::id() === (int) $request->member_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot process a transaction for your own member account (self-processing is blocked).',
+            ], 422);
+        }
+
         $memberId = $request->member_id;
         $shares = (float) $request->shares;
         $amountPerShare = ShareCapital::PAR_VALUE;
@@ -1396,7 +1872,7 @@ class UserController extends Controller
 
         $account = share_capital_account_tbl::where('user_id', $memberId)->first();
 
-        if (!$account) {
+        if (! $account) {
             $account = share_capital_account_tbl::create([
                 'user_id' => $memberId,
                 'total_shares' => 0,
@@ -1410,20 +1886,20 @@ class UserController extends Controller
             if ($account->total_shares < $shares) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Insufficient shares. Available: ' . $account->total_shares . ' shares'
+                    'message' => 'Insufficient shares. Available: '.$account->total_shares.' shares',
                 ], 422);
             }
 
             $newShares = $account->total_shares - $shares;
             $newAmount = $account->total_amount - $totalAmount;
 
-            // Full withdrawal via admin → auto-resignation
+            // Full withdrawal via admin â†’ auto-resignation
             if ($newShares <= 0) {
                 $existing = \App\Models\ResignationRequest_tbl::where('user_id', $memberId)
                     ->whereIn('status', ['pending'])
                     ->first();
 
-                if (!$existing) {
+                if (! $existing) {
                     \App\Models\ResignationRequest_tbl::create([
                         'user_id' => $memberId,
                         'withdraw_share_capital' => true,
@@ -1459,7 +1935,7 @@ class UserController extends Controller
             'total_amount' => $newAmount,
         ]);
 
-        $referenceNo = 'SC-' . date('YmdHis') . rand(10, 99);
+        $referenceNo = 'SC-'.date('YmdHis').rand(10, 99);
 
         share_capital_transaction_tbl::create([
             'share_capital_account_id' => $account->id,
@@ -1473,19 +1949,21 @@ class UserController extends Controller
             'transaction_date' => Carbon::today(),
             'status' => 'Completed',
             'note' => $request->note,
+            'created_by' => Auth::id(),
+            'approved_by' => Auth::id(),
         ]);
 
         $member = Users_tbl::find($memberId);
         AuditLog::log(
-            'Admin ' . ucfirst($type) . ' Share Capital',
-            ucfirst($type) . " of {$shares} shares (₱{$totalAmount}) for {$member?->first_name} {$member?->last_name} (Ref: {$referenceNo})",
+            'Admin '.ucfirst($type).' Share Capital',
+            ucfirst($type)." of {$shares} shares (â‚±{$totalAmount}) for {$member?->first_name} {$member?->last_name} (Ref: {$referenceNo})",
             'share_capital',
             $account->id
         );
 
         return response()->json([
             'success' => true,
-            'message' => ucfirst($type) . ' of ' . $shares . ' shares (₱' . number_format($totalAmount, 2) . ') successful!',
+            'message' => ucfirst($type).' of '.$shares.' shares (â‚±'.number_format($totalAmount, 2).') successful!',
             'reference_no' => $referenceNo,
             'new_shares' => $newShares,
             'new_amount' => $newAmount,
@@ -1497,9 +1975,11 @@ class UserController extends Controller
         $account = share_capital_account_tbl::where('user_id', $memberId)->first();
         $member = Users_tbl::with('otherinfo')->find($memberId);
 
+        $stats = $account ? ShareCapital::paidUpForAccount($account->id) : ['shares' => 0.0, 'amount' => 0.0];
+
         return response()->json([
-            'total_shares' => $account ? $account->total_shares : 0,
-            'total_amount' => $account ? $account->total_amount : 0,
+            'total_shares' => $stats['shares'],
+            'total_amount' => $stats['amount'],
             'contact_no' => $member?->otherinfo?->contact_no,
         ]);
     }
@@ -1511,6 +1991,13 @@ class UserController extends Controller
         ]);
 
         $transaction = share_capital_transaction_tbl::findOrFail($id);
+
+        if (! \App\Services\SoDGuard::canFinalize($transaction)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
 
         if ($transaction->type !== 'Withdrawal') {
             return response()->json([
@@ -1533,7 +2020,7 @@ class UserController extends Controller
                 ->where('id', $transaction->share_capital_account_id)
                 ->first();
 
-            if (!$account || $account->total_shares < $transaction->shares) {
+            if (! $account || $account->total_shares < $transaction->shares) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Insufficient shares to process this withdrawal.',
@@ -1549,6 +2036,7 @@ class UserController extends Controller
                 ->decrement('total_amount', $transaction->total_amount);
 
             $transaction->status = 'Approved';
+            $transaction->approved_by = Auth::id();
             $transaction->save();
 
             AuditLog::log(
@@ -1580,6 +2068,126 @@ class UserController extends Controller
         }
     }
 
+    public function completeShareCapitalDeposit(Request $request, $id)
+    {
+        $transaction = share_capital_transaction_tbl::findOrFail($id);
+
+        if (! \App\Services\SoDGuard::canFinalize($transaction)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
+
+        if ($transaction->type !== 'Deposit') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only deposit transactions can be completed.',
+            ], 400);
+        }
+
+        if ($transaction->status !== 'Pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This transaction has already been processed.',
+            ], 400);
+        }
+
+        DB::table('share_capital_account_tbls')
+            ->where('id', $transaction->share_capital_account_id)
+            ->increment('total_shares', $transaction->shares);
+
+        DB::table('share_capital_account_tbls')
+            ->where('id', $transaction->share_capital_account_id)
+            ->increment('total_amount', $transaction->total_amount);
+
+        $transaction->status = 'Completed';
+        $transaction->save();
+
+        $scAccount = share_capital_account_tbl::findOrFail($transaction->share_capital_account_id);
+        $memberId = $scAccount->user_id;
+
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $memberId,
+            'title' => 'Share Capital Deposit Confirmed',
+            'message' => 'Your share capital deposit of '.$transaction->shares.' shares (â‚±'.number_format($transaction->total_amount, 2).') has been confirmed. (Ref: '.$transaction->reference_no.')',
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Completed Share Capital Deposit',
+            "Confirmed deposit of {$transaction->shares} shares / â‚±{$transaction->total_amount} (Ref: {$transaction->reference_no})",
+            'share_capital',
+            $id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Deposit confirmed successfully. Member has been notified.',
+        ]);
+    }
+
+    public function voidShareCapitalDeposit(Request $request, $id)
+    {
+        $request->validate([
+            'void_reason' => 'required|string|in:wrong_amount,duplicate_payment,fraudulent,other_member,technical_error,other',
+        ]);
+
+        $transaction = share_capital_transaction_tbl::findOrFail($id);
+
+        if (! \App\Services\SoDGuard::canFinalize($transaction)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
+
+        if ($transaction->type !== 'Deposit') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only deposit transactions can be voided.',
+            ], 400);
+        }
+
+        if ($transaction->status !== 'Pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending deposits can be voided.',
+            ], 400);
+        }
+
+        $transaction->update([
+            'status' => 'voided',
+            'void_reason' => $request->void_reason,
+            'voided_by' => Auth::id(),
+            'voided_at' => now(),
+        ]);
+
+        $scAccount = share_capital_account_tbl::findOrFail($transaction->share_capital_account_id);
+        $memberId = $scAccount->user_id;
+
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $memberId,
+            'title' => 'Share Capital Deposit Voided',
+            'message' => 'Your share capital deposit of '.$transaction->shares.' shares (â‚±'.number_format($transaction->total_amount, 2).') has been voided. Reason: '.str_replace('_', ' ', ucfirst($transaction->void_reason)).'. (Ref: '.$transaction->reference_no.')',
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Voided Share Capital Deposit',
+            "Voided deposit of {$transaction->shares} shares / â‚±{$transaction->total_amount} (Ref: {$transaction->reference_no}). Reason: {$transaction->void_reason}",
+            'share_capital',
+            $id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Deposit voided successfully. Member has been notified.',
+        ]);
+    }
+
     public function dashboard_reports(Request $request)
     {
         $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
@@ -1588,19 +2196,19 @@ class UserController extends Controller
         $chartType = $request->get('chart', 'all');
 
         $totalDeposits = savings_transaction_tbl::where('type', 'deposit')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->sum('amount') ?? 0;
 
         $totalWithdrawals = savings_transaction_tbl::where('type', 'withdrawal')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->sum('amount') ?? 0;
 
         $loansIssued = lending_program_tbl::where('status', 'Approved')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->sum('lending_amount') ?? 0;
 
         $loanInterest = lending_program_tbl::where('status', 'Approved')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->sum('total_interest') ?? 0;
 
         $netIncome = $loanInterest;
@@ -1664,7 +2272,7 @@ class UserController extends Controller
 
             $savingsByMonth[$monthName] = [
                 'savings' => round($deposits / 1000, 1),
-                'loans' => round($loans / 1000, 1)
+                'loans' => round($loans / 1000, 1),
             ];
         }
 
@@ -1679,7 +2287,7 @@ class UserController extends Controller
             )
             ->leftJoin('savings_account_tbls as sa', 'st.savings_account_id', '=', 'sa.id')
             ->leftJoin('users_tbls as u', 'sa.user_id', '=', 'u.id')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('st.created_at', 'desc')
             ->limit(50)
             ->get();
@@ -1695,7 +2303,7 @@ class UserController extends Controller
             ->leftJoin('savings_account_tbls as sa', 'st.savings_account_id', '=', 'sa.id')
             ->leftJoin('users_tbls as u', 'sa.user_id', '=', 'u.id')
             ->where('st.type', 'deposit')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('st.created_at', 'desc')
             ->limit(10)
             ->get();
@@ -1711,14 +2319,14 @@ class UserController extends Controller
             ->leftJoin('savings_account_tbls as sa', 'st.savings_account_id', '=', 'sa.id')
             ->leftJoin('users_tbls as u', 'sa.user_id', '=', 'u.id')
             ->where('st.type', 'withdrawal')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('st.created_at', 'desc')
             ->limit(10)
             ->get();
 
         $loans = lending_program_tbl::with('user')
             ->where('status', 'Approved')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
@@ -1729,25 +2337,25 @@ class UserController extends Controller
                     'amount' => $loan->lending_amount,
                     'purpose' => $loan->purpose_loan,
                     'status' => $loan->status,
-                    'member_name' => ($loan->user->first_name ?? 'Unknown') . ' ' . ($loan->user->last_name ?? '')
+                    'member_name' => ($loan->user->first_name ?? 'Unknown').' '.($loan->user->last_name ?? ''),
                 ];
             });
 
         $depositsCount = DB::table('savings_transaction_tbls as st')
             ->where('st.type', 'deposit')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->count();
 
         $withdrawalsCount = DB::table('savings_transaction_tbls as st')
             ->where('st.type', 'withdrawal')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->count();
 
         $loansCount = lending_program_tbl::where('status', 'Approved')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->count();
 
-        return view("admin_components.reports", compact(
+        return view('admin_components.reports', compact(
             'fromDate',
             'toDate',
             'reportType',
@@ -1773,6 +2381,31 @@ class UserController extends Controller
 
     public function dashboard_settings(Request $request)
     {
+        // Route-level authorization: only Full-Access / Settings-permission staff
+        // (plus GM and Main Admin) may open this page directly.
+        $user = Auth::user();
+        $allowed = false;
+        if ($user) {
+            if ($user->isMainAdmin() || $user->isGeneralManager()) {
+                $allowed = true;
+            } else {
+                // Access comes from the assigned role's permissions. Member-based
+                // staff (Allied Workers) are included; plain members without a
+                // staff role row are not.
+                $settingsRole = \App\Models\Role::where('slug', $user->role)->first();
+                $settingsPerms = $settingsRole?->sidebar_permissions;
+                $allowed = $settingsRole !== null
+                    && (is_null($settingsPerms) || in_array('settings', (array) $settingsPerms, true));
+            }
+        }
+
+        if (! $allowed) {
+            if ($request->isMethod('POST')) {
+                return response()->json(['success' => false, 'message' => 'You are not authorized to change settings.'], 403);
+            }
+            return redirect()->route('dashboard')->with('error', 'You are not authorized to access settings.');
+        }
+
         $adminUser = Auth::user();
         $companySettings = [
             'company_name' => system_settings_tbl::getValue('company_name', 'CoopAdmin Savings and Loan Cooperative'),
@@ -1802,15 +2435,218 @@ class UserController extends Controller
 
         $roles = \App\Models\Role::orderBy('name')->get();
 
-        $paymentMethods = \App\Models\PaymentMethod::orderBy('id')->get();
-
         // Count users per role for dynamic admin categories
         $roleCounts = [];
         foreach ($roles as $role) {
             $roleCounts[$role->slug] = Users_tbl::where('role', $role->slug)->count();
         }
 
-        return view("admin_components.settings", compact('adminUser', 'companySettings', 'adminList', 'roles', 'roleCounts', 'paymentMethods'));
+        if ($request->isMethod('POST')) {
+            // Finance settings may only be updated by the Main Admin / GM.
+            if (! (auth()->user()->isMainAdmin() || auth()->user()->isGeneralManager())) {
+                return response()->json(['success' => false, 'message' => 'You are not authorized to update finance settings.'], 403);
+            }
+            $this->saveFinanceSettingsFromRequest($request);
+        }
+
+        $financeData = $this->loadFinanceSettingsData();
+
+        return view('admin_components.settings', compact('adminUser', 'companySettings', 'adminList', 'roles', 'roleCounts') + $financeData);
+    }
+
+    private function loadFinanceSettingsData()
+    {
+        $loanSettingsList = Loan_settings_tbl::orderBy('loan_type')->get();
+        $loanSettings = $loanSettingsList->pluck('interest_rate', 'loan_type')->toArray();
+
+        $lateFeeSettings = Loan_settings_tbl::first();
+        $lateFeePercentage = $lateFeeSettings->late_fee_percentage ?? 2.00;
+        $gracePeriodMonths = $lateFeeSettings->grace_period_months ?? 1;
+
+        $currentYear = now()->year;
+        $year = now()->year;
+        $years = DB::table('dividend_distributions')->orderByDesc('year')->pluck('year');
+
+        $dividendSetting = \App\Models\DividendSetting::where('year', $year)->first();
+        $dividendFundPercentage = $dividendSetting ? $dividendSetting->dividend_fund_percentage : 60.00;
+        $patronageFundPercentage = $dividendSetting ? $dividendSetting->patronage_fund_percentage : 40.00;
+        $reserveFundPercentage = $dividendSetting ? $dividendSetting->reserve_fund_percentage : 10.00;
+        $cetfPercentage = $dividendSetting ? $dividendSetting->cetf_percentage : 10.00;
+        $cdfPercentage = $dividendSetting ? $dividendSetting->cdf_percentage : 3.00;
+        $optionalFundPercentage = $dividendSetting ? $dividendSetting->optional_fund_percentage : 7.00;
+        $statutoryTotalPercentage = $reserveFundPercentage + $cetfPercentage + $cdfPercentage + $optionalFundPercentage;
+        $remainingSurplusPercentage = 100 - $statutoryTotalPercentage;
+
+        $savingsInterestSettings = SavingsInterestSetting::getOrCreate();
+        $loanEligibilitySettings = LoanEligibilitySetting::getOrCreate();
+        $paymentMethods = \App\Models\PaymentMethod::orderBy('id')->get();
+
+        return compact(
+            'loanSettingsList', 'loanSettings', 'lateFeePercentage', 'gracePeriodMonths',
+            'currentYear', 'year', 'years',
+            'dividendFundPercentage', 'patronageFundPercentage', 'reserveFundPercentage',
+            'cetfPercentage', 'cdfPercentage', 'optionalFundPercentage',
+            'statutoryTotalPercentage', 'remainingSurplusPercentage',
+            'savingsInterestSettings', 'loanEligibilitySettings', 'paymentMethods'
+        );
+    }
+
+    private function saveFinanceSettingsFromRequest(Request $request)
+    {
+        $loanSettingsList = Loan_settings_tbl::orderBy('loan_type')->get();
+
+        // Dynamic interest updates for any loan types
+        $inputs = $request->all();
+
+        // Global loan charges — one set of values applied to every loan type
+        $globalFields = [
+            'global_interest' => 'interest_rate',
+            'global_processing' => 'processing_fee_rate',
+            'global_service' => 'service_fee_rate',
+            'global_protection' => 'loan_protection_fee',
+            'global_retention_paid' => 'retention_paid_rate',
+            'global_retention_unpaid' => 'retention_unpaid_rate',
+        ];
+
+        $update = [];
+        foreach ($globalFields as $field => $column) {
+            if (array_key_exists($field, $inputs) && is_numeric($inputs[$field])) {
+                $update[$column] = $inputs[$field];
+            }
+        }
+        if ($update) {
+            Loan_settings_tbl::query()->update($update);
+        }
+
+        // Save dividend/patronage percentages if provided
+        if ($request->has('dividend_fund_percentage') || $request->has('patronage_fund_percentage')) {
+            $year = $request->get('dividend_year', $request->get('year', now()->year));
+            $ds = \App\Models\DividendSetting::getForYear($year);
+            if ($request->has('dividend_fund_percentage')) {
+                $ds->dividend_fund_percentage = $request->dividend_fund_percentage;
+            }
+            if ($request->has('patronage_fund_percentage')) {
+                $ds->patronage_fund_percentage = $request->patronage_fund_percentage;
+            }
+            if ($request->has('patronage_basis')) {
+                $ds->patronage_basis = $request->patronage_basis;
+            }
+            $ds->updated_by = auth()->id();
+            $ds->save();
+
+            $distributionForYear = DB::table('dividend_distributions')->where('year', $year)->first();
+            if ($distributionForYear) {
+                $dividendPct = (float) $ds->dividend_fund_percentage;
+                $patronagePct = (float) $ds->patronage_fund_percentage;
+                $netSurplus = (float) $distributionForYear->net_surplus;
+                $totalStatutory = (float) $distributionForYear->reserve_fund
+                    + (float) $distributionForYear->education_fund
+                    + (float) $distributionForYear->community_fund
+                    + (float) $distributionForYear->optional_fund;
+                $remainingSurplus = isset($distributionForYear->remaining_surplus)
+                    ? (float) $distributionForYear->remaining_surplus
+                    : round($netSurplus - $totalStatutory, 2);
+                $newDividendPool = round($remainingSurplus * ($dividendPct / 100), 2);
+                $newPatronageRefund = round($remainingSurplus * ($patronagePct / 100), 2);
+
+                DB::table('dividend_distributions')->where('year', $year)->update([
+                    'dividend_pool' => $newDividendPool,
+                    'patronage_refund_pool' => $newPatronageRefund,
+                    'updated_at' => now(),
+                ]);
+            }
+
+            session()->now('success', 'Dividend and patronage fund percentages updated successfully.');
+        }
+
+        // Save statutory fund allocation percentages if provided
+        if ($request->hasAny(['reserve_fund_percentage', 'cetf_percentage', 'cdf_percentage', 'optional_fund_percentage'])) {
+            $statYear = $request->get('statutory_year', $request->get('dividend_year', $request->get('year', now()->year)));
+
+            $reserve = round((float) $request->reserve_fund_percentage, 2);
+            $cetf = round((float) $request->cetf_percentage, 2);
+            $cdf = round((float) $request->cdf_percentage, 2);
+            $optional = round((float) $request->optional_fund_percentage, 2);
+            $statutoryTotal = $reserve + $cetf + $cdf + $optional;
+
+            $statutoryValues = [$reserve, $cetf, $cdf, $optional];
+            $hasInvalid = count(array_filter($statutoryValues, fn ($value) => $value < 0 || $value > 100)) > 0;
+
+            if ($hasInvalid) {
+                session()->now('error', 'Each statutory fund percentage must be between 0 and 100.');
+            } elseif ($statutoryTotal > 100) {
+                session()->now('error', 'Statutory fund allocations cannot exceed 100% of net surplus.');
+            } else {
+                $statDs = \App\Models\DividendSetting::getForYear($statYear);
+                $statDs->reserve_fund_percentage = $reserve;
+                $statDs->cetf_percentage = $cetf;
+                $statDs->cdf_percentage = $cdf;
+                $statDs->optional_fund_percentage = $optional;
+                $statDs->updated_by = auth()->id();
+                $statDs->save();
+
+                session()->now('success', 'Statutory fund allocation percentages updated successfully. These settings apply to newly generated annual distributions.');
+
+                AuditLog::log(
+                    'Updated Statutory Fund Percentages',
+                    "Changed statutory allocations for year {$statYear}: Reserve {$reserve}%, CETF {$cetf}%, CDF {$cdf}%, Optional {$optional}%.",
+                    'settings',
+                    null
+                );
+            }
+        }
+
+        // Save savings interest settings if provided
+        if ($request->hasAny(['annual_rate', 'release_frequency', 'min_balance_for_interest', 'maintaining_balance'])) {
+            $sirSettings = SavingsInterestSetting::getOrCreate();
+            $sirSettings->fill($request->only([
+                'annual_rate',
+                'release_frequency',
+                'min_balance_for_interest',
+                'maintaining_balance',
+            ]));
+            $sirSettings->save();
+
+            session()->now('success', 'Savings interest settings updated successfully.');
+
+            AuditLog::log(
+                'Updated Savings Interest Settings',
+                "Rate: {$sirSettings->annual_rate}%, Frequency: {$sirSettings->release_frequency}, Min balance: ₱{$sirSettings->min_balance_for_interest}, Maintaining: ₱{$sirSettings->maintaining_balance}",
+                'settings',
+                null
+            );
+        }
+
+        // Save loan eligibility settings if provided
+        if ($request->hasAny(['savings_to_loan_enabled', 'savings_to_loan_ratio', 'minimum_shares'])) {
+            $loanEligSettings = LoanEligibilitySetting::getOrCreate();
+            $loanEligSettings->savings_to_loan_enabled = $request->boolean('savings_to_loan_enabled', true);
+            if ($request->has('savings_to_loan_ratio')) {
+                $loanEligSettings->savings_to_loan_ratio = round((float) $request->savings_to_loan_ratio, 2);
+            }
+            if ($request->has('minimum_shares')) {
+                $loanEligSettings->minimum_shares = round((float) $request->minimum_shares, 2);
+            }
+            $loanEligSettings->save();
+
+            session()->now('success', 'Loan eligibility settings updated successfully.');
+
+            AuditLog::log(
+                'Updated Loan Eligibility Settings',
+                'Savings holdback enabled: '.($loanEligSettings->savings_to_loan_enabled ? 'Yes' : 'No')
+                    .', Holdback: ₱'.number_format($loanEligSettings->savings_to_loan_ratio, 2)
+                    .', Minimum shares: '.$loanEligSettings->minimum_shares,
+                'settings',
+                null
+            );
+        }
+
+        AuditLog::log(
+            'Updated Financial Settings',
+            'Updated loan interest rates and dividend/patronage settings',
+            'settings',
+            null
+        );
     }
 
     public function changePassword(Request $request)
@@ -1822,7 +2658,7 @@ class UserController extends Controller
 
         $user = Auth::user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Current password is incorrect.',
@@ -1847,7 +2683,7 @@ class UserController extends Controller
 
     public function updateAdmin(Request $request)
     {
-        if (!auth()->user()->isMainAdmin()) {
+        if (! auth()->user()->isMainAdmin()) {
             return response()->json(['success' => false, 'message' => 'Only the main admin can update admin accounts.'], 403);
         }
 
@@ -1855,10 +2691,8 @@ class UserController extends Controller
             'id' => 'required|exists:users_tbls,id',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users_tbls,email,' . $request->id,
+            'email' => 'required|email|unique:users_tbls,email,'.$request->id,
             'role' => 'required|string|exists:roles,slug',
-            'sidebar_permissions' => 'nullable|array',
-            'sidebar_permissions.*' => 'string',
         ]);
 
         $user = Users_tbl::findOrFail($validated['id']);
@@ -1872,7 +2706,6 @@ class UserController extends Controller
             'last_name' => $validated['last_name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
-            'sidebar_permissions' => $validated['sidebar_permissions'] ?? [],
         ]);
 
         AuditLog::log(
@@ -1887,7 +2720,7 @@ class UserController extends Controller
 
     public function deleteAdmin(Request $request)
     {
-        if (!auth()->user()->isMainAdmin()) {
+        if (! auth()->user()->isMainAdmin()) {
             return response()->json(['success' => false, 'message' => 'Only the main admin can delete admin accounts.'], 403);
         }
 
@@ -1913,7 +2746,7 @@ class UserController extends Controller
 
     public function toggleAdminStatus(Request $request)
     {
-        if (!auth()->user()->isMainAdmin()) {
+        if (! auth()->user()->isMainAdmin()) {
             return response()->json(['success' => false, 'message' => 'Only the main admin can change admin status.'], 403);
         }
 
@@ -1937,12 +2770,12 @@ class UserController extends Controller
             $validated['id']
         );
 
-        return response()->json(['success' => true, 'message' => 'Admin status updated to ' . ucfirst($validated['status']) . '.']);
+        return response()->json(['success' => true, 'message' => 'Admin status updated to '.ucfirst($validated['status']).'.']);
     }
 
     public function storeAdmin(Request $request)
     {
-        if (!auth()->user()->isMainAdmin()) {
+        if (! auth()->user()->isMainAdmin()) {
             abort(403, 'Only the main admin can create admin or officer accounts.');
         }
 
@@ -1952,15 +2785,13 @@ class UserController extends Controller
             'email' => 'required|email|unique:users_tbls,email',
             'password' => 'required|string|min:8',
             'role' => 'required|string|exists:roles,slug',
-            'sidebar_permissions' => 'nullable|array',
-            'sidebar_permissions.*' => 'string',
         ]);
 
-        $base = strtolower(preg_replace('/[^a-z0-9]/', '', $validated['first_name'] . '.' . $validated['last_name']));
+        $base = strtolower(preg_replace('/[^a-z0-9]/', '', $validated['first_name'].'.'.$validated['last_name']));
         $username = $base;
         $counter = 1;
         while (Users_tbl::where('username', $username)->exists()) {
-            $username = $base . $counter;
+            $username = $base.$counter;
             $counter++;
         }
 
@@ -1972,7 +2803,6 @@ class UserController extends Controller
             'role' => $validated['role'],
             'username' => $username,
             'status' => 'active',
-            'sidebar_permissions' => $validated['sidebar_permissions'] ?? [],
         ]);
 
         DB::table('otherinfo_tbls')->insert([
@@ -1991,27 +2821,53 @@ class UserController extends Controller
             $user->id
         );
 
-        return redirect()->route('settings', ['#admin-management'])
+        return redirect()->route('settings', ['tab' => 'admin-management'])
             ->with('admin_created', true);
     }
 
     public function storeRole(Request $request)
     {
-        if (!auth()->user()->isMainAdmin()) {
+        if (! auth()->user()->isMainAdmin()) {
             return response()->json(['success' => false, 'message' => 'Only the main admin can create roles.'], 403);
         }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:roles,name',
-            'slug' => 'required|string|max:100|unique:roles,slug',
-            'description' => 'nullable|string|max:255',
+            'slug' => 'nullable|string|max:100',
+            'description' => 'required|string|max:255',
+            'sidebar_permissions' => 'nullable|array',
+            'sidebar_permissions.*' => 'string',
         ]);
+
+        // Protected permissions (Settings, Finance, Role Management, GM Review)
+        // can only be granted by the Main Admin or the General Manager. Other
+        // role creators cannot delegate them to custom roles.
+        $protected = \App\Services\SoDGuard::protectedPermissions();
+        $canGrantProtected = auth()->user()->isMainAdmin() || \App\Services\SoDGuard::isGeneralManager();
+        $granted = collect($validated['sidebar_permissions'] ?? [])
+            ->when(
+                ! $canGrantProtected,
+                fn ($c) => $c->reject(fn ($p) => in_array($p, $protected, true))
+            )
+            ->values();
+
+        $slug = \Illuminate\Support\Str::slug($validated['name'] ?? '');
+        if (empty($slug)) {
+            $slug = 'role';
+        }
+        $originalSlug = $slug;
+        $counter = 1;
+        while (\App\Models\Role::where('slug', $slug)->exists()) {
+            $slug = $originalSlug.'-'.$counter;
+            $counter++;
+        }
 
         $role = \App\Models\Role::create([
             'name' => $validated['name'],
-            'slug' => $validated['slug'],
-            'description' => $validated['description'] ?? null,
+            'slug' => $slug,
+            'description' => $validated['description'],
             'is_system' => false,
+            'sidebar_permissions' => $granted->all(),
         ]);
 
         AuditLog::log(
@@ -2028,9 +2884,66 @@ class UserController extends Controller
         ]);
     }
 
+    public function updateRole(Request $request)
+    {
+        if (! auth()->user()->isMainAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Only the main admin can update roles.'], 403);
+        }
+
+        $validated = $request->validate([
+            'id' => 'required|exists:roles,id',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'sidebar_permissions' => 'nullable|array',
+            'sidebar_permissions.*' => 'string',
+        ]);
+
+        $role = \App\Models\Role::findOrFail($validated['id']);
+
+        if ($role->is_system) {
+            return response()->json(['success' => false, 'message' => 'System roles cannot be edited.'], 403);
+        }
+
+        if (\App\Models\Role::where('name', $validated['name'])->where('id', '!=', $role->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => "Another role is already named '{$validated['name']}'.",
+            ], 409);
+        }
+
+        // Protected permissions can only be granted by the Main Admin / GM.
+        $protected = \App\Services\SoDGuard::protectedPermissions();
+        $canGrantProtected = auth()->user()->isMainAdmin() || \App\Services\SoDGuard::isGeneralManager();
+        $granted = collect($validated['sidebar_permissions'] ?? [])
+            ->when(
+                ! $canGrantProtected,
+                fn ($c) => $c->reject(fn ($p) => in_array($p, $protected, true))
+            )
+            ->values();
+
+        $role->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'sidebar_permissions' => $granted->all(),
+        ]);
+
+        AuditLog::log(
+            'Updated Role',
+            "Updated role '{$role->name}' ({$role->slug}) with ".count($granted)." sidebar permission(s)",
+            'role',
+            $role->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "Role '{$role->name}' updated successfully.",
+            'role' => $role->fresh(),
+        ]);
+    }
+
     public function deleteRole(Request $request)
     {
-        if (!auth()->user()->isMainAdmin()) {
+        if (! auth()->user()->isMainAdmin()) {
             return response()->json(['success' => false, 'message' => 'Only the main admin can delete roles.'], 403);
         }
 
@@ -2048,7 +2961,7 @@ class UserController extends Controller
         if ($usersCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Cannot delete '{$role->name}' — {$usersCount} user(s) are assigned this role."
+                'message' => "Cannot delete '{$role->name}' â€” {$usersCount} user(s) are assigned this role.",
             ], 409);
         }
 
@@ -2063,7 +2976,7 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Role '{$role->name}' deleted successfully."
+            'message' => "Role '{$role->name}' deleted successfully.",
         ]);
     }
 
@@ -2072,15 +2985,20 @@ class UserController extends Controller
         $request->validate([
             'description' => 'required|string|max:500',
             'category' => 'required|string|in:Vehicle Purchase,Bank Investment,Office Equipment,Utilities,Maintenance,Other',
+            'category_other' => 'required_if:category,Other|nullable|string|max:120',
             'transaction_type' => 'required|string|in:expense,investment',
             'amount' => 'required|numeric|min:0.01',
             'transaction_date' => 'required|date',
         ]);
 
+        $category = $request->category === 'Other'
+            ? (trim($request->category_other) ?: 'Other')
+            : $request->category;
+
         try {
             $transaction = CooperativeTransaction::create([
                 'description' => $request->description,
-                'category' => $request->category,
+                'category' => $category,
                 'transaction_type' => $request->transaction_type,
                 'amount' => $request->amount,
                 'transaction_date' => $request->transaction_date,
@@ -2088,7 +3006,7 @@ class UserController extends Controller
 
             AuditLog::log(
                 'Recorded Cooperative Transaction',
-                "Recorded {$request->transaction_type} of ₱{$request->amount} ({$request->category}: {$request->description})",
+                "Recorded {$request->transaction_type} of â‚±{$request->amount} ({$category}: {$request->description})",
                 'cooperative_transaction',
                 $transaction->id
             );
@@ -2101,132 +3019,13 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to record transaction: ' . $e->getMessage(),
+                'message' => 'Failed to record transaction: '.$e->getMessage(),
             ], 500);
         }
     }
 
     public function dashboard_financial_activity(Request $request)
     {
-        $loanSettingsList = Loan_settings_tbl::orderBy('loan_type')->get();
-        $loanSettings = $loanSettingsList->pluck('interest_rate', 'loan_type')->toArray();
-
-        $lateFeeSettings = Loan_settings_tbl::first();
-        $lateFeePercentage = $lateFeeSettings->late_fee_percentage ?? 2.00;
-        $gracePeriodMonths = $lateFeeSettings->grace_period_months ?? 1;
-
-        if ($request->isMethod('POST')) {
-            // Dynamic interest updates for any loan types
-            $inputs = $request->all();
-
-            foreach ($loanSettingsList as $setting) {
-                $field = 'interest_' . $setting->id;
-                if (array_key_exists($field, $inputs)) {
-                    $val = $inputs[$field];
-                    if (is_numeric($val)) {
-                        Loan_settings_tbl::where('id', $setting->id)->update(['interest_rate' => $val]);
-                    }
-                }
-            }
-
-            // Save dividend/patronage percentages if provided
-            if ($request->has('dividend_fund_percentage') || $request->has('patronage_fund_percentage')) {
-                $year = $request->get('dividend_year', $request->get('year', now()->year));
-                $ds = \App\Models\DividendSetting::getForYear($year);
-                if ($request->has('dividend_fund_percentage')) {
-                    $ds->dividend_fund_percentage = $request->dividend_fund_percentage;
-                }
-                if ($request->has('patronage_fund_percentage')) {
-                    $ds->patronage_fund_percentage = $request->patronage_fund_percentage;
-                }
-                if ($request->has('patronage_basis')) {
-                    $ds->patronage_basis = $request->patronage_basis;
-                }
-                $ds->updated_by = auth()->id();
-                $ds->save();
-
-                $distributionForYear = DB::table('dividend_distributions')->where('year', $year)->first();
-                if ($distributionForYear) {
-                    $dividendPct = (float) $ds->dividend_fund_percentage;
-                    $patronagePct = (float) $ds->patronage_fund_percentage;
-                    $netSurplus = (float) $distributionForYear->net_surplus;
-                    $totalStatutory = (float) $distributionForYear->reserve_fund
-                        + (float) $distributionForYear->education_fund
-                        + (float) $distributionForYear->community_fund
-                        + (float) $distributionForYear->optional_fund;
-                    $remainingSurplus = isset($distributionForYear->remaining_surplus)
-                        ? (float) $distributionForYear->remaining_surplus
-                        : round($netSurplus - $totalStatutory, 2);
-                    $newDividendPool = round($remainingSurplus * ($dividendPct / 100), 2);
-                    $newPatronageRefund = round($remainingSurplus * ($patronagePct / 100), 2);
-
-                    DB::table('dividend_distributions')->where('year', $year)->update([
-                        'dividend_pool' => $newDividendPool,
-                        'patronage_refund_pool' => $newPatronageRefund,
-                        'updated_at' => now(),
-                    ]);
-
-                    $totalShareCapital = Dividend::where('year', $year)->sum('share_capital_amount');
-                    if ($totalShareCapital > 0) {
-                        Dividend::where('year', $year)->where('status', 'pending')->each(function ($dividend) use ($newDividendPool, $totalShareCapital) {
-                            $recommended = round(($dividend->share_capital_amount / $totalShareCapital) * $newDividendPool, 2);
-                            $dividend->update([
-                                'recommended_amount' => $recommended,
-                                'approved_amount' => $recommended,
-                            ]);
-                        });
-                    }
-                }
-            }
-
-            // Save statutory fund allocation percentages if provided
-            if ($request->hasAny(['reserve_fund_percentage', 'cetf_percentage', 'cdf_percentage', 'optional_fund_percentage'])) {
-                $statYear = $request->get('statutory_year', $request->get('dividend_year', $request->get('year', now()->year)));
-
-                $reserve = round((float) $request->reserve_fund_percentage, 2);
-                $cetf = round((float) $request->cetf_percentage, 2);
-                $cdf = round((float) $request->cdf_percentage, 2);
-                $optional = round((float) $request->optional_fund_percentage, 2);
-                $statutoryTotal = $reserve + $cetf + $cdf + $optional;
-
-                $statutoryValues = [$reserve, $cetf, $cdf, $optional];
-                $hasInvalid = count(array_filter($statutoryValues, fn($value) => $value < 0 || $value > 100)) > 0;
-
-                if ($hasInvalid) {
-                    session()->now('error', 'Each statutory fund percentage must be between 0 and 100.');
-                } elseif ($statutoryTotal > 100) {
-                    session()->now('error', 'Statutory fund allocations cannot exceed 100% of net surplus.');
-                } else {
-                    $statDs = \App\Models\DividendSetting::getForYear($statYear);
-                    $statDs->reserve_fund_percentage = $reserve;
-                    $statDs->cetf_percentage = $cetf;
-                    $statDs->cdf_percentage = $cdf;
-                    $statDs->optional_fund_percentage = $optional;
-                    $statDs->updated_by = auth()->id();
-                    $statDs->save();
-
-                    session()->now('success', 'Statutory fund allocation percentages updated successfully. These settings apply to newly generated annual distributions.');
-
-                    AuditLog::log(
-                        'Updated Statutory Fund Percentages',
-                        "Changed statutory allocations for year {$statYear}: Reserve {$reserve}%, CETF {$cetf}%, CDF {$cdf}%, Optional {$optional}%.",
-                        'settings',
-                        null
-                    );
-                }
-            }
-
-            $loanSettingsList = Loan_settings_tbl::orderBy('loan_type')->get();
-            $loanSettings = $loanSettingsList->pluck('interest_rate', 'loan_type')->toArray();
-
-            AuditLog::log(
-                'Updated Financial Settings',
-                'Updated loan interest rates and dividend/patronage settings',
-                'settings',
-                null
-            );
-        }
-
         // Dividend data
         $year = $request->get('year', now()->year);
         $distribution = DB::table('dividend_distributions')->where('year', $year)->first();
@@ -2261,7 +3060,9 @@ class UserController extends Controller
 
         // Patronage data
         $patronageFundPercentage = $dividendSetting ? $dividendSetting->patronage_fund_percentage : 40.00;
-        $patronageBasis = $dividendSetting ? $dividendSetting->patronage_basis : 'total_repayment';
+        $patronageBasis = ($distribution && ! empty($distribution->patronage_basis))
+            ? $distribution->patronage_basis
+            : ($dividendSetting ? $dividendSetting->patronage_basis : 'total_repayment');
         $reserveFundPercentage = $dividendSetting ? $dividendSetting->reserve_fund_percentage : 10.00;
         $cetfPercentage = $dividendSetting ? $dividendSetting->cetf_percentage : 10.00;
         $cdfPercentage = $dividendSetting ? $dividendSetting->cdf_percentage : 3.00;
@@ -2284,10 +3085,281 @@ class UserController extends Controller
             'total_investments' => CooperativeTransaction::where('transaction_type', 'investment')->sum('amount'),
         ];
 
-        return view("admin_components.financial_activity", compact(
-            'loanSettings',
-            'lateFeePercentage',
-            'gracePeriodMonths',
+$search = $request->get('search', '');
+        $typeFilter = $request->get('type', 'all');
+        $statusFilter = $request->get('status', 'all');
+
+        $alliedPendingFilter = $this->alliedPendingVisibilityClosure();
+
+        $savingsQuery = savings_transaction_tbl::with('savingsAccount.user');
+
+        if ($alliedPendingFilter) {
+            $savingsQuery->where($alliedPendingFilter);
+        }
+
+        if ($search) {
+            $savingsQuery->whereHas('savingsAccount.user', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%");
+            });
+        }
+
+        if ($typeFilter !== 'all') {
+            $savingsQuery->where('type', $typeFilter);
+        }
+
+        if ($statusFilter !== 'all') {
+            $savingsQuery->whereRaw('LOWER(status) = ?', [strtolower($statusFilter)]);
+        }
+
+        $savingsTransactions = $savingsQuery->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends(['tab' => 'savings', 'search' => $search, 'type' => $typeFilter, 'status' => $statusFilter]);
+
+        $currentBalance = (savings_transaction_tbl::where('type', 'deposit')->sum('amount') ?? 0) - (savings_transaction_tbl::where('type', 'withdrawal')->sum('amount') ?? 0);
+
+        $sixMonthsAgo = now()->subMonths(6)->startOfMonth();
+        $monthlyAvg = savings_transaction_tbl::where('type', 'deposit')
+            ->where('created_at', '>=', $sixMonthsAgo)
+            ->sum('amount') / 6;
+
+        $monthlyWithdrawalAvg = savings_transaction_tbl::where('type', 'withdrawal')
+            ->where('created_at', '>=', $sixMonthsAgo)
+            ->sum('amount') / 6;
+
+        $thisMonth = now()->startOfMonth();
+        $monthlyDeposits = (savings_transaction_tbl::where('type', 'deposit')
+            ->where('created_at', '>=', $thisMonth)
+            ->sum('amount') ?? 0)
+            - (savings_transaction_tbl::where('type', 'withdrawal')
+                ->where('created_at', '>=', $thisMonth)
+                ->sum('amount') ?? 0);
+
+        $monthlyWithdrawals = savings_transaction_tbl::where('type', 'withdrawal')
+            ->where('created_at', '>=', $thisMonth)
+            ->sum('amount') ?? 0;
+
+        $monthlyWithdrawalsCount = savings_transaction_tbl::where('type', 'withdrawal')
+            ->where('created_at', '>=', $thisMonth)
+            ->count() ?? 0;
+
+        $today = now()->startOfDay();
+        $todayDeposits = savings_transaction_tbl::where('type', 'deposit')
+            ->where('created_at', '>=', $today)
+            ->sum('amount');
+
+        $lastContribution = savings_transaction_tbl::orderByDesc('created_at')->first();
+
+        $totalDeposits = savings_transaction_tbl::where('type', 'deposit')->sum('amount') ?? 0;
+        $totalWithdrawals = savings_transaction_tbl::where('type', 'withdrawal')->sum('amount') ?? 0;
+
+        $totalSavingsBalance = savings_account_tbl::sum('balance') ?? 0;
+        $savingsAccounts = savings_account_tbl::with('user')->orderByDesc('balance')->get();
+
+        $sirSettings = SavingsInterestSetting::getOrCreate();
+        $minBalanceForInterest = (float) $sirSettings->min_balance_for_interest;
+
+        $eligibleAccounts = [];
+        $notEligibleAccounts = [];
+
+        foreach ($savingsAccounts as $account) {
+            $reasons = [];
+            if ($account->status !== 'active') {
+                $reasons[] = 'Account is not active';
+            }
+            if ((float) $account->balance < $minBalanceForInterest) {
+                $reasons[] = 'Balance below minimum (â‚±'.number_format($minBalanceForInterest, 2).' required)';
+            }
+            if (empty($reasons)) {
+                $eligibleAccounts[] = $account;
+            } else {
+                $notEligibleAccounts[] = ['account' => $account, 'reasons' => $reasons];
+            }
+        }
+
+        $eligibleCount = count($eligibleAccounts);
+        $notEligibleCount = count($notEligibleAccounts);
+        $activeSavingsAccounts = count($eligibleAccounts);
+
+        $allMembers = Users_tbl::memberCandidates()
+            ->select('id', 'first_name', 'last_name')
+            ->orderBy('first_name')
+            ->get();
+
+        $monthlyData = [];
+        $maxAmount = 0;
+        $processedMonths = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $monthDate = now()->subMonths($i);
+            $monthKey = $monthDate->format('Y-m');
+
+            if (in_array($monthKey, $processedMonths)) {
+                continue;
+            }
+            $processedMonths[] = $monthKey;
+
+            $amount = (float) savings_transaction_tbl::where('type', 'deposit')
+                ->whereYear('created_at', $monthDate->format('Y'))
+                ->whereMonth('created_at', $monthDate->format('m'))
+                ->sum('amount');
+
+            $monthlyData[] = [
+                'name' => $monthDate->format('F'),
+                'year' => $monthDate->format('Y'),
+                'amount' => $amount,
+            ];
+            if ($amount > $maxAmount) {
+                $maxAmount = $amount;
+            }
+        }
+
+        if (count($monthlyData) > 6) {
+            $monthlyData = array_slice($monthlyData, -6);
+        }
+
+        foreach ($monthlyData as &$data) {
+            $data['bar_height'] = $maxAmount > 0 ? ($data['amount'] / $maxAmount) * 150 : 0;
+        }
+
+        $highestMonth = ['name' => 'N/A', 'amount' => 0];
+        foreach ($monthlyData as $data) {
+            if ($data['amount'] > $highestMonth['amount']) {
+                $highestMonth = $data;
+            }
+        }
+
+        $monthlyWithdrawalData = [];
+        $maxWithdrawalAmount = 0;
+        $processedMonths = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $monthDate = now()->subMonths($i);
+            $monthKey = $monthDate->format('Y-m');
+
+            if (in_array($monthKey, $processedMonths)) {
+                continue;
+            }
+            $processedMonths[] = $monthKey;
+
+            $amount = (float) savings_transaction_tbl::where('type', 'withdrawal')
+                ->whereYear('created_at', $monthDate->format('Y'))
+                ->whereMonth('created_at', $monthDate->format('m'))
+                ->sum('amount');
+
+            $monthlyWithdrawalData[] = [
+                'name' => $monthDate->format('F'),
+                'year' => $monthDate->format('Y'),
+                'amount' => $amount,
+            ];
+            if ($amount > $maxWithdrawalAmount) {
+                $maxWithdrawalAmount = $amount;
+            }
+        }
+
+        if (count($monthlyWithdrawalData) > 6) {
+            $monthlyWithdrawalData = array_slice($monthlyWithdrawalData, -6);
+        }
+
+        foreach ($monthlyWithdrawalData as &$data) {
+            $data['bar_height'] = $maxWithdrawalAmount > 0 ? ($data['amount'] / $maxWithdrawalAmount) * 150 : 0;
+        }
+
+        $highestWithdrawalMonth = ['name' => 'N/A', 'amount' => 0];
+        foreach ($monthlyWithdrawalData as $data) {
+            if ($data['amount'] > $highestWithdrawalMonth['amount']) {
+                $highestWithdrawalMonth = $data;
+            }
+        }
+
+        $pendingWithdrawals = savings_transaction_tbl::with('savingsAccount.user.otherinfo')
+            ->where('type', 'withdrawal')
+            ->whereRaw('LOWER(status) = ?', ['pending'])
+            ->when($alliedPendingFilter, fn ($q) => $q->where($alliedPendingFilter))
+            ->latest()
+            ->get();
+
+        $pendingDeposits = savings_transaction_tbl::with('savingsAccount.user.otherinfo')
+            ->where('type', 'deposit')
+            ->whereRaw('LOWER(status) = ?', ['pending'])
+            ->when($alliedPendingFilter, fn ($q) => $q->where($alliedPendingFilter))
+            ->latest()
+            ->get();
+
+        // â”€â”€â”€ Share Capital tab data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        $scSearch = $request->get('sc_search', '');
+        $scTypeFilter = $request->get('sc_type', 'all');
+        $scStatusFilter = $request->get('sc_status', 'all');
+
+        $scQuery = share_capital_transaction_tbl::with('shareCapitalAccount.user')
+            ->where('status', '!=', 'failed');
+
+        if ($alliedPendingFilter) {
+            $scQuery->where($alliedPendingFilter);
+        }
+
+        if ($scSearch) {
+            $scQuery->whereHas('shareCapitalAccount.user', function ($q) use ($scSearch) {
+                $q->where('first_name', 'like', "%{$scSearch}%")
+                    ->orWhere('last_name', 'like', "%{$scSearch}%");
+            });
+        }
+
+        if ($scTypeFilter !== 'all') {
+            $scQuery->where('type', $scTypeFilter);
+        }
+
+        if ($scStatusFilter !== 'all') {
+            $scQuery->where('status', $scStatusFilter);
+        }
+
+        $scTransactions = $scQuery->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends(['tab' => 'share-capitals', 'sc_search' => $scSearch, 'sc_type' => $scTypeFilter, 'sc_status' => $scStatusFilter]);
+
+        $totalContributions = share_capital_transaction_tbl::whereIn('type', ['Deposit', 'Subscription', ShareCapital::CONVERSION_TYPE])
+            ->where('status', 'Completed')
+            ->sum('total_amount') ?? 0;
+
+        $totalContributions = $totalContributions - (
+            share_capital_transaction_tbl::where('type', 'Withdrawal')
+                ->whereIn('status', ['Approved', 'approved'])
+                ->sum('total_amount') ?? 0
+        );
+
+        $perShareValue = ShareCapital::PAR_VALUE;
+
+        $accounts = share_capital_account_tbl::with('user')->get();
+        $paidUp = ShareCapital::paidUpForAccounts($accounts->pluck('id')->all());
+
+        $scEligibleCount = collect($paidUp)
+            ->filter(fn ($stats) => $stats['shares'] >= ShareCapital::ELIGIBLE_SHARES)
+            ->count();
+
+        $shareCapitalAccounts = $accounts
+            ->each(function ($account) use ($paidUp) {
+                $stats = $paidUp[$account->id] ?? ['shares' => 0.0, 'amount' => 0.0];
+                $account->paid_up_shares = $stats['shares'];
+                $account->paid_up_amount = $stats['amount'];
+            })
+            ->sortByDesc('paid_up_amount')
+            ->values();
+
+        $pendingReleases = \App\Models\ResignationRequest_tbl::with('user.shareCapitalAccount')
+            ->where('status', 'approved')
+            ->where('withdraw_share_capital', true)
+            ->where('is_released', false)
+            ->orderBy('release_date', 'asc')
+            ->get();
+
+        $pendingSCDeposits = share_capital_transaction_tbl::with('shareCapitalAccount.user')
+            ->where('type', 'Deposit')
+            ->where('status', 'Pending')
+            ->when($alliedPendingFilter, fn ($q) => $q->where($alliedPendingFilter))
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return view('admin_components.financial_activity', compact(
             'distribution',
             'dividends',
             'year',
@@ -2312,7 +3384,39 @@ class UserController extends Controller
             'patronageApprovedCount',
             'patronageDisbursedCount',
             'totalSumPatronageApproved',
-            'loanSettingsList'
+            'savingsTransactions',
+            'currentBalance',
+            'monthlyAvg',
+            'monthlyWithdrawalAvg',
+            'monthlyDeposits',
+            'monthlyWithdrawals',
+            'monthlyWithdrawalsCount',
+            'todayDeposits',
+            'lastContribution',
+            'totalDeposits',
+            'totalWithdrawals',
+            'totalSavingsBalance',
+            'savingsAccounts',
+            'activeSavingsAccounts',
+            'eligibleAccounts',
+            'notEligibleAccounts',
+            'eligibleCount',
+            'notEligibleCount',
+            'sirSettings',
+            'allMembers',
+            'monthlyData',
+            'highestMonth',
+            'monthlyWithdrawalData',
+            'highestWithdrawalMonth',
+            'pendingWithdrawals',
+            'pendingDeposits',
+            'scTransactions',
+            'totalContributions',
+            'perShareValue',
+            'scEligibleCount',
+            'shareCapitalAccounts',
+            'pendingReleases',
+            'pendingSCDeposits'
         ));
     }
 
@@ -2320,28 +3424,40 @@ class UserController extends Controller
     {
         $method = $request->get('method', 'all');
 
-        $query = lending_repayments_tbl::with(['lending.user', 'user']);
+        $alliedPendingFilter = $this->alliedPendingVisibilityClosure();
+
+        $query = lending_repayments_tbl::with(['lending.user', 'user'])
+            ->where('status', '!=', 'voided');
 
         if ($method !== 'all') {
             $query->where('payment_method', $method);
         }
 
+        if ($alliedPendingFilter) {
+            $query->where($alliedPendingFilter);
+        }
+
         $payments = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        $allMembers = Users_tbl::whereIn('role', ['member', 'pending'])
+        $pendingRepayments = lending_repayments_tbl::with(['lending.user', 'user'])
+            ->where('status', 'Pending')
+            ->when($alliedPendingFilter, fn ($q) => $q->where($alliedPendingFilter))
+            ->latest()
+            ->get();
+
+        $allMembers = Users_tbl::memberCandidates()
             ->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
 
         $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->orderBy('id')->get();
 
-        return view("admin_components.payments", compact('payments', 'method', 'allMembers', 'paymentMethods'));
+        return view('admin_components.payments', compact('payments', 'method', 'allMembers', 'paymentMethods', 'pendingRepayments'));
     }
 
     public function createLoanSetting(Request $request)
     {
         $request->validate([
             'loan_type' => 'required|string|max:191',
-            'interest_rate' => 'required|numeric|min:0|max:100',
         ]);
 
         $exists = Loan_settings_tbl::where('loan_type', $request->loan_type)->first();
@@ -2349,9 +3465,17 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'Loan type already exists');
         }
 
-        $ls = new Loan_settings_tbl();
+        // New loan types inherit the global loan charges so all types stay in sync.
+        $reference = Loan_settings_tbl::orderBy('loan_type')->first();
+
+        $ls = new Loan_settings_tbl;
         $ls->loan_type = $request->loan_type;
-        $ls->interest_rate = $request->interest_rate;
+        $ls->interest_rate = $reference->interest_rate ?? 2.00;
+        $ls->processing_fee_rate = $reference->processing_fee_rate ?? 2.00;
+        $ls->service_fee_rate = $reference->service_fee_rate ?? 2.00;
+        $ls->loan_protection_fee = $reference->loan_protection_fee ?? 2.00;
+        $ls->retention_paid_rate = $reference->retention_paid_rate ?? 3.00;
+        $ls->retention_unpaid_rate = $reference->retention_unpaid_rate ?? 6.00;
         $ls->is_active = true;
         $ls->save();
 
@@ -2363,7 +3487,7 @@ class UserController extends Controller
     public function deleteLoanSetting(Request $request, $id)
     {
         $setting = Loan_settings_tbl::find($id);
-        if (!$setting) {
+        if (! $setting) {
             return response()->json(['success' => false, 'message' => 'Loan type not found'], 404);
         }
 
@@ -2371,7 +3495,7 @@ class UserController extends Controller
         if ($inUse > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Cannot delete {$setting->loan_type}. It is currently used by {$inUse} loan(s)."
+                'message' => "Cannot delete {$setting->loan_type}. It is currently used by {$inUse} loan(s).",
             ]);
         }
 
@@ -2386,7 +3510,7 @@ class UserController extends Controller
     public function getLoanPayable($id)
     {
         $loan = lending_program_tbl::find($id);
-        if (!$loan) {
+        if (! $loan) {
             return response()->json(['success' => false, 'message' => 'Loan not found'], 404);
         }
 
@@ -2399,12 +3523,19 @@ class UserController extends Controller
 
         $remaining = $status ? (float) ($status->remaining_balance ?? $loan->total_payment ?? $loan->lending_amount) : (float) ($loan->total_payment ?? $loan->lending_amount);
 
-        $base = min($monthlyAmortization > 0 ? $monthlyAmortization : $remaining, $remaining);
+        // Scheduled loans: the CURRENT unpaid installment is authoritative
+        // (full-installment repayment rule); legacy loans use the flat average.
+        $currentInstallment = (new \App\Services\LoanCalculationService)->currentInstallment($id);
+
+        $base = $currentInstallment
+            ? (float) $currentInstallment->amount_due
+            : min($monthlyAmortization > 0 ? $monthlyAmortization : $remaining, $remaining);
 
         $today = now()->timezone('Asia/Manila')->toDateString();
         $penalty = 0;
+        $lateFeeRate = Loan_settings_tbl::getLateFeeRate($loan->lending_type);
         if ($status && $status->due_date && $status->due_date < $today && $remaining > 0) {
-            $penalty = round($monthlyAmortization * 0.02, 2); // 2% of amortization
+            $penalty = round($base * ($lateFeeRate / 100), 2); // late fee % of current installment / amortization
         }
 
         $total = round($base + $penalty, 2);
@@ -2412,6 +3543,9 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'base' => $base,
+            'installment' => $currentInstallment ? (float) $currentInstallment->amount_due : $base,
+            'has_schedule' => (bool) $currentInstallment,
+            'late_fee_percent' => $lateFeeRate,
             'penalty' => $penalty,
             'total' => $total,
             'remaining' => round($remaining, 2),
@@ -2431,8 +3565,21 @@ class UserController extends Controller
             'late_fee' => 'nullable|numeric|min:0',
         ]);
 
+        // Segregation of duties: an Allied Worker may not process their own
+        // member account (self-processing block). Only the GM may do so.
+        if (\App\Services\SoDGuard::actingAsStaff() && ! \App\Services\SoDGuard::isGeneralManager()
+            && (int) auth()->id() === (int) $request->member_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot process a transaction for your own member account (self-processing is blocked).',
+            ], 422);
+        }
+
         $loan = lending_program_tbl::findOrFail($request->lending_id);
         $interestRatio = ($loan->total_payment > 0) ? ($loan->total_interest / $loan->total_payment) : 0;
+
+        $loanCalc = new \App\Services\LoanCalculationService;
+        $currentInstallment = $loanCalc->currentInstallment($loan->id);
 
         $status = lending_status_tbl::firstOrCreate(
             ['lending_id' => $request->lending_id],
@@ -2442,8 +3589,7 @@ class UserController extends Controller
                 'total_paid' => 0,
                 'payments_made' => 0,
                 'total_payments' => max(1, (int) filter_var($loan->lending_type_term ?? '6', FILTER_SANITIZE_NUMBER_INT)),
-                'interest_rate' => $loan->total_interest > 0 && $loan->lending_amount > 0
-                    ? round(($loan->total_interest / $loan->lending_amount) * 100, 2) : 0,
+                'interest_rate' => \App\Models\Loan_settings_tbl::getRate($loan->lending_type),
                 'due_date' => now()->addMonth()->format('Y-m-d'),
                 'status' => 'Active',
             ]
@@ -2451,48 +3597,128 @@ class UserController extends Controller
 
         DB::beginTransaction();
         try {
-            $paymentsMade = lending_repayments_tbl::where('lending_id', $request->lending_id)->count();
-
-            $interestPaid = round($request->amount_paid * $interestRatio, 2);
-            $principalPaid = round($request->amount_paid - $interestPaid, 2);
-
             $totalPayments = max(1, (int) ($status->total_payments ?? $loan->total_payments ?? 0));
             $totalPayment = (float) ($loan->total_payment ?? $loan->lending_amount);
             $monthlyAmortization = $totalPayments > 0 ? round($totalPayment / $totalPayments, 2) : 0;
             $today = now()->timezone('Asia/Manila')->toDateString();
             $lateFee = 0;
             if ($status->due_date && $status->due_date < $today && $status->remaining_balance > 0) {
-                $lateFee = round($monthlyAmortization * 0.02, 2);
+                $lateFeeRate = Loan_settings_tbl::getLateFeeRate($loan->lending_type);
+                $lateFee = round(($currentInstallment ? (float) $currentInstallment->amount_due : $monthlyAmortization) * ($lateFeeRate / 100), 2);
             }
 
-            $repayment = lending_repayments_tbl::create([
-                'lending_id' => $request->lending_id,
-                'user_id' => $request->member_id,
-                'payment_number' => $paymentsMade + 1,
-                'amount_paid' => $request->amount_paid,
-                'principal_paid' => $principalPaid,
-                'interest_paid' => $interestPaid,
-                'service_fee_paid' => 0,
-                'late_fee' => $lateFee > 0 ? $lateFee : null,
-                'payment_date' => $request->payment_date ?: now()->toDateString(),
-                'payment_method' => $request->payment_method ?: 'Admin',
-                'reference_no' => $request->reference_no ?: 'ADMIN-' . now()->format('YmdHis'),
-                'notes' => 'Recorded by admin',
-                'recorded_by' => auth()->id(),
-            ]);
+            if ($currentInstallment) {
+                // â”€â”€ SCHEDULE-BASED (new loans) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // FULL-INSTALLMENT-ONLY RULE: the admin form sends no
+                // payment_type, so the mode is auto-detected by amount â€”
+                // matches current installment + late fee â†’ monthly; matches
+                // full balance + late fee â†’ full (existing rule). Anything
+                // else (partial or excess) is rejected with no writes.
+                $amount = round((float) $request->amount_paid, 2);
+                $monthlyTotal = round((float) $currentInstallment->amount_due + $lateFee, 2);
+                $fullTotal = round((float) $status->remaining_balance + $lateFee, 2);
 
-            if ($status) {
-                $status->total_paid += $request->amount_paid;
-                $status->remaining_balance = max(0, $status->remaining_balance - $request->amount_paid);
-                $status->payments_made += 1;
+                if (abs($amount - $monthlyTotal) <= 0.005) {
+                    $installmentAmount = (float) $currentInstallment->amount_due;
+                } elseif (abs($amount - $fullTotal) <= 0.005) {
+                    $installmentAmount = $amount;
+                } else {
+                    DB::rollBack();
+                    $label = 'â‚±'.number_format($monthlyTotal, 2);
+                    $msg = $amount < $monthlyTotal
+                        ? "Partial payments are not allowed. Please pay the full current installment of {$label}."
+                        : "Payment exceeds the current installment. Please enter exactly {$label}.";
 
-                if ($status->remaining_balance <= 0 || $status->payments_made >= $status->total_payments) {
-                    $status->status = 'Completed';
-                    $status->payments_made = $status->total_payments;
-                    $loan->update(['status' => 'Completed']);
+                    return response()->json(['success' => false, 'message' => $msg], 422);
                 }
 
-                $status->save();
+                $allocation = $loanCalc->allocatePayment($loan->id, $installmentAmount);
+
+                $repayment = lending_repayments_tbl::create([
+                    'lending_id' => $request->lending_id,
+                    'user_id' => $request->member_id,
+                    'payment_number' => (int) $currentInstallment->payment_number,
+                    'payment_sequence' => lending_repayments_tbl::where('lending_id', $request->lending_id)
+                        ->where('payment_number', $currentInstallment->payment_number)
+                        ->where('status', '!=', 'voided')
+                        ->count() + 1,
+                    'amount_due' => $installmentAmount,
+                    'amount_paid' => $installmentAmount,
+                    'principal_paid' => $allocation['principal_paid'],
+                    'interest_paid' => $allocation['interest_paid'],
+                    'service_fee_paid' => 0,
+                    'late_fee' => $lateFee > 0 ? $lateFee : null,
+                    'penalty_applied_at' => $lateFee > 0 ? now()->timezone('Asia/Manila') : null,
+                    'payment_date' => $request->payment_date ?: now()->toDateString(),
+                    'payment_method' => $request->payment_method ?: 'Cash',
+                    'reference_no' => $request->reference_no ?: 'ADMIN-'.now()->format('YmdHis'),
+                    'payment_type' => abs($amount - $monthlyTotal) <= 0.005 ? 'monthly' : 'full',
+                    'notes' => 'Recorded by admin',
+                    'recorded_by' => auth()->id(),
+                    'created_by' => auth()->id(),
+                ]);
+
+                if ($status) {
+                    $status->total_paid = round((float) $status->total_paid + (float) $allocation['amount_paid'], 2);
+                    $status->remaining_balance = max(0, round((float) $status->remaining_balance - $installmentAmount, 2));
+                    $status->payments_made = (int) $status->payments_made + (int) $allocation['installments_settled'];
+
+                    if ($allocation['fully_paid_now'] || $status->remaining_balance <= 0) {
+                        $status->status = 'Completed';
+                        $status->payments_made = $status->total_payments;
+                        $status->remaining_balance = 0;
+                        $loan->update(['status' => 'Completed']);
+                    } else {
+                        $nextUnpaid = $loanCalc->currentInstallment($loan->id);
+                        if ($nextUnpaid) {
+                            $status->due_date = $nextUnpaid->due_date;
+                        }
+                    }
+
+                    $status->save();
+                }
+            } else {
+                // â”€â”€ LEGACY (existing loans without schedule rows) â€” flat ratio â”€â”€â”€â”€
+                $paymentsMade = lending_repayments_tbl::where('lending_id', $request->lending_id)->count();
+
+                $interestPaid = round($request->amount_paid * $interestRatio, 2);
+                $principalPaid = round($request->amount_paid - $interestPaid, 2);
+
+                $repayment = lending_repayments_tbl::create([
+                    'lending_id' => $request->lending_id,
+                    'user_id' => $request->member_id,
+                    'payment_number' => $paymentsMade + 1,
+                    'payment_sequence' => lending_repayments_tbl::where('lending_id', $request->lending_id)
+                        ->where('payment_number', $paymentsMade + 1)
+                        ->where('status', '!=', 'voided')
+                        ->count() + 1,
+                    'amount_paid' => $request->amount_paid,
+                    'principal_paid' => $principalPaid,
+                    'interest_paid' => $interestPaid,
+                    'service_fee_paid' => 0,
+                    'late_fee' => $lateFee > 0 ? $lateFee : null,
+                    'payment_date' => $request->payment_date ?: now()->toDateString(),
+                    'payment_method' => $request->payment_method ?: 'Cash',
+                    'reference_no' => $request->reference_no ?: 'ADMIN-'.now()->format('YmdHis'),
+                    'payment_type' => 'monthly',
+                    'notes' => 'Recorded by admin',
+                    'recorded_by' => auth()->id(),
+                    'created_by' => auth()->id(),
+                ]);
+
+                if ($status) {
+                    $status->total_paid += $request->amount_paid;
+                    $status->remaining_balance = max(0, $status->remaining_balance - $request->amount_paid);
+                    $status->payments_made += 1;
+
+                    if ($status->remaining_balance <= 0 || $status->payments_made >= $status->total_payments) {
+                        $status->status = 'Completed';
+                        $status->payments_made = $status->total_payments;
+                        $loan->update(['status' => 'Completed']);
+                    }
+
+                    $status->save();
+                }
             }
 
             DB::commit();
@@ -2500,21 +3726,22 @@ class UserController extends Controller
             $member = Users_tbl::find($request->member_id);
             AuditLog::log(
                 'Admin Recorded Loan Repayment',
-                "Recorded loan repayment of ₱{$request->amount_paid} for {$member?->first_name} {$member?->last_name} (Loan ID: {$request->lending_id})",
+                "Recorded loan repayment of â‚±{$request->amount_paid} for {$member?->first_name} {$member?->last_name} (Loan ID: {$request->lending_id})",
                 'loan',
                 $request->lending_id
             );
 
             return response()->json([
                 'success' => true,
-                'message' => 'Payment recorded successfully! Ref: ' . ($repayment->reference_no ?? 'N/A'),
+                'message' => 'Payment recorded successfully! Ref: '.($repayment->reference_no ?? 'N/A'),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to record payment: ' . $e->getMessage(),
+                'message' => 'Failed to record payment: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -2522,9 +3749,9 @@ class UserController extends Controller
     public function dashboard_officers_committees()
     {
         $officers = \App\Models\officer_tbl::with('user')->orderBy('sort_order')->get();
-        $allMembers = Users_tbl::where('role', '!=', 'Admin')->orderBy('first_name')->get();
+        $allMembers = Users_tbl::memberCandidates()->orderBy('first_name')->get();
 
-        return view("admin_components.officers_committees", compact('officers', 'allMembers'));
+        return view('admin_components.officers_committees', compact('officers', 'allMembers'));
     }
 
     public function storeOfficer(Request $request)
@@ -2563,8 +3790,6 @@ class UserController extends Controller
         return response()->json(['success' => true, 'message' => 'Officer removed successfully.']);
     }
 
-
-
     public function auditLogsIndex(Request $request)
     {
         $query = AuditLog::query();
@@ -2600,7 +3825,7 @@ class UserController extends Controller
         return view('admin_components.audit_logs', compact('logs'));
     }
 
-    // ─── Additional Patronage Records (Finance Page) ─────────────────────
+    // â”€â”€â”€ Additional Patronage Records (Finance Page) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function patronageRecordsPartial(Request $request)
     {
@@ -2614,7 +3839,7 @@ class UserController extends Controller
         $totalAmount = \App\Models\PatronageRecord::where('year', $year)->sum('amount');
         $recordCount = \App\Models\PatronageRecord::where('year', $year)->count();
 
-        $allMembers = Users_tbl::where('role', 'member')
+        $allMembers = Users_tbl::memberCandidates()
             ->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
 
@@ -2653,7 +3878,7 @@ class UserController extends Controller
         $member = Users_tbl::find($request->user_id);
         AuditLog::log(
             'Created Additional Patronage Record',
-            "Added patronage record for {$member->first_name} {$member->last_name} (Year: {$request->year}, Source: {$request->source}, Amount: ₱" . number_format($request->amount, 2) . ")",
+            "Added patronage record for {$member->first_name} {$member->last_name} (Year: {$request->year}, Source: {$request->source}, Amount: â‚±".number_format($request->amount, 2).')',
             'patronage_record',
             $record->id
         );
@@ -2666,7 +3891,7 @@ class UserController extends Controller
 
         $totalAmount = \App\Models\PatronageRecord::where('year', $request->year)->sum('amount');
         $recordCount = \App\Models\PatronageRecord::where('year', $request->year)->count();
-        $allMembers = Users_tbl::where('role', 'member')->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+        $allMembers = Users_tbl::memberCandidates()->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
 
         $html = view('admin_components.patronage_records_partial', compact(
             'records',
@@ -2706,7 +3931,7 @@ class UserController extends Controller
         $member = Users_tbl::find($record->user_id);
         AuditLog::log(
             'Updated Additional Patronage Record',
-            "Updated patronage record for {$member->first_name} {$member->last_name} (Year: {$record->year}) from ₱" . number_format($oldAmount, 2) . " to ₱" . number_format($record->amount, 2),
+            "Updated patronage record for {$member->first_name} {$member->last_name} (Year: {$record->year}) from â‚±".number_format($oldAmount, 2).' to â‚±'.number_format($record->amount, 2),
             'patronage_record',
             $id
         );
@@ -2722,7 +3947,7 @@ class UserController extends Controller
         $record = \App\Models\PatronageRecord::with('user')->findOrFail($id);
         $year = $record->year;
 
-        $memberName = $record->user->first_name . ' ' . $record->user->last_name;
+        $memberName = $record->user->first_name.' '.$record->user->last_name;
         $amount = $record->amount;
         $source = $record->source;
 
@@ -2730,7 +3955,7 @@ class UserController extends Controller
 
         AuditLog::log(
             'Deleted Additional Patronage Record',
-            "Deleted patronage record for {$memberName} (Year: {$year}, Source: {$source}, Amount: ₱" . number_format($amount, 2) . ")",
+            "Deleted patronage record for {$memberName} (Year: {$year}, Source: {$source}, Amount: â‚±".number_format($amount, 2).')',
             'patronage_record',
             $id
         );
@@ -2740,5 +3965,219 @@ class UserController extends Controller
             'message' => 'Patronage record deleted successfully.',
         ]);
     }
-}
 
+    public function completeRepayment(Request $request, $id)
+    {
+        $repayment = lending_repayments_tbl::findOrFail($id);
+
+        if (strtolower($repayment->status) !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'This repayment is not pending.']);
+        }
+
+        // Segregation of duties: the creator cannot be the one confirming unless GM.
+        if (! \App\Services\SoDGuard::canFinalize($repayment)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
+
+        $loan = lending_program_tbl::findOrFail($repayment->lending_id);
+        $status = lending_status_tbl::where('lending_id', $repayment->lending_id)->first();
+        $loanCalc = new \App\Services\LoanCalculationService;
+        $currentInstallment = $loanCalc->currentInstallment($loan->id);
+
+        $cashReceived = (float) $repayment->amount_paid;
+        $penaltyAmount = (float) ($repayment->late_fee ?? 0);
+
+        DB::beginTransaction();
+        try {
+            if ($currentInstallment) {
+                // â”€â”€ SCHEDULE-BASED: apply penalty + allocate payment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                if ($penaltyAmount > 0 && $status) {
+                    $status->penalty_amount = (float) ($status->penalty_amount ?? 0) + $penaltyAmount;
+                    $status->remaining_balance = (float) $status->remaining_balance + $penaltyAmount;
+                    $status->last_penalty_date = $repayment->due_date
+                        ? \Carbon\Carbon::parse($repayment->due_date)->format('Y-m-d')
+                        : now()->format('Y-m-d');
+                    $status->save();
+
+                    AuditLog::log(
+                        'Loan Overdue Penalty',
+                        "Applied â‚±{$penaltyAmount} overdue penalty on loan (ID: {$repayment->lending_id})",
+                        'loan',
+                        $repayment->lending_id
+                    );
+                }
+
+                $allocation = $loanCalc->allocatePayment($loan->id, $cashReceived);
+
+                $repayment->update([
+                    'status' => 'Completed',
+                    'principal_paid' => $allocation['principal_paid'],
+                    'interest_paid' => $allocation['interest_paid'],
+                ]);
+
+                if ($status) {
+                    $status->total_paid = round((float) $status->total_paid + (float) $allocation['amount_paid'], 2);
+                    $status->remaining_balance = max(0, round((float) $status->remaining_balance - $cashReceived, 2));
+                    $status->payments_made = (int) $status->payments_made + (int) $allocation['installments_settled'];
+
+                    if ($allocation['fully_paid_now'] || $status->remaining_balance <= 0) {
+                        $status->status = 'Completed';
+                        $status->payments_made = (int) $status->total_payments;
+                        $status->remaining_balance = 0;
+                        $status->due_date = $loan->created_at
+                            ? \Carbon\Carbon::parse($loan->created_at)
+                                ->addDays(((int) $status->total_payments) * lendingController::PAYMENT_INTERVAL_DAYS)
+                                ->format('Y-m-d')
+                            : $status->due_date;
+
+                        lending_program_tbl::where('id', $loan->id)
+                            ->update(['status' => 'Completed']);
+                    } else {
+                        $nextUnpaid = $loanCalc->currentInstallment($loan->id);
+                        if ($nextUnpaid) {
+                            $status->due_date = $nextUnpaid->due_date;
+                        }
+                    }
+
+                    $status->save();
+                }
+            } else {
+                // â”€â”€ LEGACY: flat-ratio allocation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                $interestRatio = ($loan->total_payment > 0) ? ($loan->total_interest / $loan->total_payment) : 0;
+                $interestPaid = round($cashReceived * $interestRatio, 2);
+                $principalPaid = round($cashReceived - $interestPaid, 2);
+
+                $repayment->update([
+                    'status' => 'Completed',
+                    'principal_paid' => $principalPaid,
+                    'interest_paid' => $interestPaid,
+                ]);
+
+                if ($status) {
+                    $status->total_paid += $cashReceived;
+                    $status->remaining_balance = max(0, $status->remaining_balance - $cashReceived);
+                    $status->payments_made += 1;
+
+                    if ($status->remaining_balance <= 0 || $status->payments_made >= $status->total_payments) {
+                        $status->status = 'Completed';
+                        $status->payments_made = $status->total_payments;
+
+                        lending_program_tbl::where('id', $repayment->lending_id)
+                            ->update(['status' => 'Completed']);
+                    } else {
+                        $status->due_date = \Carbon\Carbon::parse($loan->created_at)
+                            ->addDays(($status->payments_made + 1) * lendingController::PAYMENT_INTERVAL_DAYS)
+                            ->format('Y-m-d');
+                    }
+
+                    $status->save();
+                }
+            }
+
+            DB::commit();
+
+            \App\Models\Notifications_tbl::create([
+                'user_id' => $repayment->user_id,
+                'title' => 'Loan Repayment Confirmed',
+                'message' => 'Your loan repayment of â‚±'.number_format($repayment->amount_paid, 2)." has been confirmed. (Ref: {$repayment->reference_no})",
+                'category' => 'inbox',
+                'is_important' => true,
+            ]);
+
+            AuditLog::log(
+                'Completed Loan Repayment',
+                "Confirmed repayment of â‚±{$repayment->amount_paid} (Ref: {$repayment->reference_no}) on loan (ID: {$repayment->lending_id})",
+                'loan',
+                $repayment->lending_id
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Repayment confirmed successfully. Member has been notified.',
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to confirm repayment: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function voidRepayment(Request $request, $id)
+    {
+        $repayment = lending_repayments_tbl::findOrFail($id);
+
+        if (strtolower($repayment->status) !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'This repayment is not pending.']);
+        }
+
+        // Segregation of duties: the creator cannot be the one voiding unless GM.
+        if (! \App\Services\SoDGuard::canFinalize($repayment)) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Services\SoDGuard::denialMessage()['message'],
+            ], 403);
+        }
+
+        $request->validate([
+            'void_reason' => 'required|string|in:wrong_amount,duplicate_payment,fraudulent,other_member,technical_error,other',
+        ]);
+
+        $repayment->update([
+            'status' => 'voided',
+            'void_reason' => $request->void_reason,
+            'voided_by' => Auth::id(),
+            'voided_at' => now(),
+        ]);
+
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $repayment->user_id,
+            'title' => 'Loan Repayment Voided',
+            'message' => 'Your loan repayment of â‚±'.number_format($repayment->amount_paid, 2)." has been voided. Reason: {$request->void_reason}. (Ref: {$repayment->reference_no})",
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Voided Loan Repayment',
+            "Voided repayment of â‚±{$repayment->amount_paid} (Ref: {$repayment->reference_no}) on loan (ID: {$repayment->lending_id}). Reason: {$request->void_reason}",
+            'loan',
+            $repayment->lending_id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Repayment voided successfully. Member has been notified.',
+        ]);
+    }
+
+    /**
+     * Query filter hiding in-flight transactions created by Allied Workers
+     * from everyone except the General Manager. Returns null for the GM (or
+     * when there are no Allied Workers) so the caller skips the filter.
+     */
+    private function alliedPendingVisibilityClosure(): ?\Closure
+    {
+        if (\App\Services\SoDGuard::isGeneralManager()) {
+            return null;
+        }
+
+        $alliedWorkerIds = \App\Models\Users_tbl::alliedWorkerIds();
+        if (empty($alliedWorkerIds)) {
+            return null;
+        }
+
+        return function ($q) use ($alliedWorkerIds) {
+            $q->where(function ($sub) use ($alliedWorkerIds) {
+                $sub->whereNotIn('created_by', $alliedWorkerIds)
+                    ->orWhereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['completed', 'voided', 'void', 'rejected', 'failed']);
+            });
+        };
+    }
+}

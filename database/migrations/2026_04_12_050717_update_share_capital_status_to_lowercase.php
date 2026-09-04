@@ -7,7 +7,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("UPDATE share_capital_transaction_tbls SET status = LOWER(status)");
+        DB::statement('UPDATE share_capital_transaction_tbls SET status = LOWER(status)');
     }
 
     public function down(): void

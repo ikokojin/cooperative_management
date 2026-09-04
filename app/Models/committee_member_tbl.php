@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class committee_member_tbl extends Model
 {
     public $incrementing = true;
+
     protected $table = 'committee_members_tbls';
 
     protected $fillable = [

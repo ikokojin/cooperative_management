@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\PatronageRefundDistribution;
 use App\Models\Users_tbl;
-use App\Services\PatronageSources\PatronageSource;
-use App\Services\PatronageSources\LoanRepaymentPatronageSource;
 use App\Services\PatronageSources\AdditionalPatronageSource;
+use App\Services\PatronageSources\LoanRepaymentPatronageSource;
+use App\Services\PatronageSources\PatronageSource;
 use Illuminate\Support\Facades\DB;
 
 class PatronageService
@@ -16,8 +16,8 @@ class PatronageService
     public function __construct()
     {
         $this->sources = [
-            new LoanRepaymentPatronageSource(),
-            new AdditionalPatronageSource(),
+            new LoanRepaymentPatronageSource,
+            new AdditionalPatronageSource,
         ];
     }
 
@@ -28,6 +28,7 @@ class PatronageService
     public function addSource(PatronageSource $source): self
     {
         $this->sources[] = $source;
+
         return $this;
     }
 
@@ -49,6 +50,7 @@ class PatronageService
         foreach ($this->sources as $source) {
             $total += $source->getPatronageForYear($userId, $year);
         }
+
         return round($total, 2);
     }
 
@@ -63,7 +65,7 @@ class PatronageService
         foreach ($this->sources as $source) {
             $sourceData = $source->getAllPatronageForYear($year);
             foreach ($sourceData as $userId => $amount) {
-                if (!isset($allPatronage[$userId])) {
+                if (! isset($allPatronage[$userId])) {
                     $allPatronage[$userId] = 0.0;
                 }
                 $allPatronage[$userId] += $amount;
@@ -95,8 +97,8 @@ class PatronageService
 
         if ($hasApproved || $hasDisbursed) {
             throw new \RuntimeException(
-                'Cannot regenerate patronage refund distributions. ' .
-                'Approved or disbursed records exist for year ' . $year . '. ' .
+                'Cannot regenerate patronage refund distributions. '.
+                'Approved or disbursed records exist for year '.$year.'. '.
                 'Reset the annual distribution first.'
             );
         }
@@ -105,9 +107,9 @@ class PatronageService
             ->where('year', $year)
             ->first();
 
-        if (!$distribution) {
+        if (! $distribution) {
             throw new \RuntimeException(
-                'No dividend distribution found for year ' . $year . '. ' .
+                'No dividend distribution found for year '.$year.'. '.
                 'Generate the annual distribution first.'
             );
         }

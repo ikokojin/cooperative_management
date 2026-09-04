@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('opened_at');
             $table->date('maturity_date');
             $table->enum('status', ['active', 'claimed'])->default('active');
-            $table->string('reference_no')->unique();
+            $table->string('reference_no', 191)->unique();
             $table->string('claim_reference_no')->nullable();
             $table->timestamp('claimed_at')->nullable();
             $table->timestamps();

@@ -93,6 +93,280 @@
             color: var(--muted);
             font-weight: 500;
         }
+
+        /* ═══ SAVINGS RECEIPT OVERLAY ═══ */
+        #sv-receipt-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        #sv-receipt-overlay.active {
+            display: flex;
+        }
+
+        #sv-receipt-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            overflow: visible;
+            margin: auto;
+            animation: svModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @keyframes svModalIn {
+            from { opacity: 0; transform: translateY(28px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .sv-receipt-header {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .sv-receipt-header .sv-check-circle {
+            width: 60px;
+            height: 60px;
+            background-color: var(--teal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+
+        .sv-receipt-header .sv-check-circle i {
+            color: #fff;
+            font-size: 26px;
+        }
+
+        .sv-receipt-header h2 {
+            color: #1a1a1a;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 0.25rem;
+        }
+
+        .sv-receipt-header p {
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin: 0;
+        }
+
+        .sv-receipt-body {
+            padding: 1.5rem;
+        }
+
+        .sv-receipt-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #e8e8e8;
+            font-size: 0.85rem;
+        }
+
+        .sv-receipt-row:last-child {
+            border-bottom: none;
+        }
+
+        .sv-receipt-row .label {
+            color: #888;
+            font-weight: 500;
+        }
+
+        .sv-receipt-row .value {
+            color: #1a1a1a;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .sv-receipt-row .value.highlight {
+            color: #1a1a1a;
+            font-size: 13.6px;
+        }
+
+        .sv-ref-badge {
+            background: #f4f4f4;
+            border-radius: 6px;
+            padding: 0.2rem 0.6rem;
+            letter-spacing: 0.5px;
+            color: #333;
+            font-family: monospace;
+            font-size: 0.82rem;
+        }
+
+        .sv-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff8e1;
+            border: 1.5px solid #ffe082;
+            color: #b8860b;
+            border-radius: 20px;
+            padding: 0.2rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .sv-status-badge .dot {
+            width: 7px;
+            height: 7px;
+            background: #e6a817;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .sv-receipt-footer {
+            padding: 0 1.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            border-radius: 0 0 20px 20px;
+            background: #fff;
+        }
+
+        .sv-btn-download {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--teal);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .sv-btn-download:hover {
+            opacity: 0.88;
+        }
+
+        .sv-btn-close-modal {
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .sv-btn-close-modal:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .tx-voided-row { background: #fef2f2; }
+        .tx-voided-row:hover { background: #fde8e8; }
+        .status.voided {
+            background: #fdecec;
+            border: 1.5px solid #f5c6c6;
+            color: #c0392b;
+            border-radius: 10px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ═══ VOID REASON OVERLAY ═══ */
+        #sv-void-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+        #sv-void-overlay.active { display: flex; }
+        #sv-void-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            margin: auto;
+            animation: svModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+        .sv-void-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--line);
+        }
+        .sv-void-header .sv-void-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #c0392b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+        .sv-void-header .sv-void-circle i { color: #fff; font-size: 26px; }
+        .sv-void-header h2 { color: #1a1a1a; font-size: 1.25rem; font-weight: 700; margin: 0 0 0.25rem; }
+        .sv-void-header p { color: var(--muted); font-size: 0.82rem; margin: 0; }
+        .sv-void-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .sv-void-body .sv-void-label {
+            font-size: 0.78rem;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+        }
+        .sv-void-body .sv-void-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #c0392b;
+            background: #fdecec;
+            border: 1px solid #f5c6c6;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+        }
+        .sv-void-footer {
+            padding: 0 1.5rem 1.5rem;
+        }
+        .sv-btn-void-close {
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sv-btn-void-close:hover { background: #f5f5f5; color: #333; }
     </style>
 </head>
 
@@ -122,11 +396,6 @@
                                 <h3>My Savings Balance</h3>
                                 <h2>₱ <b>{{ number_format($totalSavingsBalance, 2) }}</b></h2>
                                 <div class="hero-sub">
-                                    <!-- Includes Time Deposit + 
-                                            <span class="delta">
-                                                <i class="fa fa-arrow-up"></i>
-                                                ₱{{ number_format($timeDepositBalance, 2) }}
-                                            </span> -->
                                     Last updated {{ $lastUpdated }} ·
                                     {{ $monthsActive == 0 ? 'Less than a month' : $monthsActive . ' ' . ($monthsActive == 1 ? 'month' : 'months') }}
                                     active
@@ -270,89 +539,12 @@
 
                     <div class="ask-box">
                         <div class="ask-body">
-                            <div class="ask-card">
-                                <div class="ask-card-text">
-                                    <h3>Secure your savings with Time Deposit</h3>
-                                    <p>Grow your money with higher returns and guaranteed earnings over a fixed term.
-                                    </p>
-                                </div>
-                                <div class="{{ !$hasShareCapital ? 'gated' : '' }}">
-                                    <div
-                                        class="ask-card-button {{ request()->routeIs('TimeDeposit') ? 'active' : '' }}">
-                                        <a href="{{ route("TimeDeposit") }}">
-
-                                            Time Deposit
-                                            <i class="fa fa-arrow-right"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
                     {{-- ══ BREAKDOWN + GROWTH GRAPH — its own gated/hover-lock block ══ --}}
                     <div class="{{ !$hasShareCapital ? 'gated' : '' }}">
                         <div class="parent-panel">
-                            <div class="panel">
-                                <div class="panel-head">
-                                    <div class="panel-text">
-                                        <h3>Time Deposit Accounts</h3>
-                                        <p>Time Deposit history</p>
-                                    </div>
-                                    <div class="panel-view">
-                                        <button type="button" data-bs-toggle="modal" data-bs-target="#tdHistoryModal">
-                                            View all
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="panel-body">
-                                    @forelse ($tdHistory as $td)
-                                        <div class="panel-card">
-                                            <div class="panel-icon">
-                                                @if ($td->display_status === 'completed')
-                                                    <i class="fa fa-circle-check"></i>
-                                                @elseif ($td->display_status === 'matured')
-                                                    <i class="fa fa-hourglass-end"></i>
-                                                @elseif ($td->display_status === 'goal_reached')
-                                                    <i class="fa fa-bullseye"></i>
-                                                @else
-                                                    <i class="fa fa-lock"></i>
-                                                @endif
-                                            </div>
-                                            <div class="panel-text">
-                                                <div class="text">
-                                                    <h4>₱{{ number_format($td->goal_amount, 2) }} Goal</h4>
-                                                    <p>
-                                                        Opened {{ \Carbon\Carbon::parse($td->opened_at)->format('M d, Y') }}
-                                                        · {{ number_format($td->interest_rate, 2) }}% p.a.
-                                                    </p>
-                                                </div>
-                                                <div class="price">
-                                                    <h4>₱{{ number_format($td->display_balance, 2) }}</h4>
-                                                    @if ($td->display_status === 'completed')
-                                                        <p style="color:var(--green);font-weight:700;">Completed</p>
-                                                    @elseif ($td->display_status === 'matured')
-                                                        <p style="color:var(--green);font-weight:700;">Ready to Claim</p>
-                                                    @elseif ($td->display_status === 'goal_reached')
-                                                        <p style="color:var(--blue, #1e56a0);font-weight:700;">Fully Funded</p>
-                                                    @else
-                                                        <p style="color:#AB7817;font-weight:700;">In Progress</p>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @empty
-                                        <div style="text-align:center; padding:2.5rem 1rem;">
-                                            <i class="fa-solid fa-piggy-bank fa-2x"
-                                                style="color:var(--muted); opacity:.4;"></i>
-                                            <p style="color:var(--muted); margin-top:0.75rem; font-size:13.5px;">
-                                                No Time Deposits opened yet.
-                                            </p>
-                                        </div>
-                                    @endforelse
-                                </div>
-                            </div>
-
                             <div class="panel graph">
                                 <div class="panel-head"
                                     style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
@@ -479,7 +671,12 @@
                                             </thead>
                                             <tbody>
                                                 @forelse ($transactions as $tx)
-                                                    <tr>
+                                                    <tr class="{{ strtolower($tx->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
+                                                        @if(strtolower($tx->status ?? '') === 'voided')
+                                                            style="cursor:pointer;" data-reason="{{ $tx->void_reason }}"
+                                                            onclick="showVoidReason(this)"
+                                                        @endif
+                                                    >
                                                         <td class="text-start">
                                                             @if($tx->type === 'deposit' && str_starts_with($tx->reference_no ?? '', 'DISB'))
                                                                 <div class="deposit">Loan Disbursement</div>
@@ -487,8 +684,6 @@
                                                                 <div class="deposit">Patronage Refund</div>
                                                             @elseif($tx->type === 'deposit')
                                                                 <div class="deposit">Deposit</div>
-                                                            @elseif($tx->type === 'td_release')
-                                                                <div class="deposit">Time Deposit Claimed</div>
                                                             @elseif($tx->type === \App\Http\Controllers\ShareCapital::CONVERSION_TYPE)
                                                                 <div class="withdraw">Savings to Share Capital Conversion</div>
                                                             @elseif(str_starts_with($tx->reference_no ?? '', 'LNPAY'))
@@ -508,20 +703,15 @@
                                                             {{ \Carbon\Carbon::parse($tx->transaction_date)->format('m/d/Y') }}
                                                         </td>
                                                         <td class="text-start"
-                                                            style="font-weight:700; color:{{ in_array($tx->type, ['withdrawal', \App\Http\Controllers\ShareCapital::CONVERSION_TYPE]) ? 'var(--red)' : 'var(--green)' }}">
-                                                            {{ in_array($tx->type, ['withdrawal', \App\Http\Controllers\ShareCapital::CONVERSION_TYPE]) ? '-' : '+' }} ₱
-                                                            {{ number_format($tx->amount, 2) }}
+                                                            style="font-weight:700; color:{{ in_array(strtolower($tx->status ?? ''), ['voided', 'rejected']) ? 'var(--muted)' : (in_array($tx->type, ['withdrawal', \App\Http\Controllers\ShareCapital::CONVERSION_TYPE]) ? 'var(--red)' : 'var(--green)') }}">
+                                                            @if (in_array(strtolower($tx->status ?? ''), ['voided', 'rejected']))
+                                                                ₱ {{ number_format($tx->amount, 2) }}
+                                                            @else
+                                                                {{ in_array($tx->type, ['withdrawal', \App\Http\Controllers\ShareCapital::CONVERSION_TYPE]) ? '-' : '+' }} ₱
+                                                                {{ number_format($tx->amount, 2) }}
+                                                            @endif
                                                         </td>
                                                         <td>
-                                                            @php
-                                                                $displayStatus = $tx->status ?: match ($tx->type) {
-                                                                    'deposit', 'withdrawal' => 'completed',
-                                                                    'interest_credit' => 'credited',
-                                                                    'td_lock' => 'locked',
-                                                                    default => 'completed',
-                                                                };
-                                                            @endphp
-
                                                             @php
                                                                 $displayStatus = $tx->status ?? 'completed';
                                                             @endphp
@@ -541,12 +731,14 @@
                                                                 <span class="status credited">Credited</span>
                                                             @elseif ($displayStatus === 'locked')
                                                                 <span class="status locked">Locked</span>
+                                                            @elseif ($displayStatus === 'voided')
+                                                                <span class="status voided">Voided</span>
                                                             @else
                                                                 <span class="status">{{ ucfirst($displayStatus) }}</span>
                                                             @endif
                                                         </td>
                                                         <td class="text-start">
-                                                            @if ($tx->reference_no && in_array($tx->type, ['deposit', 'withdrawal']))
+                                                            @if ($tx->reference_no && in_array($tx->type, ['deposit', 'withdrawal']) && strtolower($tx->status ?? '') === 'completed')
                                                                 <a href="{{ route('savings.receipt', $tx->reference_no) }}"
                                                                     title="Download Receipt"
                                                                     style="color: var(--teal);font-size: 18px;">
@@ -653,7 +845,7 @@
                         </button>
                     </div>
 
-                    <form action="{{ route('savings.deposit') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('savings.deposit') }}" method="POST" enctype="multipart/form-data" id="deposit-form">
                         @csrf
                         <input type="hidden" name="_form" value="deposit">
 
@@ -694,11 +886,13 @@
                                     style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px;  font-size: 14px; color: #333;"
                                     required>
                                     <option value="" disabled selected>Select payment method...</option>
-                                    <option value="cash" {{ old('payment_method') === 'cash' ? 'selected' : '' }}>Cash
-                                    </option>
-                                    <option value="gcash" {{ old('payment_method') === 'gcash' ? 'selected' : '' }}>GCash
-                                    </option>
+                                    @foreach($paymentMethods as $pm)
+                                        <option value="{{ strtolower($pm->method_name) }}" {{ old('payment_method') === strtolower($pm->method_name) ? 'selected' : '' }}>{{ $pm->method_name }}</option>
+                                    @endforeach
                                 </select>
+                                @error('payment_method')
+                                    <div class="sm-error-msg show" style="margin-top:6px;">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div id="deposit-gcash-box" style="display:none; margin: 1rem 0;">
@@ -735,6 +929,23 @@
                                 <div style="margin-top: 1rem;">
                                     <label
                                         style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: #888888; display: block; margin-bottom: 6px;">
+                                        GCash Reference Number <span style="color: #e53e3e;">*</span>
+                                    </label>
+                                    <p id="deposit-ref-used-msg"
+                                        style="display:none; margin:0 0 6px; color:#e53e3e; font-size:12px; font-weight:600;">
+                                        <i class="fa fa-circle-exclamation"></i> This reference number has already been used for a transaction.
+                                    </p>
+                                    <input type="text" name="gcash_reference_no" id="deposit-gcash-ref-input"
+                                        maxlength="13" pattern="\d{13}" placeholder="e.g. 1234567890123"
+                                        style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #ddd; font-size: 14px; box-sizing: border-box; height: 46px;">
+                                    <p style="margin: 4px 0 0; font-size: 11px; color: #888;">
+                                        Enter the 13-digit reference number from your GCash transaction.
+                                    </p>
+                                </div>
+
+                                <div style="margin-top: 0.8rem;">
+                                    <label
+                                        style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: #888888; display: block; margin-bottom: 6px;">
                                         Upload Payment Screenshot <span style="font-size: 11px; color: #bbb;">(GCash
                                             proof)</span>
                                     </label>
@@ -749,6 +960,13 @@
                                 </div>
                             </div>
 
+                            <div style="background: #fff3cd; border: 1.5px solid #ffe08a; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem;">
+                                <p style="margin: 0; font-size: 12px; color: #856404;">
+                                    <i class="fa fa-triangle-exclamation"></i>
+                                    Deposits via GCash are <strong>pending verification</strong>. Please enter the correct GCash reference number and attach a screenshot of your payment. Submitting false or fraudulent entries will result in account suspension.
+                                </p>
+                            </div>
+
                             <div class="sm-form-group">
                                 <label class="sm-form-label" for="depositNote">Note (optional)</label>
                                 <input class="sm-form-input" type="text" id="depositNote" name="note"
@@ -760,7 +978,7 @@
                         <div class="modal-footer sm-modal-footer"
                             style="background: #f8f9fa; border-top: 1px solid rgba(0, 0, 0, 0.1); padding: 1rem 1.6rem; display: flex;justify-content: center;align-items: center; gap: 8px;">
                             <div id="deposit-confirm-btn-wrap">
-                                <button type="submit" class="sm-btn-confirm sm-deposit-confirm">
+                                <button type="submit" class="sm-btn-confirm sm-deposit-confirm" id="deposit-confirm-btn">
                                     <i class="fa-solid fa-circle-arrow-down"></i> Confirm Deposit
                                 </button>
                             </div>
@@ -796,9 +1014,10 @@
                         </button>
                     </div>
 
-                    <form action="{{ route('savings.withdraw') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('savings.withdraw') }}" method="POST">
                         @csrf
                         <input type="hidden" name="_form" value="withdraw">
+                        <input type="hidden" name="payment_method" value="gcash">
 
                         <div class="modal-body sm-modal-body">
                             <div class="sm-balance-pill">
@@ -832,65 +1051,15 @@
                             </div>
 
                             <div class="sm-form-group">
-                                <label class="sm-form-label" for="withdrawPaymentMethod">Payment Method</label>
-                                <select class="sm-form-select form-select" name="payment_method"
-                                    id="withdrawPaymentMethod"
-                                    style="border-radius: 10px; border: 1.5px solid #e0e0e0;  height: 46px;  font-size: 14px; color: #333;"
-                                    required>
-                                    <option value="" disabled selected>Select payment method...</option>
-                                    <option value="cash" {{ old('payment_method') === 'cash' ? 'selected' : '' }}>Cash
-                                    </option>
-                                    <option value="gcash" {{ old('payment_method') === 'gcash' ? 'selected' : '' }}>GCash
-                                    </option>
-                                </select>
-                            </div>
-
-                            <div id="withdraw-gcash-box" style="display:none; margin: 1rem 0;">
-                                @if($gcashPaymentMethod && $gcashPaymentMethod->has_qr_code && $gcashPaymentMethod->qr_code_image_path)
-                                    <div
-                                        style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4ff 100%); border: 1.5px solid #c2deff; border-radius: 12px; padding: 1rem 1.2rem; text-align: center;">
-                                        <p style="margin: 0 0 10px; font-size: 14px; font-weight: 700; color: #0056b3;">
-                                            <i class="fa-solid fa-mobile-screen-button"></i> Scan to Pay via GCash
-                                        </p>
-                                        <img src="{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}"
-                                            alt="GCash QR Code"
-                                            style="width: 220px; height: 220px; max-width: 100%; object-fit: contain; border-radius: 10px; border: 1px solid #c2deff; background: #fff; padding: 12px; display: block; margin: 0 auto;">
-                                        <p style="margin: 10px 0 0; font-size: 11px; color: #5a8ac4;">
-                                            Scan this using your GCash app, then upload your payment screenshot below.
-                                        </p>
-                                        <p style="margin: 6px 0 0; font-size: 11px;">
-                                            <a href="#"
-                                                onclick="openQrLightbox('{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}'); return false;"
-                                                style="color: #0056b3; font-weight: 600;">
-                                                <i class="fa fa-up-right-and-down-left-from-center"></i> View full-size QR
-                                            </a>
-                                        </p>
-                                    </div>
-                                @else
-                                    <div
-                                        style="background: #fff3cd; border: 1.5px solid #ffe08a; border-radius: 12px; padding: 1rem 1.2rem;">
-                                        <p style="margin: 0; font-size: 13px; color: #856404;">
-                                            <i class="fa fa-triangle-exclamation"></i> No GCash QR code has been set up yet.
-                                            Please contact the admin.
-                                        </p>
-                                    </div>
-                                @endif
-
-                                <div style="margin-top: 1rem;">
-                                    <label
-                                        style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: #888888; display: block; margin-bottom: 6px;">
-                                        Upload Payment Screenshot <span style="font-size: 11px; color: #bbb;">(GCash
-                                            proof)</span>
-                                    </label>
-                                    <input type="file" name="gcash_proof" id="withdraw-gcash-proof-input"
-                                        accept="image/png,image/jpeg,image/jpg"
-                                        style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #ddd; font-size: 14px; box-sizing: border-box;"
-                                        class="form-control">
-                                    <div id="withdraw-gcash-proof-preview" style="display:none; margin-top:10px;">
-                                        <img id="withdraw-gcash-proof-preview-img"
-                                            style="width:100%; height:180px; object-fit:cover; border-radius:8px; border:1px solid #e0e0e0;">
-                                    </div>
-                                </div>
+                                <label class="sm-form-label" for="withdrawGcashNumber">GCash Mobile Number</label>
+                                <input class="sm-form-input @error('gcash_number') sm-input-error @enderror" type="text"
+                                    id="withdrawGcashNumber" name="gcash_number"
+                                    style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #e0e0e0; font-size: 14px; color: #333; box-sizing: border-box; height: 46px;"
+                                    placeholder="e.g. 09123456789"
+                                    value="{{ old('gcash_number', Auth::user()->otherinfo->contact_no ?? '') }}" required />
+                                @error('gcash_number')
+                                    <div class="sm-error-msg show">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="sm-form-group">
@@ -917,268 +1086,92 @@
 
 
         {{-- ============================================================
-        SUCCESS MODAL — Deposit
+        RECEIPT OVERLAY — Deposit (matches share-capital style)
         ============================================================ --}}
-        <div class="modal fade" id="depositSuccessModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content sm-modal-content">
-                    <div class="modal-body sm-success-body">
+        @if(session('deposit_success'))
+            <div id="sv-receipt-overlay" class="active">
+                <div id="sv-receipt-modal">
+                    <div class="sv-receipt-header">
+                        <div class="sv-check-circle"><i class="fa-solid fa-check"></i></div>
+                        <h2>Deposit Request Submitted!</h2>
+                        <p>Your deposit request is pending for approval.</p>
+                    </div>
 
-                        <div class="sm-success-icon sm-success-green">
-                            <i class="fa-solid fa-check"></i>
+                    <div class="sv-receipt-body" id="sv-receipt-printable">
+                        <div class="sv-receipt-row">
+                            <span class="label">Organization</span>
+                            <span class="value">KMPCATS</span>
                         </div>
-
-                        <h5 class="sm-success-title">Deposit Successful!</h5>
-
-                        <p class="sm-success-msg">
-                            Your deposit of
-                            <strong>₱
-                                {{ session('deposit_amount') ? number_format(session('deposit_amount'), 2) : '0.00' }}</strong>
-                            has been added to your savings account.
-                        </p>
-
-                        @if (session('deposit_reference'))
-                            <div class="sm-ref-pill">
-                                <span class="sm-ref-label">Reference No.</span>
-                                <span class="sm-ref-value" id="deposit-ref-no">{{ session('deposit_reference') }}</span>
-                                <button class="sm-copy-btn" onclick="copyRef('deposit-ref-no')" title="Copy">
-                                    <i class="fa-regular fa-copy"></i>
-                                </button>
-                            </div>
-                        @endif
-
-                        <div class="sm-success-balance-pill">
-                            <span>New Balance</span>
-                            <span>₱ {{ number_format($savingsAccount->balance, 2) }}</span>
+                        <div class="sv-receipt-row">
+                            <span class="label">Member</span>
+                            <span class="value">{{ session('deposit_member', Auth::user()->name ?? 'Member') }}</span>
                         </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Transaction Type</span>
+                            <span class="value">Deposit</span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Amount</span>
+                            <span class="value highlight">₱{{ number_format(session('deposit_amount', 0), 2) }}</span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Payment Method</span>
+                            <span class="value">{{ session('deposit_method', '—') }}</span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Reference No.</span>
+                            <span class="value"><span class="sv-ref-badge">{{ session('deposit_reference', '—') }}</span></span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Date</span>
+                            <span class="value">{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}</span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Status</span>
+                            <span class="value">
+                                <span class="sv-status-badge pending"><span class="dot"></span> Pending Approval</span>
+                            </span>
+                        </div>
+                    </div>
 
-                        @if (session('deposit_reference'))
-                            <a href="{{ route('savings.receipt', session('deposit_reference')) }}" class="sm-btn-download">
-                                <i class="fa-solid fa-file-arrow-down"></i> Download Receipt
-                            </a>
-                        @endif
-
-                        <button type="button" class="sm-btn-confirm sm-deposit-confirm w-100 mt-3"
-                            data-bs-dismiss="modal">
-                            <i class="fa-solid fa-check"></i> Done
+                    <div class="sv-receipt-footer">
+                        <button class="sv-btn-download" onclick="svDownloadReceipt()">
+                            <i class="fa-solid fa-download"></i> Download Receipt
                         </button>
-
+                        <button class="sv-btn-close-modal" onclick="svCloseModal()">Close</button>
                     </div>
                 </div>
             </div>
-        </div>
 
+            <div id="sv-receipt-data" data-member="{{ session('deposit_member', Auth::user()->name ?? 'Member') }}"
+                data-type="Deposit"
+                data-amount="{{ number_format(session('deposit_amount', 0), 2) }}"
+                data-method="{{ session('deposit_method', '—') }}"
+                data-ref="{{ session('deposit_reference', '—') }}"
+                data-date="{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
+                data-status="Pending" style="display:none;">
+            </div>
+        @endif
 
         {{-- ============================================================
-        SUCCESS MODAL — Withdraw
+        VOID REASON OVERLAY — Savings
         ============================================================ --}}
-        <div class="modal fade" id="withdrawSuccessModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content sm-modal-content">
-                    <div class="modal-body sm-success-body">
-
-                        <div class="sm-success-icon sm-success-red">
-                            <i class="fa-solid fa-check"></i>
-                        </div>
-
-                        <h5 class="sm-success-title">Withdraw Successful!</h5>
-
-                        <p class="sm-success-msg">
-                            Your withdrawal of
-                            <strong>₱
-                                {{ session('withdraw_amount') ? number_format(session('withdraw_amount'), 2) : '0.00' }}</strong>
-                            has been deducted from your savings account.
-                        </p>
-
-                        @if (session('withdraw_reference'))
-                            <div class="sm-ref-pill">
-                                <span class="sm-ref-label">Reference No.</span>
-                                <span class="sm-ref-value" id="withdraw-ref-no">{{ session('withdraw_reference') }}</span>
-                                <button class="sm-copy-btn" onclick="copyRef('withdraw-ref-no')" title="Copy">
-                                    <i class="fa-regular fa-copy"></i>
-                                </button>
-                            </div>
-                        @endif
-
-                        <div class="sm-success-balance-pill">
-                            <span>New Balance</span>
-                            <span>₱ {{ number_format($savingsAccount->balance, 2) }}</span>
-                        </div>
-
-                        @if (session('withdraw_reference'))
-                            <a href="{{ route('savings.receipt', session('withdraw_reference')) }}" class="sm-btn-download">
-                                <i class="fa-solid fa-file-arrow-down"></i> Download Receipt
-                            </a>
-                        @endif
-
-                        <button type="button" class="sm-btn-confirm sm-withdraw-confirm w-100 mt-3"
-                            data-bs-dismiss="modal">
-                            <i class="fa-solid fa-check"></i> Done
-                        </button>
-
-                    </div>
+        <div id="sv-void-overlay">
+            <div id="sv-void-modal">
+                <div class="sv-void-header">
+                    <div class="sv-void-circle"><i class="fa-solid fa-ban"></i></div>
+                    <h2>Transaction Voided</h2>
+                    <p>This transaction has been voided by the admin.</p>
+                </div>
+                <div class="sv-void-body">
+                    <div class="sv-void-label">Reason</div>
+                    <div class="sv-void-value" id="sv-void-reason-text"></div>
+                </div>
+                <div class="sv-void-footer">
+                    <button class="sv-btn-void-close" onclick="svCloseVoidModal()">Close</button>
                 </div>
             </div>
         </div>
-
-        {{-- ============================================================
-        TIME DEPOSIT HISTORY MODAL — view all, search & filter
-        ============================================================ --}}
-        <div class="modal fade" id="tdHistoryModal" tabindex="-1" aria-labelledby="tdHistoryModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content sm-modal-content">
-
-                    <div class="modal-header sm-modal-header" style="padding: 24px 20px;">
-                        <div class="modal-text">
-                            <div class="sm-modal-icon sm-deposit-icon">
-                                <i class="fa-solid fa-lock" style="color:#fff;"></i>
-                            </div>
-                            <div class="sm-modal-text">
-                                <h1 class="modal-title sm-modal-title" id="tdHistoryModalLabel">Time Deposit Accounts
-                                </h1>
-                                <p class="sm-modal-subtitle">All your Time Deposit history</p>
-                            </div>
-                        </div>
-                        <button type="button" class="sm-modal-close" data-bs-dismiss="modal" aria-label="Close">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-
-                    <div class="modal-body sm-modal-body" style="padding: 1.25rem 1.5rem;">
-
-                        <div class="sm-tx-toolbar" style="margin:0 0 1rem;">
-                            <div class="sm-search-box">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="tdSearchInput"
-                                    placeholder="Search by reference no. or goal amount">
-                            </div>
-                            <input type="date" class="sm-filter-select" id="tdDateFilter">
-                            <select class="sm-filter-select" id="tdStatusFilter">
-                                <option value="all">All Status</option>
-                                <option value="completed">Completed</option>
-                                <option value="matured">Ready to Claim</option>
-                                <option value="goal_reached">Fully Funded</option>
-                                <option value="in_progress">In Progress</option>
-                            </select>
-                            <a href="#" id="tdClearFilters" class="sm-filter-clear">Clear filters</a>
-                        </div>
-
-                        <div id="tdHistoryList">
-                            @forelse ($tdHistory as $td)
-                                <div class="td-modal-row" data-ref="{{ strtolower($td->reference_no ?? '') }}"
-                                    data-goal="{{ $td->goal_amount }}"
-                                    data-date="{{ \Carbon\Carbon::parse($td->opened_at)->format('Y-m-d') }}"
-                                    data-status="{{ $td->display_status }}">
-                                    <div class="td-modal-icon td-icon-{{ $td->display_status }}">
-                                        @if ($td->display_status === 'completed')
-                                            <i class="fa fa-circle-check"></i>
-                                        @elseif ($td->display_status === 'matured')
-                                            <i class="fa fa-hourglass-end"></i>
-                                        @elseif ($td->display_status === 'goal_reached')
-                                            <i class="fa fa-bullseye"></i>
-                                        @else
-                                            <i class="fa fa-lock"></i>
-                                        @endif
-                                    </div>
-                                    <div class="td-modal-info">
-                                        <h4>₱{{ number_format($td->goal_amount, 2) }} Goal</h4>
-                                        <p>
-                                            Ref: {{ $td->reference_no ?? '—' }} ·
-                                            Opened {{ \Carbon\Carbon::parse($td->opened_at)->format('M d, Y') }}
-                                            · {{ number_format($td->interest_rate, 2) }}% p.a.
-                                        </p>
-                                    </div>
-                                    <div class="td-modal-amount">
-                                        <h4>₱{{ number_format($td->display_balance, 2) }}</h4>
-                                        @if ($td->display_status === 'completed')
-                                            <span class="td-status-badge td-status-completed">Completed</span>
-                                        @elseif ($td->display_status === 'matured')
-                                            <span class="td-status-badge td-status-matured">Ready to Claim</span>
-                                        @elseif ($td->display_status === 'goal_reached')
-                                            <span class="td-status-badge td-status-goal_reached">Fully Funded</span>
-                                        @else
-                                            <span class="td-status-badge td-status-in_progress">In Progress</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            @empty
-                                <div style="text-align:center; padding:2.5rem 1rem;">
-                                    <i class="fa-solid fa-piggy-bank fa-2x" style="color:var(--muted); opacity:.4;"></i>
-                                    <p style="color:var(--muted); margin-top:0.75rem; font-size:13.5px;">
-                                        No Time Deposits opened yet.
-                                    </p>
-                                </div>
-                            @endforelse
-
-                            <div id="tdNoResults" style="display:none; text-align:center; padding:2.5rem 1rem;">
-                                <i class="fa-solid fa-magnifying-glass fa-2x"
-                                    style="color:var(--muted); opacity:.4;"></i>
-                                <p style="color:var(--muted); margin-top:0.75rem; font-size:13.5px;">
-                                    No matching Time Deposits found.
-                                </p>
-                            </div>
-                        </div>
-
-                        @if($tdHistory->count() > 0)
-                            <div class="td-pagination-wrap">
-                                <div class="sm-pagination-info" id="tdPaginationInfo"></div>
-                                <div class="sm-pagination" id="tdPaginationBtns"></div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- ★ KEPT: Claiming a matured TD (initiated from the Time Deposit page)
-        still redirects here, so this confirmation modal stays. --}}
-        <div class="modal fade" id="tdClaimSuccessModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content sm-modal-content">
-                    <div class="modal-body sm-success-body">
-                        <div class="sm-success-icon sm-success-green">
-                            <i class="fa-solid fa-check"></i>
-                        </div>
-                        <h5 class="sm-success-title">Time Deposit Claimed!</h5>
-                        <p class="sm-success-msg">
-                            <strong>₱{{ session('td_claim_amount') ? number_format(session('td_claim_amount'), 2) : '0.00' }}</strong>
-                            (principal + interest) has been added to your Regular Savings.
-                        </p>
-                        @if (session('td_claim_reference'))
-                            <div class="sm-ref-pill">
-                                <span class="sm-ref-label">Reference No.</span>
-                                <span class="sm-ref-value" id="tdclaim-ref-no">{{ session('td_claim_reference') }}</span>
-                                <button class="sm-copy-btn" onclick="copyRef('tdclaim-ref-no')" title="Copy">
-                                    <i class="fa-regular fa-copy"></i>
-                                </button>
-                            </div>
-                        @endif
-                        <div class="sm-success-balance-pill">
-                            <span>New Regular Savings Balance</span>
-                            <span>₱ {{ number_format($savingsAccount->balance, 2) }}</span>
-                        </div>
-                        <button type="button" class="sm-btn-confirm sm-deposit-confirm w-100 mt-3"
-                            data-bs-dismiss="modal">
-                            <i class="fa-solid fa-check"></i> Done
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        {{-- Hidden trigger buttons --}}
-        <button id="triggerDepositSuccess" data-bs-toggle="modal" data-bs-target="#depositSuccessModal"
-            style="display:none;"></button>
-        <button id="triggerWithdrawSuccess" data-bs-toggle="modal" data-bs-target="#withdrawSuccessModal"
-            style="display:none;"></button>
-        <button id="triggerDepositModal" data-bs-toggle="modal" data-bs-target="#depositModal"
-            style="display:none;"></button>
-        <button id="triggerWithdrawModal" data-bs-toggle="modal" data-bs-target="#withdrawModal"
-            style="display:none;"></button>
-        <button id="triggerTdClaimSuccess" data-bs-toggle="modal" data-bs-target="#tdClaimSuccessModal"
-            style="display:none;"></button>
 
         <form id="savings-withdraw-gcash-form" action="{{ route('savings.gcash') }}" method="POST"
             style="display:none;">
@@ -1269,17 +1262,52 @@
             });
         }
 
+        let depositRefUsed = false;
+        const depositRefInput = document.getElementById('deposit-gcash-ref-input');
+        const depositRefUsedMsg = document.getElementById('deposit-ref-used-msg');
+        const depositConfirmBtn = document.getElementById('deposit-confirm-btn');
+
+        function setDepositRefState(used) {
+            depositRefUsed = used;
+            if (depositRefUsedMsg) depositRefUsedMsg.style.display = used ? 'block' : 'none';
+            if (depositConfirmBtn) {
+                depositConfirmBtn.disabled = used;
+                depositConfirmBtn.style.opacity = used ? 0.55 : 1;
+                depositConfirmBtn.style.cursor = used ? 'not-allowed' : 'pointer';
+            }
+        }
+
+        let depositRefTimer = null;
+        if (depositRefInput) {
+            depositRefInput.addEventListener('input', function () {
+                clearTimeout(depositRefTimer);
+                const v = this.value.trim();
+                if (v.length !== 13 || !/^\d{13}$/.test(v)) {
+                    setDepositRefState(false);
+                    return;
+                }
+                depositRefTimer = setTimeout(function () {
+                    fetch('{{ route('reference.check') }}?ref=' + encodeURIComponent(v))
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) { setDepositRefState(!!d.used); })
+                        .catch(function () { setDepositRefState(false); });
+                }, 300);
+            });
+        }
+
+        document.getElementById('deposit-form')?.addEventListener('submit', function (e) {
+            if (depositRefUsed) {
+                e.preventDefault();
+                if (depositRefUsedMsg) depositRefUsedMsg.style.display = 'block';
+            }
+        });
+
         document.getElementById('depositPaymentMethod')?.addEventListener('change', function () {
             const isGcash = this.value === 'gcash';
             document.getElementById('deposit-gcash-box').style.display = isGcash ? 'block' : 'none';
             document.getElementById('deposit-gcash-proof-input').required = isGcash;
+            document.getElementById('deposit-gcash-ref-input').required = isGcash;
             // Confirm button stays visible — GCash now submits through the same form.
-        });
-
-        document.getElementById('withdrawPaymentMethod')?.addEventListener('change', function () {
-            const isGcash = this.value === 'gcash';
-            document.getElementById('withdraw-gcash-box').style.display = isGcash ? 'block' : 'none';
-            document.getElementById('withdraw-gcash-proof-input').required = isGcash;
         });
 
         document.getElementById('deposit-gcash-proof-input')?.addEventListener('change', function () {
@@ -1293,26 +1321,16 @@
             }
         });
 
-        document.getElementById('withdraw-gcash-proof-input')?.addEventListener('change', function () {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    document.getElementById('withdraw-gcash-proof-preview-img').src = e.target.result;
-                    document.getElementById('withdraw-gcash-proof-preview').style.display = 'block';
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-
         document.getElementById('depositModal')?.addEventListener('show.bs.modal', function () {
             document.getElementById('depositPaymentMethod').value = '';
             document.getElementById('deposit-gcash-box').style.display = 'none';
+            document.getElementById('deposit-gcash-ref-input').value = '';
+            setDepositRefState(false);
             document.getElementById('deposit-confirm-btn-wrap').style.display = 'block';
         });
 
         document.getElementById('withdrawModal')?.addEventListener('show.bs.modal', function () {
-            document.getElementById('withdrawPaymentMethod').value = '';
-            document.getElementById('withdraw-gcash-box').style.display = 'none';
+            document.getElementById('withdrawGcashNumber').value = '{{ Auth::user()->otherinfo->contact_no ?? '' }}';
             document.getElementById('withdraw-confirm-btn-wrap').style.display = 'block';
         });
 
@@ -1341,123 +1359,104 @@
                 document.getElementById('triggerWithdrawModal').click();
             @endif
 
-            @if (session('deposit_success'))
-                document.getElementById('triggerDepositSuccess').click();
-            @endif
-
             @if (session('withdraw_success'))
-                document.getElementById('triggerWithdrawSuccess').click();
-            @endif
-
-            @if (session('td_claim_success'))
-                document.getElementById('triggerTdClaimSuccess').click();
+                // Overlay is server-rendered — no JS trigger needed
             @endif
 
         });
 
-        // Reset the Time Deposit mini-panel scroll on load (fixes the "cut off row" look)
-        document.querySelectorAll('.parent-panel .panel-body').forEach(el => el.scrollTop = 0);
+        /* ═══ SAVINGS RECEIPT OVERLAY ═══ */
+        function svCloseModal() {
+            const overlay = document.getElementById('sv-receipt-overlay');
+            if (overlay) overlay.remove();
+        }
 
-        // Time Deposit modal — search, filter & pagination (10 per page)
-        (function () {
-            const searchInput = document.getElementById('tdSearchInput');
-            const dateFilter = document.getElementById('tdDateFilter');
-            const statusFilter = document.getElementById('tdStatusFilter');
-            const clearBtn = document.getElementById('tdClearFilters');
-            const noResults = document.getElementById('tdNoResults');
-            const paginationInfo = document.getElementById('tdPaginationInfo');
-            const paginationBtns = document.getElementById('tdPaginationBtns');
-            const allRows = Array.from(document.querySelectorAll('.td-modal-row'));
-            const PAGE_SIZE = 10;
-            let currentPage = 1;
+        document.getElementById('sv-receipt-overlay')?.addEventListener('click', function (e) {
+            if (e.target === this) svCloseModal();
+        });
 
-            function getFilteredRows() {
-                const q = (searchInput?.value || '').trim().toLowerCase();
-                const date = dateFilter?.value || '';
-                const status = statusFilter?.value || 'all';
+        function svReceiptRow(label, value) {
+            return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
+                <span style="color:#888;">${label}</span>
+                <span style="color:#1a1a1a;font-weight:700;">${value}</span>
+            </div>`;
+        }
 
-                return allRows.filter(row => {
-                    const matchesSearch = !q || row.dataset.ref.includes(q) || row.dataset.goal.includes(q);
-                    const matchesDate = !date || row.dataset.date === date;
-                    const matchesStatus = status === 'all' || row.dataset.status === status;
-                    return matchesSearch && matchesDate && matchesStatus;
+        function svDownloadReceipt() {
+            const d = document.getElementById('sv-receipt-data')?.dataset;
+            if (!d) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = `
+                position: fixed; left: -9999px; top: 0;
+                width: 400px; background: #fff;
+                border-radius: 20px; overflow: hidden;
+                box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+            `;
+
+            wrapper.innerHTML = `
+                <div style="background-color:var(--teal);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                    <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Deposit Request Submitted!</div>
+                    <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">Your deposit request is pending for approval.</div>
+                </div>
+                <div style="padding:1.2rem 1.5rem;">
+                    ${svReceiptRow('Organization', 'KMPCATS')}
+                    ${svReceiptRow('Member', d.member)}
+                    ${svReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                    ${svReceiptRow('Amount', '<strong style="color:var(--teal)">&#8369;' + d.amount + '</strong>')}
+                    ${svReceiptRow('Payment Method', d.method)}
+                    ${svReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                    ${svReceiptRow('Date & Time', d.date)}
+                    ${svReceiptRow('Status', '<span style="color:#b8860b;font-weight:700;font-size:0.72rem;">⏳ Pending Approval</span>')}
+                    <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">KMPCATS Savings Receipt</div>
+                </div>
+            `;
+
+            document.body.appendChild(wrapper);
+
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(wrapper, { scale: 2, useCORS: true }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `KMPCATS_Savings_Receipt_${d.ref}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    wrapper.remove();
                 });
+            } else {
+                wrapper.style.left = '0';
+                wrapper.style.top = '50%';
+                wrapper.style.transform = 'translateY(-50%)';
+                wrapper.style.zIndex = '999999';
+                alert('Screenshot library loading — press Ctrl+P to save as PDF, then close this receipt.');
             }
+        }
 
-            function renderPage() {
-                const filtered = getFilteredRows();
-                const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-                currentPage = Math.min(currentPage, totalPages);
+        /* ═══ VOID REASON MODAL ═══ */
+        const VOID_LABELS = {
+            wrong_amount: 'Wrong amount entered',
+            duplicate_payment: 'Duplicate payment',
+            fraudulent: 'Fraudulent / suspicious transaction',
+            other_member: 'Sent by wrong member',
+            technical_error: 'System / technical error',
+            other: 'Other'
+        };
+        function getVoidLabel(key) { return VOID_LABELS[key] || key || 'No reason provided'; }
 
-                // Hide every row first
-                allRows.forEach(row => row.style.display = 'none');
+        function showVoidReason(el) {
+            var reason = getVoidLabel(el.dataset.reason);
+            document.getElementById('sv-void-reason-text').textContent = reason;
+            document.getElementById('sv-void-overlay').classList.add('active');
+        }
+        function svCloseVoidModal() {
+            document.getElementById('sv-void-overlay').classList.remove('active');
+        }
+        document.getElementById('sv-void-overlay')?.addEventListener('click', function (e) {
+            if (e.target === this) svCloseVoidModal();
+        });
 
-                // Show only the current page's slice of the filtered set
-                const start = (currentPage - 1) * PAGE_SIZE;
-                const pageRows = filtered.slice(start, start + PAGE_SIZE);
-                pageRows.forEach(row => row.style.display = 'flex');
-
-                if (noResults) noResults.style.display = filtered.length === 0 ? 'block' : 'none';
-
-                // Pagination info
-                if (paginationInfo) {
-                    paginationInfo.innerHTML = filtered.length === 0
-                        ? ''
-                        : `Showing <b>${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)}</b> of <b>${filtered.length}</b> Time Deposits`;
-                }
-
-                // Pagination buttons
-                if (paginationBtns) {
-                    paginationBtns.innerHTML = '';
-                    if (filtered.length > PAGE_SIZE) {
-                        const prevBtn = document.createElement('span');
-                        prevBtn.className = 'sm-page-btn' + (currentPage === 1 ? ' disabled' : '');
-                        prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-                        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderPage(); } };
-                        paginationBtns.appendChild(prevBtn);
-
-                        for (let i = 1; i <= totalPages; i++) {
-                            const btn = document.createElement('a');
-                            btn.href = '#';
-                            btn.className = 'sm-page-btn' + (i === currentPage ? ' active' : '');
-                            btn.textContent = i;
-                            btn.onclick = (e) => { e.preventDefault(); currentPage = i; renderPage(); };
-                            paginationBtns.appendChild(btn);
-                        }
-
-                        const nextBtn = document.createElement('span');
-                        nextBtn.className = 'sm-page-btn' + (currentPage === totalPages ? ' disabled' : '');
-                        nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-                        nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderPage(); } };
-                        paginationBtns.appendChild(nextBtn);
-                    }
-                }
-            }
-
-            function applyTdFilters() {
-                currentPage = 1;
-                renderPage();
-            }
-
-            searchInput?.addEventListener('input', applyTdFilters);
-            dateFilter?.addEventListener('change', applyTdFilters);
-            statusFilter?.addEventListener('change', applyTdFilters);
-            clearBtn?.addEventListener('click', function (e) {
-                e.preventDefault();
-                searchInput.value = '';
-                dateFilter.value = '';
-                statusFilter.value = 'all';
-                applyTdFilters();
-            });
-
-            // Re-render fresh every time the modal opens (in case data changed)
-            document.getElementById('tdHistoryModal')?.addEventListener('show.bs.modal', () => {
-                currentPage = 1;
-                renderPage();
-            });
-
-            renderPage();
-        })();
     </script>
 
 </body>

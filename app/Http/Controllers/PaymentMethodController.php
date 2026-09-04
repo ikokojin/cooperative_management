@@ -11,6 +11,7 @@ class PaymentMethodController extends Controller
     public function index()
     {
         $paymentMethods = PaymentMethod::orderBy('id')->get();
+
         return response()->json(['success' => true, 'data' => $paymentMethods]);
     }
 
@@ -61,7 +62,7 @@ class PaymentMethodController extends Controller
                 Storage::disk('public')->delete($method->qr_code_image_path);
             }
             $data['qr_code_image_path'] = $request->file('qr_code_image')->store('payment_qr_codes', 'public');
-        } elseif (!$request->boolean('has_qr_code')) {
+        } elseif (! $request->boolean('has_qr_code')) {
             if ($method->qr_code_image_path) {
                 Storage::disk('public')->delete($method->qr_code_image_path);
             }
@@ -96,7 +97,7 @@ class PaymentMethodController extends Controller
     public function toggleActive($id)
     {
         $method = PaymentMethod::findOrFail($id);
-        $method->is_active = !$method->is_active;
+        $method->is_active = ! $method->is_active;
         $method->save();
 
         return response()->json([

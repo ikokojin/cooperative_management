@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('membergovern_ids_tbls', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")
-                  ->constrained("users_tbls")
-                  ->onDelete("cascade");
-            $table->longText("sss_id")->nullable();
-            $table->longText("philhealth_id")->nullable();
-            $table->longText("pagibig_id")->nullable();
-            $table->longText("tin_id")->nullable();
+            $table->foreignId('user_id')
+                ->constrained('users_tbls')
+                ->onDelete('cascade');
+            $table->longText('sss_id')->nullable();
+            $table->longText('philhealth_id')->nullable();
+            $table->longText('pagibig_id')->nullable();
+            $table->longText('tin_id')->nullable();
             $table->timestamps();
         });
     }

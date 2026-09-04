@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -12,9 +13,9 @@ return new class extends Migration {
     {
         Schema::create('dividend_histories_tbls', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("share_capital_account_id")
-                ->constrained("share_capital_account_tbls")
-                ->onDelete("cascade");
+            $table->foreignId('share_capital_account_id')
+                ->constrained('share_capital_account_tbls')
+                ->onDelete('cascade');
             $table->string('period_label'); // e.g., "1st Semester 2024"
             $table->tinyInteger('semester'); // 1 or 2
             $table->integer('year'); // e.g., 2024

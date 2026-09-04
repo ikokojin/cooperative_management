@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -24,7 +24,7 @@ return new class extends Migration
         if ($lateFeeSetting) {
             DB::table('loan_settings_tbls')->update([
                 'late_fee_percentage' => 2.00,
-                'grace_period_months' => 1
+                'grace_period_months' => 1,
             ]);
         }
     }

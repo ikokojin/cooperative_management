@@ -271,7 +271,7 @@
 
         select_type.addEventListener("change", function () {
             const driver_operator = document.querySelector(".driver-operator");
-            if (this.value === "Driver" || this.value === "Allied Workers" || this.value === "Investor Associate") {
+            if (this.value === "Driver" || this.value === "Investor Associate") {
                 driver_operator.style.display = "none";
             } else {
                 driver_operator.style.display = "block";

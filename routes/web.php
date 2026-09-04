@@ -9,6 +9,7 @@ use App\Http\Controllers\SavingsController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\DividendController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\AlliedWorkerController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +56,9 @@ Route::get("/member-portal", [UsersHandle::class, "MemberPortal"])->name("Member
 Route::get("/loan_application", [lendingController::class, "index"])->name("LoanApplication");
 
 Route::post('/savings/{id}/update-status', [UserController::class, 'updateSavingsStatus'])->name('savings.updateStatus');
+Route::post('/savings/{id}/disburse', [UserController::class, 'disburseSavingsWithdrawal'])->name('savings.disburse');
+Route::post('/savings/{id}/complete-deposit', [UserController::class, 'completeSavingsDeposit'])->name('savings.complete-deposit');
+Route::post('/savings/{id}/void-deposit', [UserController::class, 'voidSavingsDeposit'])->name('savings.void-deposit');
 
 // Route::get("/savings", [UsersHandle::class, "Savings"])->name("savings");
 
@@ -70,9 +74,6 @@ Route::post("/savings/withdraw", [SavingsController::class, "withdraw"])->name("
 Route::get('/share-capital', [ShareCapital::class, 'memberIndex'])
     ->name("ShareCapitalMember")
     ->middleware('auth');
-
-// Loan Status page GET
-Route::get("/loan-status", [UsersHandle::class, "LoanStatus"])->name("LoanStatus");
 
 // Profile Member page GET
 Route::get("/profile-member", [UsersHandle::class, "ProfileMember"])->name("ProfileMember");
@@ -98,26 +99,12 @@ Route::get("/Seminars", [UsersHandle::class, "Seminars"])->name("Seminars");
 
 Route::post("/seminars/verify-passcode", [UsersHandle::class, "verifySeminarPasscode"])->name("Seminars.verifyPasscode");
 
-Route::get("/Time-Deposit", [SavingsController::class, "TimeDeposit"])->name("TimeDeposit");
-
-Route::post('/savings/time-deposit/deposit', [SavingsController::class, 'depositToTimeDeposit'])
-    ->name('savings.depositTimeDeposit');
-
 Route::post('/notifications/mark-all-read', [App\Http\Controllers\UsersHandle::class, 'MarkAllRead'])
     ->name('notifications.markAllRead');
 
 Route::get('/member-portal', [UsersHandle::class, 'MemberPortal'])->name('MemberPortal');
 
-Route::post('/admin/savings/credit-interest', [SavingsController::class, 'adminCreditInterest'])
-    ->middleware(['auth', 'admin'])
-    ->name('admin.savings.creditInterest');
-
-Route::post('/savings/claim-time-deposit', [App\Http\Controllers\SavingsController::class, 'claimTimeDeposit'])
-    ->name('savings.claimTimeDeposit');
-
 Route::get("/transactions", [UsersHandle::class, "Transactions"])->name("transactions");
-
-Route::post('/savings/open-time-deposit', [SavingsController::class, 'openTimeDeposit'])->name('savings.openTimeDeposit');
 
 // Driver Portal page GET
 Route::get("/driver-portal", [UserController::class, "DriverPortal"])->name("DriverPortal");
@@ -136,10 +123,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/share-capital-form', [ShareCapital::class, 'index'])->name('share_capital.index');
     Route::post('/share-capital-form', [ShareCapital::class, 'store'])->name('share_capital.store');
 
-});
-
-Route::get('/savings/open-time-deposit', function () {
-    return redirect()->route('TimeDeposit');
 });
 
 Route::post('/loan-disburse', [lendingController::class, 'disburseLoan'])->name('loan.disburse');
@@ -172,6 +155,10 @@ Route::post("/lending-program", [lendingController::class, "lendingProgram"])
     ->middleware("auth");
 
 Route::get("/Financial", [UsersHandle::class, "Financial"])->name("Financial");
+
+Route::get('/check-reference', [UsersHandle::class, 'checkReference'])
+    ->name('reference.check')
+    ->middleware('auth');
 
 Route::get('/savings/receipt/{referenceNo}', [SavingsController::class, 'downloadReceipt'])
     ->name('savings.receipt');
@@ -227,7 +214,7 @@ Route::put("/dashboard-members/update", [UserController::class, "updateMember"])
 Route::post("/dashboard-members/store", [UserController::class, "storeMember"])->name("member.store");
 Route::get("/dashboard-members/send-share-email/{id}", [UserController::class, "sendShareCapitalEmail"])->name("send.share.capital.email");
 Route::delete("/dashboard-members/decline/{id}", [UserController::class, "declineUser"])->name("decline.user");
-Route::get("/dashboard-savings", [UserController::class, "dashboard_savings"])->name("savings");
+Route::redirect("/dashboard-savings", "/dashboard-financial-activity?tab=savings")->name("savings");
 Route::get("/dashboard-lendings", [UserController::class, "dashboard_lendings"])->name("lendings");
 
 // API to get payment count for a loan
@@ -239,15 +226,19 @@ Route::post("/loan/approve/{id}", [UserController::class, "approveLoan"])->name(
 Route::post("/loan/decline/{id}", [UserController::class, "declineLoan"])->name("loan.decline");
 Route::post("/loan/create-admin", [UserController::class, "createLoanAdmin"])->name("loan.create-admin");
 Route::post("/loan/settings/update", [UserController::class, "updateLoanSettings"])->name("loan.settings.update");
-Route::get("/dashboard-sharecapitals", [UserController::class, "dashboard_sharecapitals"])->name("sharecapitals");
+Route::redirect("/dashboard-sharecapitals", "/dashboard-financial-activity?tab=share-capitals")->name("sharecapitals");
 Route::post("/sharecapital/admin/store", [UserController::class, "adminStoreShareCapital"])->name("sharecapital.admin.store");
 Route::get("/sharecapital/member/{id}/balance", [UserController::class, "getMemberShareCapitalBalance"])->name("sharecapital.member.balance");
 Route::post("/sharecapital/withdrawal/{id}/status", [UserController::class, "updateWithdrawalStatus"])->name("sharecapital.withdrawal.status");
+Route::post("/sharecapital/{id}/complete-deposit", [UserController::class, 'completeShareCapitalDeposit'])->name('sharecapital.complete-deposit');
+Route::post("/sharecapital/{id}/void-deposit", [UserController::class, 'voidShareCapitalDeposit'])->name('sharecapital.void-deposit');
 Route::post("/sharecapital/sell", [ShareCapital::class, "sellShares"])->name("sharecapital.sell");
 Route::get("/dashboard-reports", [ReportController::class, "index"])->name("reports");
 Route::get("/dashboard-reports/daily", [ReportController::class, "daily"])->name("reports.daily");
 Route::get("/dashboard-reports/journal-detailed", [ReportController::class, "journalDetailed"])->name("reports.journal.detailed");
 Route::get("/dashboard-reports/journal-summary", [ReportController::class, "journalSummary"])->name("reports.journal.summary");
+Route::get("/dashboard-reports/statement-of-operations", [ReportController::class, "statementOfOperations"])->name("reports.statement");
+Route::get("/dashboard-reports/statement-of-operations/print", [ReportController::class, "statementOfOperationsPrint"])->name("reports.statement.print");
 Route::get("/dashboard-settings", [UserController::class, "dashboard_settings"])->name("settings")->middleware("auth");
 Route::post("/dashboard-settings", [UserController::class, "dashboard_settings"])->name("settings.update")->middleware("auth");
 Route::post("/admin/store", [UserController::class, "storeAdmin"])->name("admin.store");
@@ -256,7 +247,15 @@ Route::post("/admin/update", [UserController::class, "updateAdmin"])->name("admi
 Route::post("/admin/delete", [UserController::class, "deleteAdmin"])->name("admin.delete");
 Route::post("/admin/toggle-status", [UserController::class, "toggleAdminStatus"])->name("admin.toggle-status");
 Route::post("/roles/store", [UserController::class, "storeRole"])->name("roles.store");
+Route::post("/roles/update", [UserController::class, "updateRole"])->name("roles.update");
 Route::post("/roles/delete", [UserController::class, "deleteRole"])->name("roles.delete");
+
+// Allied Worker management (GM / Main Admin only; guards enforced in controller)
+Route::get("/allied-workers", [AlliedWorkerController::class, "index"])->name("allied-workers.index")->middleware("auth");
+Route::post("/allied-workers/promote", [AlliedWorkerController::class, "promote"])->name("allied-workers.promote")->middleware("auth");
+Route::post("/allied-workers/revoke", [AlliedWorkerController::class, "revoke"])->name("allied-workers.revoke")->middleware("auth");
+Route::post("/allied-workers/switch-to-member", [AlliedWorkerController::class, "switchToMember"])->name("allied-workers.switch-to-member")->middleware("auth");
+Route::post("/allied-workers/switch-to-aw", [AlliedWorkerController::class, "switchToAw"])->name("allied-workers.switch-to-aw")->middleware("auth");
 // archives route removed
 Route::match(["get", "post"], "/dashboard-financial-activity", [UserController::class, "dashboard_financial_activity"])->name("financial.activity");
 Route::post('/loan-settings/create', [UserController::class, 'createLoanSetting'])->name('loan.settings.create');
@@ -268,6 +267,8 @@ Route::get("/loan-stats", [UsersHandle::class, "loanStats"])->name("loan_stats")
 Route::post("/cooperative-transactions/store", [UserController::class, "storeCooperativeTransaction"])->name("cooperative.transactions.store");
 Route::get("/dashboard-payments", [UserController::class, "dashboard_payments"])->name("payments")->middleware("auth");
 Route::post("/dashboard-payments/record", [UserController::class, "adminStoreRepayment"])->name("payments.record");
+Route::post('/repayments/{id}/complete', [UserController::class, 'completeRepayment'])->name('repayment.complete');
+Route::post('/repayments/{id}/void', [UserController::class, 'voidRepayment'])->name('repayment.void');
 Route::get("/loans/member/{id}/active", function ($id) {
     $loans = \App\Models\lending_program_tbl::where('user_id', $id)
         ->whereIn('status', ['Approved'])
@@ -288,20 +289,17 @@ Route::post("/announcements/{id}/like", [App\Http\Controllers\AnnouncementContro
 Route::post("/announcements/{id}/comment/{commentId}/delete", [App\Http\Controllers\AnnouncementController::class, "deleteComment"])->name("announcements.comment.delete");
 Route::post("/announcements/{id}/delete", [App\Http\Controllers\AnnouncementController::class, "deleteAnnouncement"])->name("announcements.delete");
 
-// Notification routes
-Route::middleware('auth')->group(function () {
-    Route::get("/admin/notifications", [App\Http\Controllers\NotificationController::class, "index"])->name("notifications.index");
-    Route::post("/admin/notifications/{id}/toggle-important", [App\Http\Controllers\NotificationController::class, "toggleImportant"])->name("notifications.toggle-important");
-    Route::post("/admin/notifications/toggle-mute", [App\Http\Controllers\NotificationController::class, "toggleMute"])->name("notifications.toggle-mute");
-    Route::post("/admin/notifications/{id}/read", [App\Http\Controllers\NotificationController::class, "markAsRead"])->name("notifications.read");
-});
+// Poll routes
+Route::post("/polls", [App\Http\Controllers\AnnouncementController::class, "storePoll"])->name("announcements.poll.store");
+Route::post("/polls/{pollId}/vote", [App\Http\Controllers\AnnouncementController::class, "votePoll"])->name("announcements.poll.vote");
+Route::post("/polls/{pollId}/delete", [App\Http\Controllers\AnnouncementController::class, "deletePoll"])->name("announcements.poll.delete");
 
 // Seminar routes
 Route::get("/admin/seminars", [App\Http\Controllers\SeminarController::class, "index"])->name("seminars.index");
 Route::post("/admin/seminars/schedule", [App\Http\Controllers\SeminarController::class, "scheduleSeminar"])->name("seminars.schedule");
 Route::post("/admin/seminars/attendance", [App\Http\Controllers\SeminarController::class, "updateAttendanceAndCompletion"])->name("seminars.attendance");
 Route::post("/admin/seminars/store-type", [App\Http\Controllers\SeminarController::class, "storeSeminarType"])->name("seminars.store-type");
-Route::post("/admin/seminars/save-passcode", [App\Http\Controllers\SeminarController::class, "savePasscode"])->name("seminars.save-passcode");
+Route::get("/admin/seminars/member-search", [App\Http\Controllers\SeminarController::class, "memberSearch"])->name("seminars.member-search");
 
 // Resignation routes
 Route::post("/member/resign", [App\Http\Controllers\ResignationController::class, "requestResignation"])->name("resignation.request")->middleware("auth");

@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CooperativeTransaction;
+use App\Models\lending_program_tbl;
 use App\Models\savings_transaction_tbl;
 use App\Models\share_capital_transaction_tbl;
-use App\Models\lending_program_tbl;
-use App\Models\lending_repayments_tbl;
-use App\Models\CooperativeTransaction;
-use App\Models\Users_tbl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,19 +19,19 @@ class ReportController extends Controller
         $chartType = $request->get('chart', 'all');
 
         $totalDeposits = savings_transaction_tbl::where('type', 'deposit')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->sum('amount') ?? 0;
 
         $totalWithdrawals = savings_transaction_tbl::where('type', 'withdrawal')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->sum('amount') ?? 0;
 
         $loansIssued = lending_program_tbl::where('status', 'Approved')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->sum('lending_amount') ?? 0;
 
         $loanInterest = lending_program_tbl::where('status', 'Approved')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->sum('total_interest') ?? 0;
 
         $netIncome = $loanInterest;
@@ -97,7 +95,7 @@ class ReportController extends Controller
 
             $savingsByMonth[$monthName] = [
                 'savings' => round($deposits / 1000, 1),
-                'loans' => round($loans / 1000, 1)
+                'loans' => round($loans / 1000, 1),
             ];
         }
 
@@ -112,7 +110,7 @@ class ReportController extends Controller
             )
             ->leftJoin('savings_account_tbls as sa', 'st.savings_account_id', '=', 'sa.id')
             ->leftJoin('users_tbls as u', 'sa.user_id', '=', 'u.id')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('st.created_at', 'desc')
             ->limit(50)
             ->get();
@@ -128,7 +126,7 @@ class ReportController extends Controller
             ->leftJoin('savings_account_tbls as sa', 'st.savings_account_id', '=', 'sa.id')
             ->leftJoin('users_tbls as u', 'sa.user_id', '=', 'u.id')
             ->where('st.type', 'deposit')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('st.created_at', 'desc')
             ->limit(10)
             ->get();
@@ -144,14 +142,14 @@ class ReportController extends Controller
             ->leftJoin('savings_account_tbls as sa', 'st.savings_account_id', '=', 'sa.id')
             ->leftJoin('users_tbls as u', 'sa.user_id', '=', 'u.id')
             ->where('st.type', 'withdrawal')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('st.created_at', 'desc')
             ->limit(10)
             ->get();
 
         $loans = lending_program_tbl::with('user')
             ->where('status', 'Approved')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
@@ -162,29 +160,29 @@ class ReportController extends Controller
                     'amount' => $loan->lending_amount,
                     'purpose' => $loan->purpose_loan,
                     'status' => $loan->status,
-                    'member_name' => ($loan->user->first_name ?? 'Unknown') . ' ' . ($loan->user->last_name ?? '')
+                    'member_name' => ($loan->user->first_name ?? 'Unknown').' '.($loan->user->last_name ?? ''),
                 ];
             });
 
         $depositsCount = DB::table('savings_transaction_tbls as st')
             ->where('st.type', 'deposit')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->count();
 
         $withdrawalsCount = DB::table('savings_transaction_tbls as st')
             ->where('st.type', 'withdrawal')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->count();
 
         $loansCount = lending_program_tbl::where('status', 'Approved')
-            ->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$fromDate, $toDate.' 23:59:59'])
             ->count();
 
         if ($request->has('export') && $request->export === 'csv') {
             return $this->exportMonthlyCsv($fromDate, $toDate, $transactions, $totalDeposits, $totalWithdrawals, $loansIssued, $netIncome);
         }
 
-        return view("admin_components.reports", compact(
+        return view('admin_components.reports', compact(
             'fromDate',
             'toDate',
             'reportType',
@@ -309,7 +307,7 @@ class ReportController extends Controller
             'cooperative_investments_total' => $cooperativeInvestments->sum('amount'),
             'cooperative_investments_count' => $cooperativeInvestments->count(),
             'cooperative_net' => $cooperativeInvestments->sum('amount') - $cooperativeExpenses->sum('amount'),
-            'grand_inflow' => $savingsDeposits->sum('amount') + $scDeposits->sum('total_amount') + $loanRepayments->sum('amount_paid'),
+            'grand_inflow' => $savingsDeposits->sum('amount') + $scDeposits->sum('total_amount') + $loanRepayments->sum('amount_paid') + $cooperativeInvestments->sum('amount'),
             'grand_outflow' => $savingsWithdrawals->sum('amount') + $scWithdrawals->sum('total_amount') + $loanDisbursements->sum('lending_amount') + $cooperativeExpenses->sum('amount'),
         ];
 
@@ -320,6 +318,11 @@ class ReportController extends Controller
         if ($request->has('export') && $request->export === 'pdf') {
             return $this->exportPdf($date, $savingsTransactions, $shareCapitalTransactions, $loanDisbursements, $loanRepayments, $cooperativeTransactions, $summary);
         }
+
+        $cooperativeStats = [
+            'total_expenses' => CooperativeTransaction::where('transaction_type', 'expense')->sum('amount'),
+            'total_investments' => CooperativeTransaction::where('transaction_type', 'investment')->sum('amount'),
+        ];
 
         return view('admin_components.reports', compact(
             'date',
@@ -334,7 +337,8 @@ class ReportController extends Controller
             'scDeposits',
             'scWithdrawals',
             'cooperativeExpenses',
-            'cooperativeInvestments'
+            'cooperativeInvestments',
+            'cooperativeStats'
         ));
     }
 
@@ -348,8 +352,8 @@ class ReportController extends Controller
         fputcsv($handle, ["Daily Transaction Report - {$date}"]);
         fputcsv($handle, []);
 
-        fputcsv($handle, ["SAVINGS TRANSACTIONS"]);
-        fputcsv($handle, ["Reference #", "Member", "Type", "Amount", "Payment Method", "Status"]);
+        fputcsv($handle, ['SAVINGS TRANSACTIONS']);
+        fputcsv($handle, ['Reference #', 'Member', 'Type', 'Amount', 'Payment Method', 'Status']);
         foreach ($savings as $tx) {
             fputcsv($handle, [
                 $tx->reference_no ?? 'N/A',
@@ -361,13 +365,13 @@ class ReportController extends Controller
             ]);
         }
         fputcsv($handle, []);
-        fputcsv($handle, ["Deposits: {$summary['savings_deposits_count']} tx, ₱" . number_format($summary['savings_deposits_total'], 2)]);
-        fputcsv($handle, ["Withdrawals: {$summary['savings_withdrawals_count']} tx, ₱" . number_format($summary['savings_withdrawals_total'], 2)]);
-        fputcsv($handle, ["Net: ₱" . number_format($summary['savings_net'], 2)]);
+        fputcsv($handle, ["Deposits: {$summary['savings_deposits_count']} tx, ₱".number_format($summary['savings_deposits_total'], 2)]);
+        fputcsv($handle, ["Withdrawals: {$summary['savings_withdrawals_count']} tx, ₱".number_format($summary['savings_withdrawals_total'], 2)]);
+        fputcsv($handle, ['Net: ₱'.number_format($summary['savings_net'], 2)]);
         fputcsv($handle, []);
 
-        fputcsv($handle, ["SHARE CAPITAL TRANSACTIONS"]);
-        fputcsv($handle, ["Reference #", "Member", "Type", "Shares", "Amount", "Payment Method", "Status"]);
+        fputcsv($handle, ['SHARE CAPITAL TRANSACTIONS']);
+        fputcsv($handle, ['Reference #', 'Member', 'Type', 'Shares', 'Amount', 'Payment Method', 'Status']);
         foreach ($shareCapital as $tx) {
             fputcsv($handle, [
                 $tx->reference_no ?? 'N/A',
@@ -380,13 +384,13 @@ class ReportController extends Controller
             ]);
         }
         fputcsv($handle, []);
-        fputcsv($handle, ["Contributions: {$summary['sc_deposits_count']} tx, ₱" . number_format($summary['sc_deposits_total'], 2)]);
-        fputcsv($handle, ["Withdrawals: {$summary['sc_withdrawals_count']} tx, ₱" . number_format($summary['sc_withdrawals_total'], 2)]);
-        fputcsv($handle, ["Net: ₱" . number_format($summary['sc_net'], 2)]);
+        fputcsv($handle, ["Contributions: {$summary['sc_deposits_count']} tx, ₱".number_format($summary['sc_deposits_total'], 2)]);
+        fputcsv($handle, ["Withdrawals: {$summary['sc_withdrawals_count']} tx, ₱".number_format($summary['sc_withdrawals_total'], 2)]);
+        fputcsv($handle, ['Net: ₱'.number_format($summary['sc_net'], 2)]);
         fputcsv($handle, []);
 
-        fputcsv($handle, ["LOAN DISBURSEMENTS"]);
-        fputcsv($handle, ["Reference #", "Member", "Loan Type", "Amount", "Status"]);
+        fputcsv($handle, ['LOAN DISBURSEMENTS']);
+        fputcsv($handle, ['Reference #', 'Member', 'Loan Type', 'Amount', 'Status']);
         foreach ($loans as $tx) {
             fputcsv($handle, [
                 $tx->reference_no ?? 'N/A',
@@ -397,11 +401,11 @@ class ReportController extends Controller
             ]);
         }
         fputcsv($handle, []);
-        fputcsv($handle, ["Total Disbursed: {$summary['loans_disbursed_count']} loans, ₱" . number_format($summary['loans_disbursed_total'], 2)]);
+        fputcsv($handle, ["Total Disbursed: {$summary['loans_disbursed_count']} loans, ₱".number_format($summary['loans_disbursed_total'], 2)]);
         fputcsv($handle, []);
 
-        fputcsv($handle, ["LOAN REPAYMENTS"]);
-        fputcsv($handle, ["Reference #", "Member", "Amount Paid", "Payment Method"]);
+        fputcsv($handle, ['LOAN REPAYMENTS']);
+        fputcsv($handle, ['Reference #', 'Member', 'Amount Paid', 'Payment Method']);
         foreach ($repayments as $tx) {
             fputcsv($handle, [
                 $tx->reference_no ?? 'N/A',
@@ -411,11 +415,11 @@ class ReportController extends Controller
             ]);
         }
         fputcsv($handle, []);
-        fputcsv($handle, ["Total Repayments: {$summary['repayments_count']} tx, ₱" . number_format($summary['repayments_total'], 2)]);
+        fputcsv($handle, ["Total Repayments: {$summary['repayments_count']} tx, ₱".number_format($summary['repayments_total'], 2)]);
         fputcsv($handle, []);
 
-        fputcsv($handle, ["COOPERATIVE CAPITAL OUTLAYS & EXPENDITURES"]);
-        fputcsv($handle, ["Description", "Category", "Type", "Amount"]);
+        fputcsv($handle, ['COOPERATIVE CAPITAL OUTLAYS & EXPENDITURES']);
+        fputcsv($handle, ['Description', 'Category', 'Type', 'Amount']);
         foreach ($cooperativeTransactions as $tx) {
             fputcsv($handle, [
                 $tx->description ?? 'N/A',
@@ -425,14 +429,14 @@ class ReportController extends Controller
             ]);
         }
         fputcsv($handle, []);
-        fputcsv($handle, ["Expenses: {$summary['cooperative_expenses_count']} tx, ₱" . number_format($summary['cooperative_expenses_total'], 2)]);
-        fputcsv($handle, ["Investments: {$summary['cooperative_investments_count']} tx, ₱" . number_format($summary['cooperative_investments_total'], 2)]);
+        fputcsv($handle, ["Expenses: {$summary['cooperative_expenses_count']} tx, ₱".number_format($summary['cooperative_expenses_total'], 2)]);
+        fputcsv($handle, ["Investments: {$summary['cooperative_investments_count']} tx, ₱".number_format($summary['cooperative_investments_total'], 2)]);
         fputcsv($handle, []);
 
-        fputcsv($handle, ["DAILY SUMMARY"]);
-        fputcsv($handle, ["Total Inflow: ₱" . number_format($summary['grand_inflow'], 2)]);
-        fputcsv($handle, ["Total Outflow: ₱" . number_format($summary['grand_outflow'], 2)]);
-        fputcsv($handle, ["Net Flow: ₱" . number_format($summary['grand_inflow'] - $summary['grand_outflow'], 2)]);
+        fputcsv($handle, ['DAILY SUMMARY']);
+        fputcsv($handle, ['Total Inflow: ₱'.number_format($summary['grand_inflow'], 2)]);
+        fputcsv($handle, ['Total Outflow: ₱'.number_format($summary['grand_outflow'], 2)]);
+        fputcsv($handle, ['Net Flow: ₱'.number_format($summary['grand_inflow'] - $summary['grand_outflow'], 2)]);
 
         rewind($handle);
         $csv = stream_get_contents($handle);
@@ -453,15 +457,15 @@ class ReportController extends Controller
         fputcsv($handle, ["Monthly Transaction Report - {$fromDate} to {$toDate}"]);
         fputcsv($handle, []);
 
-        fputcsv($handle, ["SUMMARY"]);
-        fputcsv($handle, ["Total Deposits", "₱" . number_format($totalDeposits, 2)]);
-        fputcsv($handle, ["Total Withdrawals", "₱" . number_format($totalWithdrawals, 2)]);
-        fputcsv($handle, ["Loans Issued", "₱" . number_format($loansIssued, 2)]);
-        fputcsv($handle, ["Net Income", "₱" . number_format($netIncome, 2)]);
+        fputcsv($handle, ['SUMMARY']);
+        fputcsv($handle, ['Total Deposits', '₱'.number_format($totalDeposits, 2)]);
+        fputcsv($handle, ['Total Withdrawals', '₱'.number_format($totalWithdrawals, 2)]);
+        fputcsv($handle, ['Loans Issued', '₱'.number_format($loansIssued, 2)]);
+        fputcsv($handle, ['Net Income', '₱'.number_format($netIncome, 2)]);
         fputcsv($handle, []);
 
-        fputcsv($handle, ["DETAILED TRANSACTIONS"]);
-        fputcsv($handle, ["Date", "Time", "Reference No.", "Member", "Category", "Amount"]);
+        fputcsv($handle, ['DETAILED TRANSACTIONS']);
+        fputcsv($handle, ['Date', 'Time', 'Reference No.', 'Member', 'Category', 'Amount']);
         foreach ($transactions as $tx) {
             fputcsv($handle, [
                 \Carbon\Carbon::parse($tx->created_at)->addHours(8)->format('Y-m-d'),
@@ -513,7 +517,7 @@ class ReportController extends Controller
             ->leftJoin('savings_account_tbls as sa', 'st.savings_account_id', '=', 'sa.id')
             ->leftJoin('users_tbls as u', 'sa.user_id', '=', 'u.id')
             ->where('st.type', 'deposit')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('st.created_at')
             ->get();
 
@@ -521,7 +525,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Savings Deposit - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Savings Deposit - '.($tx->member_name ?? 'Unknown'),
                 'code' => '1111',
                 'account_title' => 'CASH ON HAND',
                 'debit' => $tx->amount,
@@ -532,7 +536,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Savings Deposit - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Savings Deposit - '.($tx->member_name ?? 'Unknown'),
                 'code' => '2111',
                 'account_title' => 'SAVING DEPOSITS',
                 'debit' => 0,
@@ -549,7 +553,7 @@ class ReportController extends Controller
             ->leftJoin('savings_account_tbls as sa', 'st.savings_account_id', '=', 'sa.id')
             ->leftJoin('users_tbls as u', 'sa.user_id', '=', 'u.id')
             ->where('st.type', 'withdrawal')
-            ->whereBetween('st.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('st.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('st.created_at')
             ->get();
 
@@ -557,7 +561,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Savings Withdrawal - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Savings Withdrawal - '.($tx->member_name ?? 'Unknown'),
                 'code' => '2111',
                 'account_title' => 'SAVING DEPOSITS',
                 'debit' => $tx->amount,
@@ -568,7 +572,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Savings Withdrawal - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Savings Withdrawal - '.($tx->member_name ?? 'Unknown'),
                 'code' => '1111',
                 'account_title' => 'CASH ON HAND',
                 'debit' => 0,
@@ -586,7 +590,7 @@ class ReportController extends Controller
             ->leftJoin('users_tbls as u', 'sca.user_id', '=', 'u.id')
             ->whereIn('sct.type', ['Deposit', 'Subscription', ShareCapital::CONVERSION_TYPE])
             ->whereIn('sct.status', ['Completed', 'Approved'])
-            ->whereBetween('sct.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('sct.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('sct.created_at')
             ->get();
 
@@ -594,7 +598,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Share Capital ' . $tx->type . ' - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Share Capital '.$tx->type.' - '.($tx->member_name ?? 'Unknown'),
                 'code' => '1111',
                 'account_title' => 'CASH ON HAND',
                 'debit' => $tx->total_amount,
@@ -605,7 +609,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Share Capital ' . $tx->type . ' - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Share Capital '.$tx->type.' - '.($tx->member_name ?? 'Unknown'),
                 'code' => '3031',
                 'account_title' => 'DEPOSIT FOR SHARE CAPITAL BUILD UP',
                 'debit' => 0,
@@ -623,7 +627,7 @@ class ReportController extends Controller
             ->leftJoin('users_tbls as u', 'sca.user_id', '=', 'u.id')
             ->where('sct.type', 'Withdrawal')
             ->whereIn('sct.status', ['Approved', 'approved'])
-            ->whereBetween('sct.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('sct.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('sct.created_at')
             ->get();
 
@@ -631,7 +635,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Share Capital Withdrawal - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Share Capital Withdrawal - '.($tx->member_name ?? 'Unknown'),
                 'code' => '3031',
                 'account_title' => 'DEPOSIT FOR SHARE CAPITAL BUILD UP',
                 'debit' => $tx->total_amount,
@@ -642,7 +646,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Share Capital Withdrawal - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Share Capital Withdrawal - '.($tx->member_name ?? 'Unknown'),
                 'code' => '1111',
                 'account_title' => 'CASH ON HAND',
                 'debit' => 0,
@@ -658,7 +662,7 @@ class ReportController extends Controller
                 DB::raw("CONCAT(u.first_name, ' ', u.last_name) as member_name"))
             ->leftJoin('users_tbls as u', 'lp.user_id', '=', 'u.id')
             ->where('lp.status', 'Approved')
-            ->whereBetween('lp.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('lp.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('lp.created_at')
             ->get();
 
@@ -666,7 +670,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Loan Disbursement (' . ($tx->lending_type ?? 'N/A') . ') - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Loan Disbursement ('.($tx->lending_type ?? 'N/A').') - '.($tx->member_name ?? 'Unknown'),
                 'code' => '11381',
                 'account_title' => 'OTHER CURRENT RECEIVABLES',
                 'debit' => $tx->lending_amount,
@@ -677,7 +681,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Loan Disbursement (' . ($tx->lending_type ?? 'N/A') . ') - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Loan Disbursement ('.($tx->lending_type ?? 'N/A').') - '.($tx->member_name ?? 'Unknown'),
                 'code' => '1111',
                 'account_title' => 'CASH ON HAND',
                 'debit' => 0,
@@ -692,7 +696,7 @@ class ReportController extends Controller
             ->select('lr.created_at', 'lr.reference_no', 'lr.amount_paid', 'u.id as user_id',
                 DB::raw("CONCAT(u.first_name, ' ', u.last_name) as member_name"))
             ->leftJoin('users_tbls as u', 'lr.user_id', '=', 'u.id')
-            ->whereBetween('lr.created_at', [$fromDate, $toDate . ' 23:59:59'])
+            ->whereBetween('lr.created_at', [$fromDate, $toDate.' 23:59:59'])
             ->orderBy('lr.created_at')
             ->get();
 
@@ -700,7 +704,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Loan Repayment - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Loan Repayment - '.($tx->member_name ?? 'Unknown'),
                 'code' => '1111',
                 'account_title' => 'CASH ON HAND',
                 'debit' => $tx->amount_paid,
@@ -711,7 +715,7 @@ class ReportController extends Controller
             $entries->push([
                 'date' => $tx->created_at,
                 'reference_no' => $tx->reference_no,
-                'particulars' => 'Loan Repayment - ' . ($tx->member_name ?? 'Unknown'),
+                'particulars' => 'Loan Repayment - '.($tx->member_name ?? 'Unknown'),
                 'code' => '11381',
                 'account_title' => 'OTHER CURRENT RECEIVABLES',
                 'debit' => 0,
@@ -730,8 +734,8 @@ class ReportController extends Controller
         foreach ($coopExpenses as $tx) {
             $entries->push([
                 'date' => $tx->transaction_date,
-                'reference_no' => 'COOP-' . $tx->id,
-                'particulars' => 'Cooperative Expense - ' . $tx->description,
+                'reference_no' => 'COOP-'.$tx->id,
+                'particulars' => 'Cooperative Expense - '.$tx->description,
                 'code' => '40211',
                 'account_title' => 'OPERATION DUES',
                 'debit' => $tx->amount,
@@ -741,8 +745,8 @@ class ReportController extends Controller
             ]);
             $entries->push([
                 'date' => $tx->transaction_date,
-                'reference_no' => 'COOP-' . $tx->id,
-                'particulars' => 'Cooperative Expense - ' . $tx->description,
+                'reference_no' => 'COOP-'.$tx->id,
+                'particulars' => 'Cooperative Expense - '.$tx->description,
                 'code' => '1111',
                 'account_title' => 'CASH ON HAND',
                 'debit' => 0,
@@ -761,8 +765,8 @@ class ReportController extends Controller
         foreach ($coopInvestments as $tx) {
             $entries->push([
                 'date' => $tx->transaction_date,
-                'reference_no' => 'COOP-' . $tx->id,
-                'particulars' => 'Cooperative Investment - ' . $tx->description,
+                'reference_no' => 'COOP-'.$tx->id,
+                'particulars' => 'Cooperative Investment - '.$tx->description,
                 'code' => '4035',
                 'account_title' => 'SALES-RICE / EGG TRADING',
                 'debit' => $tx->amount,
@@ -772,8 +776,8 @@ class ReportController extends Controller
             ]);
             $entries->push([
                 'date' => $tx->transaction_date,
-                'reference_no' => 'COOP-' . $tx->id,
-                'particulars' => 'Cooperative Investment - ' . $tx->description,
+                'reference_no' => 'COOP-'.$tx->id,
+                'particulars' => 'Cooperative Investment - '.$tx->description,
                 'code' => '1111',
                 'account_title' => 'CASH ON HAND',
                 'debit' => 0,
@@ -823,5 +827,106 @@ class ReportController extends Controller
         return view('admin_components.journal_summary', compact(
             'grouped', 'fromDate', 'toDate', 'grandDebit', 'grandCredit'
         ));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  Statement of Operations
+    // ═══════════════════════════════════════════════════════════════
+
+    private function resolveStatementPeriod(Request $request)
+    {
+        $period = $request->get('period', 'this_year');
+        $now = \Carbon\Carbon::now();
+
+        $map = [
+            'this_month'   => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
+            'last_month'   => [$now->copy()->subMonth()->startOfMonth(), $now->copy()->subMonth()->endOfMonth()],
+            'this_quarter' => [$now->copy()->startOfQuarter(), $now->copy()->endOfQuarter()],
+            'this_year'    => [$now->copy()->startOfYear(), $now->copy()->endOfYear()],
+            'last_year'    => [$now->copy()->subYear()->startOfYear(), $now->copy()->subYear()->endOfYear()],
+        ];
+
+        if ($period === 'custom') {
+            $fromDate = $request->get('from_date', $now->copy()->startOfYear()->format('Y-m-d'));
+            $toDate = $request->get('to_date', $now->copy()->endOfYear()->format('Y-m-d'));
+
+            if ($fromDate > $toDate) {
+                $tmp = $fromDate;
+                $fromDate = $toDate;
+                $toDate = $tmp;
+            }
+        } else {
+            [$start, $end] = $map[$period] ?? $map['this_year'];
+            $fromDate = $start->format('Y-m-d');
+            $toDate = $end->format('Y-m-d');
+        }
+
+        return compact('period', 'fromDate', 'toDate');
+    }
+
+    private function getStatementOfOperationsData($fromDate, $toDate)
+    {
+        $dateRange = [$fromDate, $toDate . ' 23:59:59'];
+
+        $interestIncome = DB::table('lending_repayments_tbls')
+            ->where('status', 'Completed')
+            ->whereBetween('created_at', $dateRange)
+            ->sum('interest_paid') ?? 0;
+
+        $serviceFeeIncome = DB::table('lending_repayments_tbls')
+            ->where('status', 'Completed')
+            ->whereBetween('created_at', $dateRange)
+            ->sum('service_fee_paid') ?? 0;
+
+        $lateFeeIncome = DB::table('lending_repayments_tbls')
+            ->where('status', 'Completed')
+            ->whereBetween('created_at', $dateRange)
+            ->sum(DB::raw('COALESCE(late_fee, 0)')) ?? 0;
+
+        $totalRevenue = $interestIncome + $serviceFeeIncome + $lateFeeIncome;
+
+        $expensesByCategory = CooperativeTransaction::where('transaction_type', 'expense')
+            ->whereBetween('transaction_date', [$fromDate, $toDate])
+            ->select('category', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('category')
+            ->orderBy('total', 'desc')
+            ->get();
+
+        $totalExpenses = $expensesByCategory->sum('total');
+
+        return compact(
+            'fromDate', 'toDate',
+            'interestIncome', 'serviceFeeIncome', 'lateFeeIncome', 'totalRevenue',
+            'expensesByCategory', 'totalExpenses'
+        );
+    }
+
+    public function statementOfOperations(Request $request)
+    {
+        $resolved = $this->resolveStatementPeriod($request);
+        $period = $resolved['period'];
+        $fromDate = $resolved['fromDate'];
+        $toDate = $resolved['toDate'];
+
+        $data = $this->getStatementOfOperationsData($fromDate, $toDate);
+        $statementView = true;
+
+        $cooperativeStats = [
+            'total_expenses' => CooperativeTransaction::where('transaction_type', 'expense')->sum('amount'),
+            'total_investments' => CooperativeTransaction::where('transaction_type', 'investment')->sum('amount'),
+        ];
+
+        return view('admin_components.reports', array_merge($data, compact('statementView', 'cooperativeStats', 'period')));
+    }
+
+    public function statementOfOperationsPrint(Request $request)
+    {
+        $resolved = $this->resolveStatementPeriod($request);
+        $fromDate = $resolved['fromDate'];
+        $toDate = $resolved['toDate'];
+
+        $data = $this->getStatementOfOperationsData($fromDate, $toDate);
+
+        return view('admin_components.statement_operations_print', $data);
     }
 }

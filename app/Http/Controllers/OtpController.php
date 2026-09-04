@@ -1,11 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Log;
 
 class OtpController extends Controller
 {
@@ -28,7 +29,8 @@ class OtpController extends Controller
                 }
             );
         } catch (\Exception $e) {
-            Log::error('OTP mail failed: ' . $e->getMessage());
+            Log::error('OTP mail failed: '.$e->getMessage());
+
             return response()->json([
                 'sent' => false,
                 'message' => 'Failed to send email. Please check your mail configuration.',
@@ -44,7 +46,7 @@ class OtpController extends Controller
                 null
             );
         } catch (\Exception $e) {
-            Log::error('AuditLog failed (non-fatal): ' . $e->getMessage());
+            Log::error('AuditLog failed (non-fatal): '.$e->getMessage());
         }
 
         return response()->json(['sent' => true]);
@@ -56,12 +58,13 @@ class OtpController extends Controller
         $email = Session::get('email_otp_email');
         $expires = Session::get('email_otp_expires');
 
-        if (!$otp || !$expires) {
+        if (! $otp || ! $expires) {
             return response()->json(['valid' => false, 'message' => 'OTP expired. Please request a new one.']);
         }
 
         if (now()->gt($expires)) {
             Session::forget(['email_otp', 'email_otp_email', 'email_otp_expires']);
+
             return response()->json(['valid' => false, 'message' => 'OTP has expired. Please request a new one.']);
         }
 
@@ -88,7 +91,7 @@ class OtpController extends Controller
                 null
             );
         } catch (\Exception $e) {
-            Log::error('AuditLog failed (non-fatal): ' . $e->getMessage());
+            Log::error('AuditLog failed (non-fatal): '.$e->getMessage());
         }
 
         return response()->json(['valid' => true]);

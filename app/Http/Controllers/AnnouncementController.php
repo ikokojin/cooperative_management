@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Announcements_tbl;
 use App\Models\AnnouncementComments_tbl;
 use App\Models\AnnouncementLikes_tbl;
+use App\Models\AnnouncementPoll_tbl;
+use App\Models\AnnouncementPollVote_tbl;
+use App\Models\Announcements_tbl;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,7 +33,7 @@ class AnnouncementController extends Controller
             $announcement->id
         );
 
-        return redirect()->route('notifications.index')->with('success', 'Announcement published successfully.');
+        return redirect()->route('dashboard')->with('success', 'Announcement published successfully.');
     }
 
     public function storeComment(Request $request, $id)
@@ -149,6 +151,92 @@ class AnnouncementController extends Controller
             'success' => true,
             'liked' => $liked,
             'count' => $count,
+        ]);
+    }
+
+    public function storePoll(Request $request)
+    {
+        $request->validate([
+            'question' => 'required|string|max:255',
+            'options' => 'required|array|min:2|max:10',
+            'options.*' => 'required|string|max:255',
+            'expires_at' => 'nullable|date|after:now',
+        ]);
+
+        $poll = AnnouncementPoll_tbl::create([
+            'user_id' => Auth::id(),
+            'question' => $request->question,
+            'options' => $request->options,
+            'expires_at' => $request->expires_at,
+        ]);
+
+        AuditLog::log(
+            'Created Poll',
+            "Created poll: {$request->question}",
+            'announcement_poll',
+            $poll->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'poll' => [
+                'id' => $poll->id,
+                'question' => $poll->question,
+                'options' => $poll->options,
+                'expires_at' => $poll->expires_at?->format('M d, Y h:i A'),
+                'is_expired' => $poll->isExpired(),
+                'results' => $poll->results,
+                'total_votes' => $poll->votes()->count(),
+                'user_id' => $poll->user_id,
+            ],
+        ]);
+    }
+
+    public function votePoll(Request $request, $pollId)
+    {
+        $poll = AnnouncementPoll_tbl::findOrFail($pollId);
+
+        if ($poll->isExpired()) {
+            return response()->json(['success' => false, 'message' => 'This poll has expired.'], 422);
+        }
+
+        $request->validate([
+            'option_index' => 'required|integer|min:0|max:'.(count($poll->options) - 1),
+        ]);
+
+        $userId = Auth::id();
+
+        AnnouncementPollVote_tbl::updateOrCreate(
+            ['poll_id' => $pollId, 'user_id' => $userId],
+            ['option_index' => $request->option_index]
+        );
+
+        $poll->load('votes');
+        $results = $poll->results;
+
+        return response()->json([
+            'success' => true,
+            'results' => $results,
+            'total_votes' => count($poll->votes),
+            'voted_index' => $request->option_index,
+        ]);
+    }
+
+    public function deletePoll(Request $request, $pollId)
+    {
+        $poll = AnnouncementPoll_tbl::findOrFail($pollId);
+        $poll->votes()->delete();
+        $poll->delete();
+
+        AuditLog::log(
+            'Deleted Poll',
+            "Deleted poll #{$pollId}: {$poll->question}",
+            'announcement_poll',
+            $pollId
+        );
+
+        return response()->json([
+            'success' => true,
         ]);
     }
 }

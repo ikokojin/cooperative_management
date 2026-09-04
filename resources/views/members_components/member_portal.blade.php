@@ -516,68 +516,147 @@
 
                             
                             <div class="panel graph announcements">
-                                <div class="panel-head"
-                                style="">
+                                <div class="panel-head">
                                     <div>
-                                        <h3>Announcements</h3>
-                                        <p>Latest updates</p>
-                                    </div>
-                                    <div class="balance-date">
-                                        <select id="announcementMonthSelect">
-                                            <option value="all" {{ $announcementMonth === 'all' ? 'selected' : '' }}>All</option>
-                                            @foreach (range(1, 12) as $m)
-                                                <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}"
-                                                    {{ $announcementMonth !== 'all' && (int) explode('-', $announcementMonth)[1] === $m ? 'selected' : '' }}>
-                                                    {{ \Carbon\Carbon::create()->month($m)->format('F') }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <select id="announcementYearSelect">
-                                            @foreach ($availableYears as $year)
-                                                <option value="{{ $year }}"
-                                                    {{ $announcementMonth !== 'all' && (int) explode('-', $announcementMonth)[0] === $year ? 'selected' : '' }}>
-                                                    {{ $year }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <h3>Community</h3>
+                                        <p>Announcements and polls</p>
                                     </div>
                                 </div>
-                                <div class="panel-body">
+                                <div style="display:flex; border-bottom: 1px solid var(--line);">
+                                    <button onclick="switchMemberCommunityTab('announcements')" id="member-community-tab-announcements" style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid var(--teal); color:var(--teal);">
+                                        <i class="fa-solid fa-bullhorn" style="margin-right:4px;"></i> Announcements
+                                    </button>
+                                    <button onclick="switchMemberCommunityTab('polls')" id="member-community-tab-polls" style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; color:var(--muted);">
+                                        <i class="fa-solid fa-chart-bar" style="margin-right:4px;"></i> Polls
+                                    </button>
+                                </div>
+
+                                {{-- Announcements Tab --}}
+                                <div id="member-community-content-announcements" class="panel-body" style="height:auto; max-height:400px;">
                                     <div class="tx-list" id="announcementsList">
-                                        @forelse ($upcomingSeminars as $s)
-                                            <div class="tx-list-item" data-month="{{ $s['datetime']->format('m') }}" data-year="{{ $s['datetime']->format('Y') }}">
-                                                <div class="tx-icon gold"><i class="fa-solid fa-graduation-cap"></i></div>
-                                                <div class="tx-list-info">
-                                                    <strong>{{ $s['label'] }}</strong>
-                                                    <span>
-                                                        {{ $s['datetime']->format('M d, Y') }} ·
-                                                        {{ $s['delivery_type'] === 'online' ? 'Online' : 'F2F · ' . ($s['meetup_place'] ?? 'Venue TBA') }}
-                                                    </span>
+                                        @forelse ($announcements as $announcement)
+                                            <div class="tx-list-item member-announcement-item" style="flex-direction:column; align-items:stretch; padding:12px 0; border-bottom:1px solid var(--line);">
+                                                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleMemberAnnouncement({{ $announcement->id }})">
+                                                    <div class="tx-icon gold"><i class="fa-solid fa-bullhorn"></i></div>
+                                                    <div class="tx-list-info" style="flex:1;">
+                                                        <strong>{{ $announcement->title }}</strong>
+                                                        <span>
+                                                            {{ $announcement->created_at->format('M d, Y') }}
+                                                            @if($announcement->user)
+                                                                · {{ $announcement->user->first_name }} {{ $announcement->user->last_name }}
+                                                            @endif
+                                                        </span>
+                                                    </div>
+                                                    <i class="fa-solid fa-chevron-down" style="font-size:12px; color:var(--muted); transition:transform .2s; cursor:pointer;" id="announcement-chevron-{{ $announcement->id }}"></i>
                                                 </div>
-                                                <span style="padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background-color: #FFF8E1; color: #B8860B;">
-                                                    Upcoming
-                                                </span>
+                                                <div id="announcement-expanded-{{ $announcement->id }}" style="display:none; margin-top:10px; padding-left:46px;">
+                                                    <p style="font-size:13px; color:#555; white-space:pre-wrap; line-height:1.5;">{{ trim($announcement->content) }}</p>
+                                                    <div style="display:flex; gap:8px; margin-top:10px;">
+                                                        <button onclick="event.stopPropagation(); toggleMemberLike({{ $announcement->id }}, this)" class="member-like-btn {{ $announcement->likes->contains('user_id', $user->id ?? 0) ? 'liked' : '' }}" style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#FEE2E2' : 'var(--card)' }}; color:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#DC2626' : '#6B7280' }}; cursor:pointer;">
+                                                            <i class="fa-solid fa-heart"></i> <span class="like-count">{{ $announcement->likes_count }}</span>
+                                                        </button>
+                                                        <button onclick="event.stopPropagation(); toggleMemberComments({{ $announcement->id }})" style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:var(--card); color:#6B7280; cursor:pointer;">
+                                                            <i class="fa-solid fa-comment"></i> {{ $announcement->comments_count }}
+                                                        </button>
+                                                    </div>
+                                                    <div id="member-comments-{{ $announcement->id }}" style="display:none; margin-top:10px;">
+                                                        <div class="member-comments-list" style="display:flex; flex-direction:column; gap:6px;">
+                                                            @foreach($announcement->comments as $comment)
+                                                                <div style="display:flex; gap:8px; padding:8px; background:var(--bg); border-radius:8px;">
+                                                                    <div style="width:24px; height:24px; border-radius:50%; background:{{ $comment->user && in_array($comment->user->role, ['admin', 'general-manager']) ? '#3B82F6' : 'var(--teal)' }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                                                        <span style="color:#fff; font-size:10px; font-weight:700;">{{ strtoupper(substr($comment->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($comment->user->last_name ?? '', 0, 1)) }}</span>
+                                                                    </div>
+                                                                    <div style="flex:1; min-width:0;">
+                                                                        <div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;">
+                                                                            <span style="font-size:12px; font-weight:600;">{{ $comment->user->first_name ?? '' }} {{ $comment->user->last_name ?? '' }}</span>
+                                                                            @if($comment->user && in_array($comment->user->role, ['admin', 'general-manager']))
+                                                                                <span style="font-size:10px; padding:1px 4px; background:#DBEAFE; color:#1D4ED8; border-radius:4px; font-weight:600;">Admin</span>
+                                                                            @endif
+                                                                            <span style="font-size:11px; color:var(--muted);">{{ $comment->created_at->diffForHumans() }}</span>
+                                                                        </div>
+                                                                        <p style="font-size:12px; color:#555; margin:0;">{{ $comment->comment }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                        <form onsubmit="postMemberComment(event, {{ $announcement->id }})" style="display:flex; gap:6px; margin-top:8px;">
+                                                            @csrf
+                                                            <input type="text" placeholder="Write a comment..." required style="flex:1; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; background:var(--card); color:var(--text);">
+                                                            <button type="submit" style="padding:6px 12px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
+                                                        </form>
+                                                    </div>
+                                                </div>
                                             </div>
                                         @empty
-                                        @endforelse
-
-                                        @foreach ($remainingUnscheduledSeminars as $r)
-                                            <div class="tx-list-item" data-month="" data-year="">
-                                                <div class="tx-icon savings"><i class="fa-solid fa-hourglass-half"></i></div>
-                                                <div class="tx-list-info">
-                                                    <strong>{{ $r['label'] }}</strong>
-                                                    <span>Not yet scheduled</span>
-                                                </div>
-                                                <span style="padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background-color: #F1F3F5; color: #808080;">
-                                                    Pending
-                                                </span>
+                                            <div style="text-align: center; color: #aaa; padding: 2rem; font-size: 13px;">
+                                                <i class="fa fa-bullhorn" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                                                No announcements yet.
                                             </div>
-                                        @endforeach
+                                        @endforelse
                                     </div>
-                                    <div id="announcementsEmpty" style="display:none; text-align:center; color:#aaa; padding:2rem; font-size:13px;">
-                                        <i class="fa fa-calendar-check" style="font-size:24px; display:block; margin-bottom:8px;"></i>
-                                        No announcements for this period.
-                                    </div>
+                                </div>
+
+                                {{-- Polls Tab --}}
+                                <div id="member-community-content-polls" class="panel-body" style="height:auto; max-height:400px; display:none;">
+                                    @php $pollOptionsMap = []; @endphp
+                                    @forelse($polls as $poll)
+                                        @php
+                                            $pollResults = $poll->results;
+                                            $totalVotes = count($poll->votes);
+                                            $userVote = $poll->votes->firstWhere('user_id', $user->id ?? 0);
+                                            $hasVoted = $userVote !== null;
+                                            $isExpired = $poll->isExpired();
+                                            $pollOptionsMap[$poll->id] = $poll->options;
+                                        @endphp
+                                        <div style="padding:12px 0; border-bottom:1px solid var(--line);" id="member-poll-{{ $poll->id }}">
+                                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                                <div style="width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg, #8B5CF6, #7C3AED); display:flex; align-items:center; justify-content:center;">
+                                                    <i class="fa-solid fa-chart-bar" style="color:#fff; font-size:12px;"></i>
+                                                </div>
+                                                <div style="flex:1;">
+                                                    <strong style="font-size:13px;">{{ $poll->question }}</strong>
+                                                    <span style="font-size:11px; color:var(--muted); margin-left:6px;">by {{ $poll->user->first_name ?? '' }} {{ $poll->user->last_name ?? '' }}</span>
+                                                </div>
+                                                @if($poll->expires_at)
+                                                    <span style="font-size:11px; {{ $isExpired ? 'color:#DC2626;' : 'color:#D97706;' }}">
+                                                        <i class="fa-solid fa-clock" style="margin-right:2px;"></i>
+                                                        {{ $isExpired ? 'Expired' : 'Expires '.$poll->expires_at->format('M d') }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div style="display:flex; flex-direction:column; gap:4px;" id="member-poll-options-{{ $poll->id }}">
+                                                @foreach($poll->options as $i => $option)
+                                                    @php
+                                                        $count = $pollResults[$i] ?? 0;
+                                                        $pct = $totalVotes > 0 ? round(($count / $totalVotes) * 100) : 0;
+                                                        $isChosen = $hasVoted && $userVote->option_index === $i;
+                                                    @endphp
+                                                    @if($hasVoted || $isExpired)
+                                                        <div style="position:relative; height:28px; border-radius:8px; overflow:hidden; background:var(--line);">
+                                                            <div style="height:100%; width:{{ $pct }}%; background:{{ $isChosen ? 'var(--teal)' : '#D1D5DB' }}; border-radius:8px; transition:width .5s;"></div>
+                                                            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px;">
+                                                                <span style="font-size:12px; font-weight:600; color:{{ $isChosen ? '#fff' : '#555' }};">{{ $option }}</span>
+                                                                <span style="font-size:11px; font-weight:600; color:{{ $isChosen ? '#fff' : '#888' }};">{{ $pct }}% <span style="font-weight:400;">({{ $count }})</span></span>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <button onclick="voteMemberPoll({{ $poll->id }}, {{ $i }})" style="width:100%; text-align:left; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; font-weight:600; background:var(--card); color:var(--text); cursor:pointer;">
+                                                            {{ $option }}
+                                                        </button>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                            <div style="font-size:11px; color:var(--muted); margin-top:6px;">
+                                                {{ $totalVotes }} {{ Str::plural('vote', $totalVotes) }}
+                                                @if($hasVoted) · You voted @endif
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div style="text-align: center; color: #aaa; padding: 2rem; font-size: 13px;">
+                                            <i class="fa-solid fa-chart-bar" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                                            No polls yet.
+                                        </div>
+                                    @endforelse
                                 </div>
                             </div>
                             
@@ -1004,7 +1083,20 @@
                     style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
             </div>
 
-            <div style="padding: 0 24px; overflow-y:auto; height: 368px;">
+            {{-- Tab buttons --}}
+            <div style="display:flex; border-bottom:1px solid #e5e7eb;">
+                <button id="seminarTabAttended" onclick="switchSeminarTab('attended')"
+                    style="flex:1; padding:10px; font-size:13px; font-weight:600; border:none; cursor:pointer; background:transparent; color:var(--teal); border-bottom:2px solid var(--teal);">
+                    Attended
+                </button>
+                <button id="seminarTabPasscode" onclick="switchSeminarTab('passcode')"
+                    style="flex:1; padding:10px; font-size:13px; font-weight:600; border:none; cursor:pointer; background:transparent; color:#9ca3af; border-bottom:2px solid transparent;">
+                    Enter Passcode
+                </button>
+            </div>
+
+            {{-- Attended tab --}}
+            <div id="seminarAttendedPanel" style="padding: 0 24px; overflow-y:auto; height: 310px;">
                 <div style="display:flex; flex-direction:column; gap:12px;">
                     @forelse ($seminarsSummary as $s)
                         <div
@@ -1031,10 +1123,81 @@
                     @endforelse
                 </div>
             </div>
+
+            {{-- Passcode tab --}}
+            <div id="seminarPasscodePanel" style="padding: 16px 24px; display:none; overflow-y:auto; height: 310px;">
+                @php
+                    $hasUncompleted = collect($seminarCompletedFlags ?? [])->contains(false);
+                @endphp
+
+                @if (!$hasUncompleted)
+                    <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
+                        <i class="fa-solid fa-circle-check" style="font-size:24px; display:block; margin-bottom:8px; color:var(--teal);"></i>
+                        You have completed all seminars!
+                    </div>
+                @else
+                    <form action="{{ route('Seminars.verifyPasscode') }}" method="POST" id="seminarPasscodeForm">
+                        @csrf
+                        <div style="margin-bottom:14px;">
+                            <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Seminar Type</label>
+                            <select name="seminar_type" id="seminarTypeSelect" required
+                                style="width:100%; padding:10px 12px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:13.5px; color:#111827; background:#fff; outline:none;">
+                                <option value="" disabled selected>Select a seminar</option>
+                                @foreach ($seminarTypeLabels as $key => $label)
+                                    @unless ($seminarCompletedFlags[$key] ?? false)
+                                        <option value="{{ $key }}">{{ $label }}</option>
+                                    @endunless
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:14px;">
+                            <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Passcode</label>
+                            <input type="text" name="passcode" id="seminarPasscodeInput" required maxlength="64"
+                                placeholder="Enter the seminar passcode"
+                                style="width:100%; padding:10px 12px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:13.5px; color:#111827; outline:none;">
+                        </div>
+
+                        @if ($errors->any())
+                            <div style="background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:8px 12px; font-size:12px; color:#b91c1c; margin-bottom:12px;">
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+
+                        <button type="submit"
+                            style="width:100%; padding:11px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; transition:opacity 0.2s;">
+                            <i class="fa-solid fa-key" style="margin-right:6px;"></i> Verify Passcode
+                        </button>
+                    </form>
+                @endif
+            </div>
         </div>
     </div>
 
     <script>
+        function switchSeminarTab(tab) {
+            const attended = document.getElementById('seminarAttendedPanel');
+            const passcode = document.getElementById('seminarPasscodePanel');
+            const btnAttended = document.getElementById('seminarTabAttended');
+            const btnPasscode = document.getElementById('seminarTabPasscode');
+
+            if (tab === 'attended') {
+                attended.style.display = 'block';
+                passcode.style.display = 'none';
+                btnAttended.style.color = 'var(--teal)';
+                btnAttended.style.borderBottom = '2px solid var(--teal)';
+                btnPasscode.style.color = '#9ca3af';
+                btnPasscode.style.borderBottom = '2px solid transparent';
+            } else {
+                attended.style.display = 'none';
+                passcode.style.display = 'block';
+                btnAttended.style.color = '#9ca3af';
+                btnAttended.style.borderBottom = '2px solid transparent';
+                btnPasscode.style.color = 'var(--teal)';
+                btnPasscode.style.borderBottom = '2px solid var(--teal)';
+            }
+        }
+
         function filterRecentTx(category, btn) {
             document.querySelectorAll('.tx-tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -1053,42 +1216,6 @@
     </script>
 
     <script>
-        (function () {
-            const monthSelect = document.getElementById('announcementMonthSelect');
-            const yearSelect = document.getElementById('announcementYearSelect');
-            const list = document.getElementById('announcementsList');
-            if (!monthSelect || !list) return;
-
-            const items = Array.from(list.querySelectorAll('.tx-list-item'));
-            const emptyState = document.getElementById('announcementsEmpty');
-
-            function applyAnnouncementFilter() {
-                const month = monthSelect.value;
-                const year = yearSelect.value;
-
-                let visibleCount = 0;
-
-                items.forEach(item => {
-                    let match;
-                    if (month === 'all') {
-                        // "All" months, but still scoped to the selected year
-                        match = item.dataset.year === '' || item.dataset.year === year;
-                    } else {
-                        match = item.dataset.month === month && item.dataset.year === year;
-                    }
-                    item.style.display = match ? 'flex' : 'none';
-                    if (match) visibleCount++;
-                });
-
-                emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
-            }
-
-            monthSelect.addEventListener('change', applyAnnouncementFilter);
-            yearSelect.addEventListener('change', applyAnnouncementFilter);
-
-            applyAnnouncementFilter();
-        })();
-    </script>
 
     {{-- Toast --}}
     @if (session("message"))
@@ -1214,6 +1341,118 @@
             document.querySelectorAll('.loan-box').forEach(box => {
                 box.style.display = (status === 'all' || box.dataset.status === status) ? 'block' : 'none';
             });
+        }
+
+        // Member community tabs
+        function switchMemberCommunityTab(tab) {
+            document.querySelectorAll('[id^="member-community-tab-"]').forEach(btn => {
+                btn.style.borderBottomColor = 'transparent';
+                btn.style.color = 'var(--muted)';
+            });
+            document.querySelectorAll('[id^="member-community-content-"]').forEach(el => el.style.display = 'none');
+            document.getElementById('member-community-tab-' + tab).style.borderBottomColor = 'var(--teal)';
+            document.getElementById('member-community-tab-' + tab).style.color = 'var(--teal)';
+            document.getElementById('member-community-content-' + tab).style.display = 'block';
+        }
+
+        // Member announcements expand/collapse
+        function toggleMemberAnnouncement(id) {
+            const el = document.getElementById('announcement-expanded-' + id);
+            const chevron = document.getElementById('announcement-chevron-' + id);
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+            } else {
+                el.style.display = 'none';
+                if (chevron) chevron.style.transform = 'rotate(0)';
+            }
+        }
+
+        function toggleMemberComments(id) {
+            const el = document.getElementById('member-comments-' + id);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleMemberLike(announcementId, btn) {
+            fetch('/announcements/' + announcementId + '/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const countSpan = btn.querySelector('.like-count');
+                    countSpan.textContent = data.count;
+                    if (data.liked) {
+                        btn.style.background = '#FEE2E2';
+                        btn.style.color = '#DC2626';
+                        btn.classList.add('liked');
+                    } else {
+                        btn.style.background = 'var(--card)';
+                        btn.style.color = '#6B7280';
+                        btn.classList.remove('liked');
+                    }
+                }
+            })
+            .catch(() => {});
+        }
+
+        function postMemberComment(event, announcementId) {
+            event.preventDefault();
+            const form = event.target;
+            const input = form.querySelector('input[type="text"]');
+            const comment = input.value.trim();
+            if (!comment) return;
+
+            fetch('/announcements/' + announcementId + '/comment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ comment: comment }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const c = data.comment;
+                    const isAdmin = ['admin', 'general-manager'].includes(c.user.role);
+                    const container = form.previousElementSibling;
+                    const div = document.createElement('div');
+                    div.style.cssText = 'display:flex; gap:8px; padding:8px; background:var(--bg); border-radius:8px;';
+                    div.innerHTML = '<div style="width:24px; height:24px; border-radius:50%; background:' + (isAdmin ? '#3B82F6' : 'var(--teal)') + '; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="color:#fff; font-size:10px; font-weight:700;">' + (c.user.first_name?.[0] || '') + (c.user.last_name?.[0] || '') + '</span></div><div style="flex:1; min-width:0;"><div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;"><span style="font-size:12px; font-weight:600;">' + c.user.first_name + ' ' + c.user.last_name + '</span>' + (isAdmin ? '<span style="font-size:10px; padding:1px 4px; background:#DBEAFE; color:#1D4ED8; border-radius:4px; font-weight:600;">Admin</span>' : '') + '<span style="font-size:11px; color:var(--muted);">' + c.created_at + '</span></div><p style="font-size:12px; color:#555; margin:0;">' + c.comment + '</p></div>';
+                    container.appendChild(div);
+                    input.value = '';
+                }
+            })
+            .catch(() => {});
+        }
+
+        const memberPollOptions = @json($pollOptionsMap);
+
+        function voteMemberPoll(pollId, optionIndex) {
+            fetch('/polls/' + pollId + '/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ option_index: optionIndex }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const container = document.getElementById('member-poll-options-' + pollId);
+                    const options = memberPollOptions[pollId] || [];
+                    container.innerHTML = '';
+                    data.results.forEach((count, i) => {
+                        const pct = data.total_votes > 0 ? Math.round((count / data.total_votes) * 100) : 0;
+                        const isChosen = data.voted_index === i;
+                        const div = document.createElement('div');
+                        div.style.cssText = 'position:relative; height:28px; border-radius:8px; overflow:hidden; background:var(--line);';
+                        div.innerHTML = '<div style="height:100%; width:' + pct + '%; background:' + (isChosen ? 'var(--teal)' : '#D1D5DB') + '; border-radius:8px; transition:width .5s;"></div><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px;"><span style="font-size:12px; font-weight:600; color:' + (isChosen ? '#fff' : '#555') + ';">' + (options[i] || 'Option ' + (i+1)) + '</span><span style="font-size:11px; font-weight:600; color:' + (isChosen ? '#fff' : '#888') + ';">' + pct + '% <span style="font-weight:400;">(' + count + ')</span></span></div>';
+                        container.appendChild(div);
+                    });
+                    const pollEl = document.getElementById('member-poll-' + pollId);
+                    const voteCountEl = pollEl.querySelector('div[style*="font-size:11px"]');
+                    if (voteCountEl) voteCountEl.innerHTML = data.total_votes + ' ' + (data.total_votes === 1 ? 'vote' : 'votes') + ' · You voted';
+                }
+            })
+            .catch(() => {});
         }
     </script>
 

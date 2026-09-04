@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Seminars_tbl;
+use App\Models\AuditLog;
 use App\Models\SeminarAttendees_tbl;
 use App\Models\SeminarCompletions_tbl;
 use App\Models\SeminarPasscodes_tbl;
+use App\Models\Seminars_tbl;
 use App\Models\SeminarTypes_tbl;
 use App\Models\Users_tbl;
-use App\Models\AuditLog;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -36,7 +37,7 @@ class SeminarController extends Controller
         $statusFilter = $request->input('status', 'all');
 
         $query = Users_tbl::leftJoin('seminar_completions_tbls', 'seminar_completions_tbls.user_id', '=', 'users_tbls.id')
-            ->where('users_tbls.role', '!=', 'admin')
+            ->whereNotIn('users_tbls.role', ['admin', 'general-manager'])
             ->select(
                 'users_tbls.*',
                 'seminar_completions_tbls.pmes_completed',
@@ -70,9 +71,36 @@ class SeminarController extends Controller
             ->where('seminar_attendees_tbls.status', 'attended')
             ->get(['seminar_attendees_tbls.user_id', 'seminars_tbls.seminar_type'])
             ->groupBy('user_id')
-            ->map(fn($rows) => $rows->pluck('seminar_type')->unique()->values()->all());
+            ->map(fn ($rows) => $rows->pluck('seminar_type')->unique()->values()->all());
 
-        $users->getCollection()->transform(function ($user) use ($attendedMap) {
+        // Upcoming pending seminar each member is scheduled for.
+        // Core types require a valid (unexpired) passcode; otherwise the schedule is treated as void.
+        $coreTypes = ['pmes', 'fundamentals', 'finance'];
+        $validPasscodeTypes = collect($passcodes)
+            ->filter(fn ($pc) => $pc && (is_null($pc->expires_at) || $pc->expires_at->gte(now())))
+            ->keys()
+            ->all();
+        $typeLabels = SeminarTypes_tbl::pluck('label', 'slug')->toArray();
+
+        $scheduledMap = [];
+        $scheduledPasscodeMap = [];
+        $scheduledRows = DB::table('seminar_attendees_tbls')
+            ->join('seminars_tbls', 'seminars_tbls.id', '=', 'seminar_attendees_tbls.seminar_id')
+            ->where('seminar_attendees_tbls.status', 'pending')
+            ->where('seminars_tbls.schedule_datetime', '>=', now())
+            ->get(['seminar_attendees_tbls.user_id', 'seminars_tbls.seminar_type']);
+        foreach ($scheduledRows as $row) {
+            $type = $row->seminar_type;
+            if (in_array($type, $coreTypes) && ! in_array($type, $validPasscodeTypes)) {
+                continue;
+            }
+            if (! isset($scheduledMap[$row->user_id])) {
+                $scheduledMap[$row->user_id] = $typeLabels[$type] ?? ucwords(str_replace('_', ' ', $type));
+                $scheduledPasscodeMap[$row->user_id] = $passcodes[$type]->passcode ?? null;
+            }
+        }
+
+        $users->getCollection()->transform(function ($user) use ($attendedMap, $scheduledMap, $scheduledPasscodeMap) {
             $user->completion = (object) [
                 'pmes_completed' => (bool) $user->pmes_completed,
                 'fundamentals_completed' => (bool) $user->fundamentals_completed,
@@ -80,6 +108,9 @@ class SeminarController extends Controller
                 'completed_at' => $user->completion_completed_at,
             ];
             $user->attended_types = $attendedMap[$user->id] ?? [];
+            $user->scheduled_seminar = $scheduledMap[$user->id] ?? null;
+            $user->scheduled_passcode = $scheduledPasscodeMap[$user->id] ?? null;
+
             return $user;
         });
 
@@ -89,9 +120,30 @@ class SeminarController extends Controller
             'users',
             'seminarTypes',
             'passcodes',
+            'validPasscodeTypes',
             'search',
             'statusFilter'
         ));
+    }
+
+    public function memberSearch(Request $request): JsonResponse
+    {
+        $q = $request->input('q', '');
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $members = Users_tbl::whereNotIn('role', ['admin', 'general-manager'])
+            ->where(function ($query) use ($q) {
+                $query->where('first_name', 'like', "%{$q}%")
+                    ->orWhere('last_name', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            })
+            ->limit(20)
+            ->get(['id', 'first_name', 'last_name', 'email', 'role']);
+
+        return response()->json($members);
     }
 
     public function storeSeminarType(Request $request)
@@ -116,34 +168,6 @@ class SeminarController extends Controller
         return redirect()->route('seminars.index')->with('success', "Seminar type '{$validated['label']}' created.");
     }
 
-    public function savePasscode(Request $request)
-    {
-        $validated = $request->validate([
-            'seminar_type' => 'required|in:pmes,fundamentals,finance',
-            'passcode' => 'required|string|max:64',
-            'valid_days' => 'nullable|integer|min:1|max:365',
-        ]);
-
-        $validDays = $validated['valid_days'] ?? 1;
-
-        SeminarPasscodes_tbl::updateOrCreate(
-            ['seminar_type' => $validated['seminar_type']],
-            [
-                'passcode' => $validated['passcode'],
-                'expires_at' => now()->addDays($validDays),
-            ]
-        );
-
-        AuditLog::log(
-            'Set Seminar Passcode',
-            "Set passcode for {$validated['seminar_type']} valid for {$validDays} day(s)",
-            'seminar_passcode',
-            null
-        );
-
-        return redirect()->route('seminars.index')->with('success', 'Passcode set successfully.');
-    }
-
     public function scheduleSeminar(Request $request)
     {
         $validated = $request->validate([
@@ -155,6 +179,8 @@ class SeminarController extends Controller
             'exact_venue' => 'nullable|string|max:255|required_if:delivery_type,f2f',
             'attendees' => 'required|array|min:1',
             'attendees.*' => 'exists:users_tbls,id',
+            'passcode' => 'required|string|max:64',
+            'valid_days' => 'nullable|integer|min:1|max:365',
         ]);
 
         DB::beginTransaction();
@@ -180,20 +206,33 @@ class SeminarController extends Controller
             }
             SeminarAttendees_tbl::insert($attendees);
 
+            $passcodeSet = false;
+            if (! empty($validated['passcode'])) {
+                SeminarPasscodes_tbl::updateOrCreate(
+                    ['seminar_type' => $validated['seminar_type']],
+                    [
+                        'passcode' => $validated['passcode'],
+                        'expires_at' => now()->addDays((int) ($validated['valid_days'] ?? 1)),
+                    ]
+                );
+                $passcodeSet = true;
+            }
+
             DB::commit();
 
             AuditLog::log(
                 'Scheduled Seminar',
-                "Scheduled {$validated['seminar_type']} seminar on {$validated['schedule_datetime']} " .
-                "with " . count($attendees) . " attendee(s)",
+                "Scheduled {$validated['seminar_type']} seminar on {$validated['schedule_datetime']} ".
+                'with '.count($attendees).' attendee(s)'.($passcodeSet ? ' and a passcode' : ''),
                 'seminar',
                 $seminar->id
             );
 
-            return redirect()->route('seminars.index')->with('success', 'Seminar scheduled successfully with ' . count($attendees) . ' attendee(s).');
+            return redirect()->route('seminars.index')->with('success', 'Seminar scheduled successfully with '.count($attendees).' attendee(s).');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to schedule seminar: ' . $e->getMessage())->withInput();
+
+            return redirect()->back()->with('error', 'Failed to schedule seminar: '.$e->getMessage())->withInput();
         }
     }
 
@@ -230,7 +269,7 @@ class SeminarController extends Controller
                 ]
             );
 
-            $completion->{$seminar->seminar_type . '_completed'} = true;
+            $completion->{$seminar->seminar_type.'_completed'} = true;
             $completion->save();
 
             self::autoUpgradeIfComplete($validated['user_id'], $completion);
@@ -238,7 +277,7 @@ class SeminarController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attendance marked as ' . $validated['status'] . '.',
+            'message' => 'Attendance marked as '.$validated['status'].'.',
         ]);
     }
 
@@ -247,7 +286,7 @@ class SeminarController extends Controller
         if ($completion->pmes_completed && $completion->fundamentals_completed && $completion->finance_completed) {
             $user = Users_tbl::find($userId);
 
-            if (!$completion->completed_at) {
+            if (! $completion->completed_at) {
                 $completion->completed_at = now();
                 $completion->save();
             }

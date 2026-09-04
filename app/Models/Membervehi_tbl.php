@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Membervehi_tbl extends Model
 {
-    protected $table = "membervehi_tbls";
+    protected $table = 'membervehi_tbls';
 
     protected $fillable = [
-        "user_id",
-        "plate_no",
-        "vehicle_type",
-        "quantity"
+        'user_id',
+        'plate_no',
+        'vehicle_type',
+        'quantity',
     ];
 }

@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\lending_program_tbl;
-use App\Models\lending_status_tbl;
-use App\Models\lending_repayments_tbl;
 use App\Models\AuditLog;
+use App\Models\lending_program_tbl;
+use App\Models\lending_repayments_tbl;
+use App\Models\lending_status_tbl;
+use App\Models\Loan_settings_tbl;
+use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\savings_account_tbl;
-use App\Models\savings_transaction_tbl;
-use Auth;
 
 class lendingController extends Controller
 {
-
     const PAYMENT_INTERVAL_DAYS = 5;
+
     // ─── Shared helper ────────────────────────────────────────────────────────────
     private function getLoanPageData(): array
     {
@@ -32,16 +31,29 @@ class lendingController extends Controller
 
         $currentSavings = (float) ($savingsAccount->balance ?? 0);
 
-        $savingsToLoanRatio = 0.6;   // 3,000 : 5,000
-        $minSavingsToApply = 3000;  // floor needed just to unlock the form
+        $loanEligSettings = \App\Models\LoanEligibilitySetting::getOrCreate();
 
-        $canApplyLoan = $currentSavings >= $minSavingsToApply;
+        // Savings holdback (flat pesos): max loan = savings − holdback
+        $savingsHoldback = $loanEligSettings->savings_to_loan_enabled
+            ? (float) $loanEligSettings->savings_to_loan_ratio
+            : 0;
+
+        // Share capital requirement: minimum paid-up shares, from the ledger
+        $scAccount = DB::table('share_capital_account_tbls')
+            ->where('user_id', $memberId)
+            ->first();
+
+        $currentShares = $scAccount
+            ? (float) ShareCapital::paidUpForAccount((int) $scAccount->id)['shares']
+            : 0;
+
+        $minimumShares = (float) ($loanEligSettings->minimum_shares ?? 10);
+
+        $canApplyLoan = $currentShares >= $minimumShares;
         $maxLoan = 25000;
 
         // Savings caps total borrowing capacity, regardless of the ₱25,000 program ceiling
-        $maxLoanBySavings = $savingsToLoanRatio > 0
-            ? floor(($currentSavings / $savingsToLoanRatio) / 100) * 100
-            : 0;
+        $maxLoanBySavings = max(0, $currentSavings - $savingsHoldback);
 
         // Get all active loans (Pending, Approved, Completed) and calculate remaining balance
         // Using lending_status_tbl to get actual remaining balance instead of original loan amount
@@ -65,18 +77,15 @@ class lendingController extends Controller
         $weekEnd = now()->timezone('Asia/Manila')->addDays(7)->toDateString();
 
         $dueTodayCount = $approvedLoans->filter(
-            fn($l) =>
-            $l->due_date && $l->due_date === $today && ($l->remaining_balance ?? 0) > 0
+            fn ($l) => $l->due_date && $l->due_date === $today && ($l->remaining_balance ?? 0) > 0
         )->count();
 
         $dueThisWeekCount = $approvedLoans->filter(
-            fn($l) =>
-            $l->due_date && $l->due_date > $today && $l->due_date <= $weekEnd && ($l->remaining_balance ?? 0) > 0
+            fn ($l) => $l->due_date && $l->due_date > $today && $l->due_date <= $weekEnd && ($l->remaining_balance ?? 0) > 0
         )->count();
 
         $overdueCount = $approvedLoans->filter(
-            fn($l) =>
-            $l->due_date && $l->due_date < $today && ($l->remaining_balance ?? 0) > 0
+            fn ($l) => $l->due_date && $l->due_date < $today && ($l->remaining_balance ?? 0) > 0
         )->count();
 
         // All loans (any status) for the table
@@ -192,30 +201,31 @@ class lendingController extends Controller
 
         // Due today loans (full records)
         $dueTodayLoans = $approvedLoans->filter(
-            fn($l) =>
-            $l->due_date && $l->due_date === $today && ($l->remaining_balance ?? 0) > 0
+            fn ($l) => $l->due_date && $l->due_date === $today && ($l->remaining_balance ?? 0) > 0
         )->values();
 
         // Due this week loans (full records)
         $dueThisWeekLoans = $approvedLoans->filter(
-            fn($l) =>
-            $l->due_date && $l->due_date > $today && $l->due_date <= $weekEnd && ($l->remaining_balance ?? 0) > 0
+            fn ($l) => $l->due_date && $l->due_date > $today && $l->due_date <= $weekEnd && ($l->remaining_balance ?? 0) > 0
         )->values();
 
         // Overdue loans (full records)
         $overdueLoans = $approvedLoans->filter(
-            fn($l) =>
-            $l->due_date && $l->due_date < $today && ($l->remaining_balance ?? 0) > 0
+            fn ($l) => $l->due_date && $l->due_date < $today && ($l->remaining_balance ?? 0) > 0
         )->values();
 
         return compact(
             'currentSavings',
+            'currentShares',
+            'minimumShares',
             'maxLoanBySavings',
-            'minSavingsToApply',
+            'savingsHoldback',
             'canApplyLoan',
+            'loanEligSettings',
             'totalActiveLoan',
             'remainingLoanable',
             'hasFullyLoaned',
+            'effectiveCeiling',
             'totalPaidOnActiveLoans',
             'savedMonthlyIncome',
             // ── new ──
@@ -272,36 +282,39 @@ class lendingController extends Controller
         $memberId = auth()->id();
         $maxLoan = 25000;
 
-        // Share capital check
-        $account = DB::table('share_capital_account_tbls')
+        // Share capital requirement: minimum paid-up shares, from the ledger
+        $scAccount = DB::table('share_capital_account_tbls')
             ->where('user_id', $memberId)->first();
 
-        $deposits = DB::table('share_capital_transaction_tbls')
-            ->where('share_capital_account_id', $account->id ?? 0)
-            ->whereIn('type', ['Deposit', 'Subscription', ShareCapital::CONVERSION_TYPE])
-            ->whereIn('status', ['Completed', 'completed'])
-            ->sum('shares') ?? 0;
-
-        $withdrawals = DB::table('share_capital_transaction_tbls')
-            ->where('share_capital_account_id', $account->id ?? 0)
-            ->where('type', 'Withdrawal')
-            ->whereIn('status', ['Approved', 'approved'])
-            ->sum('shares') ?? 0;
-
-        $currentShares = $deposits - $withdrawals;
+        $currentShares = $scAccount
+            ? (float) ShareCapital::paidUpForAccount((int) $scAccount->id)['shares']
+            : 0;
 
         $savingsAccount = DB::table('savings_account_tbls')->where('user_id', $memberId)->first();
         $currentSavings = (float) ($savingsAccount->balance ?? 0);
 
-        $savingsToLoanRatio = 0.6;
-        $minSavingsToApply = 3000;
+        $loanEligSettings = \App\Models\LoanEligibilitySetting::getOrCreate();
+        $savingsToLoanEnabled = $loanEligSettings->savings_to_loan_enabled;
 
-        if ($currentSavings < $minSavingsToApply) {
+        $minimumShares = (float) ($loanEligSettings->minimum_shares ?? 10);
+        if ($currentShares < $minimumShares) {
             return redirect()->back()->with(
                 'loan_blocked',
-                'You must have at least ₱' . number_format($minSavingsToApply, 2) . ' in Savings before applying for a loan. ' .
-                'You currently have ₱' . number_format($currentSavings, 2) . '.'
+                'You need at least '.number_format($minimumShares, 0).' shares of share capital to apply for a loan. You currently have '.number_format($currentShares, 2).' shares.'
             );
+        }
+
+        if ($savingsToLoanEnabled) {
+            $holdback = (float) $loanEligSettings->savings_to_loan_ratio;
+            $requiredSavings = (float) $request->lending_amount + $holdback;
+            if ($currentSavings < $requiredSavings) {
+                return redirect()->back()->with(
+                    'loan_blocked',
+                    'Borrowing ₱'.number_format($request->lending_amount, 2).
+                    ' requires ₱'.number_format($requiredSavings, 2).' in savings (₱'.number_format($holdback, 2).
+                    ' holdback must remain in savings). You currently have ₱'.number_format($currentSavings, 2).'.'
+                );
+            }
         }
 
         // Use remaining balance from lending_status_tbl instead of original loan amount
@@ -344,20 +357,26 @@ class lendingController extends Controller
             }
         }
 
-        $remainingLoanable = max(0, $maxLoan - $totalActiveLoan);
+        $maxLoanBySavings = $savingsToLoanEnabled
+            ? max(0, $currentSavings - (float) $loanEligSettings->savings_to_loan_ratio)
+            : 0;
+        $effectiveCeiling = min($maxLoan, $maxLoanBySavings);
+        $effectiveCeilingCents = (int) round($effectiveCeiling * 100);
+
+        $remainingLoanable = max(0, $effectiveCeiling - $totalActiveLoan);
         $remainingLoanableCents = (int) round($remainingLoanable * 100);
 
-        if ($remainingLoanableCents >= 2499900 || $totalActiveLoan < 0.02) {
-            $remainingLoanable = 25000.00;
+        if ($remainingLoanableCents >= $effectiveCeilingCents - 100 || $totalActiveLoan < 0.02) {
+            $remainingLoanable = $effectiveCeiling;
         } else {
             $remainingLoanable = $remainingLoanableCents / 100;
         }
 
-        if ($totalActiveLoan >= $maxLoan) {
+        if ($totalActiveLoan >= $effectiveCeiling) {
             return redirect()->back()
                 ->with(
                     'loan_blocked',
-                    'You have reached the maximum loan limit of ₱25,000. ' .
+                    'You have reached the maximum loan limit of ₱'.number_format($effectiveCeiling, 2).'. '.
                     'Please repay your existing loan before applying again.'
                 );
         }
@@ -366,8 +385,8 @@ class lendingController extends Controller
             return redirect()->back()
                 ->with(
                     'loan_blocked',
-                    'You can only borrow up to ₱' . number_format($remainingLoanable, 2) .
-                    ' more based on your current active loans.'
+                    'You can only borrow up to ₱'.number_format($remainingLoanable, 2).
+                    ' more based on your current active loans and savings.'
                 )
                 ->withInput();
         }
@@ -389,12 +408,12 @@ class lendingController extends Controller
             default => ['6 months'],   // Personal, Emergency, Education
         };
 
-        if (!in_array($request->lending_type_term, $allowedTerms)) {
+        if (! in_array($request->lending_type_term, $allowedTerms)) {
             return redirect()->back()
                 ->with(
                     'loan_blocked',
-                    'Invalid loan term selected for ' . $lendingType . '. ' .
-                    'Allowed: ' . implode(', ', $allowedTerms) . '.'
+                    'Invalid loan term selected for '.$lendingType.'. '.
+                    'Allowed: '.implode(', ', $allowedTerms).'.'
                 )
                 ->withInput();
         }
@@ -405,7 +424,7 @@ class lendingController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$settings) {
+        if (! $settings) {
             return redirect()->back()
                 ->with('loan_blocked', 'Loan settings are not configured for this loan type. Please contact the admin.')
                 ->withInput();
@@ -419,6 +438,7 @@ class lendingController extends Controller
                 'monthly_income' => 'nullable|numeric',
                 'purpose_loan' => 'nullable|string',
                 'purpose_loan_others' => 'nullable|string|required_if:purpose_loan,Others',
+                'net_proceeds_adjustment_type' => 'nullable|string|in:add,deduct',
                 'personal_valid_id' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
                 'personal_proof_of_income' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
                 'emergency_valid_id' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
@@ -437,6 +457,7 @@ class lendingController extends Controller
                 if ($request->hasFile($field)) {
                     return $request->file($field)->store("documents/{$folder}", 'public');
                 }
+
                 return null;
             };
 
@@ -455,7 +476,7 @@ class lendingController extends Controller
                 default => null,
             };
 
-            $referenceNo = 'LN-' . date('YmdHis') . rand(10, 99);
+            $referenceNo = 'LN-'.date('YmdHis').rand(10, 99);
 
             // ── Compute fees from loan_settings_tbls (Section III. Loan Charges) ──
             $principal = (float) $request->lending_amount;
@@ -477,23 +498,31 @@ class lendingController extends Controller
             $retentionAmount = round($principal * ($retentionRateApplied / 100), 2);
 
             // Net proceeds = amount actually released to borrower
-            $netProceeds = round($principal - $processingFee - $serviceFee - $loanProtectionFee - $retentionAmount, 2);
+            $baseNetProceeds = round($principal - $processingFee - $serviceFee - $loanProtectionFee - $retentionAmount, 2);
 
-            // d. Interest rate = 2%/mo diminishing balance
-            $monthlyRate = $settings->interest_rate / 100;
-            $principalPerMonth = $termMonths > 0 ? $principal / $termMonths : 0;
-            $totalInterest = 0;
+            // Net Proceeds Adjustment dropdown (no manual amount):
+            //  - add    → charges added back, member receives the full loan amount
+            //  - deduct / none → charges stay out (base net proceeds)
+            $adjustmentType = $request->net_proceeds_adjustment_type === 'add' ? 'add' : null;
+            $netProceeds = $adjustmentType === 'add' ? round($principal, 2) : $baseNetProceeds;
 
-            for ($i = 0; $i < $termMonths; $i++) {
-                $remainingBalance = $principal - ($principalPerMonth * $i);
-                $totalInterest += $remainingBalance * $monthlyRate;
-            }
-            $totalInterest = round($totalInterest, 2);
+            // d. Interest rate = %/mo diminishing balance (equal principal) —
+            //    single source of truth: LoanCalculationService
+            // In "add fees back" mode the fees become an ADDITIONAL repayment
+            // liability folded into each installment. They never touch the
+            // interest-bearing balance, so interest is still computed on the
+            // principal only. In deduct mode the fees are withheld from the
+            // release, so no fee is added to the schedule (feeAmount = 0).
+            $totalFees = round($processingFee + $serviceFee + $loanProtectionFee + $retentionAmount, 2);
+            $feeToSchedule = $adjustmentType === 'add' ? $totalFees : 0;
+            $loanCalc = new \App\Services\LoanCalculationService;
+            $schedule = $loanCalc->buildSchedule($principal, (float) $settings->interest_rate, $termMonths, null, $feeToSchedule);
 
-            $totalPayment = round($principal + $totalInterest, 2);
-            $monthlyPayment = $termMonths > 0 ? round($totalPayment / $termMonths, 2) : 0;
+            $totalInterest = $schedule['total_interest'];
+            $totalPayment = $schedule['total_payment'];
+            $monthlyPayment = $loanCalc->averageMonthlyPayment($schedule);
 
-            lending_program_tbl::create([
+            $loan = lending_program_tbl::create([
                 'user_id' => $memberId,
                 'reference_no' => $referenceNo,
                 'lending_type' => $lendingType,
@@ -508,6 +537,7 @@ class lendingController extends Controller
                 'retention_paid_rate' => $retentionRateApplied == $settings->retention_paid_rate ? $retentionAmount : 0,
                 'retention_unpaid_rate' => $retentionRateApplied == $settings->retention_unpaid_rate ? $retentionAmount : 0,
                 'net_proceeds' => $netProceeds,
+                'net_proceeds_adjustment_type' => $adjustmentType,
 
                 'monthly_income' => $request->monthly_income,
                 'monthly_payment' => $monthlyPayment,
@@ -527,18 +557,22 @@ class lendingController extends Controller
                 'cor' => $storeFile('cor', 'cor'),
             ]);
 
+            // Persist the installment schedule so repayments can be allocated
+            // per-installment (diminishing balance) instead of a flat ratio.
+            $loanCalc->persistSchedule($loan->id, $schedule);
+
             AuditLog::log(
                 'Member Loan Application',
                 "Applied for {$lendingType} loan of ₱{$request->lending_amount} (Ref: {$referenceNo})",
                 'loan',
-                lending_program_tbl::where('reference_no', $referenceNo)->first()?->id
+                $loan->id
             );
 
             return redirect()->route('LoanApplication')
                 ->with('ApplySuccess', true)
                 ->with('ReferenceNo', $referenceNo)
                 ->with('DateFiled', now()->timezone('Asia/Manila')->format('M d, Y · h:i A'))
-                ->with('MemberName', trim(Auth::user()->first_name . ' ' . Auth::user()->last_name) ?: Auth::user()->username);
+                ->with('MemberName', trim(Auth::user()->first_name.' '.Auth::user()->last_name) ?: Auth::user()->username);
 
         } catch (\Exception $e) {
             dd($e->getMessage(), $e->getLine(), $e->getFile());
@@ -551,7 +585,7 @@ class lendingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Applied penalties to ' . count($results) . ' overdue loan(s).',
+            'message' => 'Applied penalties to '.count($results).' overdue loan(s).',
             'penalties' => $results,
         ]);
     }
@@ -561,13 +595,33 @@ class lendingController extends Controller
     // ─── Repayment ────────────────────────────────────────────────────────────────
     public function storeRepayment(Request $request)
     {
-        $request->validate([
+        $rules = [
             'lending_id' => 'required|exists:lending_program_tbls,id',
             'amount_paid' => 'required|numeric|min:1',
-            'payment_method' => 'required|string',
+            'payment_method' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Models\PaymentMethod::where('is_active', true)->pluck('method_name')->toArray())],
             'payment_type' => 'nullable|in:monthly,full',
-            'gcash_proof' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
-        ]);
+            'gcash_reference_no' => 'nullable|string',
+        ];
+
+        if (strtolower($request->payment_method) === 'gcash') {
+            $rules['gcash_proof'] = 'required|image|mimes:jpg,jpeg,png|max:5120';
+        }
+
+        $request->validate($rules);
+
+        if (strtolower($request->payment_method) === 'gcash') {
+            if (! $request->gcash_reference_no) {
+                return redirect()->back()->with('error', 'GCash reference number is required for GCash payments.');
+            }
+            if (strlen($request->gcash_reference_no) !== 13) {
+                return redirect()->back()->with('error', 'GCash reference number must be exactly 13 characters.');
+            }
+            if (DB::table('lending_repayments_tbls')->where('gcash_reference_no', $request->gcash_reference_no)->where('status', '!=', 'voided')->exists()
+                || DB::table('share_capital_transaction_tbls')->where('gcash_reference_no', $request->gcash_reference_no)->where('status', '!=', 'voided')->exists()
+                || DB::table('savings_transaction_tbls')->where('gcash_reference_no', $request->gcash_reference_no)->where('status', '!=', 'voided')->exists()) {
+                return redirect()->back()->with('error', 'This reference number has already been used for a transaction.');
+            }
+        }
 
         $proofPath = $request->hasFile('gcash_proof')
             ? $request->file('gcash_proof')->store('documents/gcash_proofs', 'public')
@@ -576,119 +630,156 @@ class lendingController extends Controller
         $loan = lending_program_tbl::findOrFail($request->lending_id);
         $status = lending_status_tbl::where('lending_id', $request->lending_id)->first();
         $paymentType = $request->get('payment_type', 'monthly');
+        $isGcash = strtolower($request->payment_method) === 'gcash';
 
-        // Compute the per-installment amount directly — $loan has no
-        // monthly_payment column/accessor of its own.
         $totalPayment = (float) ($loan->total_payment ?? $loan->lending_amount);
         $totalPayments = (int) ($status->total_payments ?? 0);
         $monthlyPayment = $totalPayments > 0 ? round($totalPayment / $totalPayments, 2) : (float) $request->amount_paid;
 
-        // Tracks the note + raw amount for whatever penalty gets applied on
-        // this visit, so both are saved onto the repayment record itself —
-        // instead of only existing as an aggregate on lending_status_tbls.
+        $loanCalc = new \App\Services\LoanCalculationService;
+        $currentInstallment = $loanCalc->currentInstallment($loan->id, true);
+
         $penaltyNote = null;
         $penaltyAmountForRecord = 0;
+        $nextDueDate = null;
 
-        // ── 2% Overdue Penalty ──────────────────────────────────────────────────
-        // Applied directly to the loan (not savings) once per missed due date.
-        // Guarded by last_penalty_date so repeat visits/payments on the same
-        // overdue installment don't stack the penalty multiple times.
         if ($status) {
-            // IMPORTANT: anchor off the authoritative due_date stored on
-            // lending_status_tbls — the SAME source of truth loanStatus() uses
-            // to build the schedule/hero display. Previously this recomputed
-            // the due date independently from $loan->created_at + a fixed
-            // interval, which can drift from the real due_date (e.g. after a
-            // prior penalty/advance) and silently disagree with what the UI
-            // already showed as overdue — causing the penalty to never
-            // actually get saved even when the page said it should apply.
             $nextDueDate = $status->due_date
                 ? \Carbon\Carbon::parse($status->due_date)
                 : \Carbon\Carbon::parse($loan->created_at)
                     ->addDays(((int) $status->payments_made + 1) * self::PAYMENT_INTERVAL_DAYS);
 
             $isOverdue = $nextDueDate->lt(now()->timezone('Asia/Manila'));
-
             $alreadyPenalized = $status->last_penalty_date
                 && \Carbon\Carbon::parse($status->last_penalty_date)->gte($nextDueDate);
 
-            if ($isOverdue && !$alreadyPenalized) {
-                $penaltyAmount = round($monthlyPayment * 0.02, 2);
+            $lateFeeRate = Loan_settings_tbl::getLateFeeRate($loan->lending_type);
 
-                $status->penalty_amount = (float) ($status->penalty_amount ?? 0) + $penaltyAmount;
-                $status->remaining_balance = (float) $status->remaining_balance + $penaltyAmount;
+            if ($isOverdue && ! $alreadyPenalized) {
+                // Use the overdue installment's amount for the penalty base,
+                // NOT the currentInstallment (which may have skipped ahead
+                // past pending payments). This matches how the member view
+                // computes PENALTY_PREVIEW.
+                $overdueScheduleRow = DB::table('lending_installment_schedules_tbls')
+                    ->where('lending_id', $loan->id)
+                    ->where('due_date', $nextDueDate->format('Y-m-d'))
+                    ->first();
+                $penaltyBase = $overdueScheduleRow
+                    ? (float) $overdueScheduleRow->amount_due
+                    : ($currentInstallment ? (float) $currentInstallment->amount_due : $monthlyPayment);
+                $penaltyAmountForRecord = round($penaltyBase * ($lateFeeRate / 100), 2);
+                $penaltyNote = '₱'.number_format($penaltyAmountForRecord, 2)." overdue penalty applied (installment due {$nextDueDate->format('M d, Y')})";
+            }
+        }
+
+        $combinedNotes = trim(implode(' — ', array_filter([$request->notes, $penaltyNote])));
+        $interestRatio = ($loan->total_payment > 0) ? ($loan->total_interest / $loan->total_payment) : 0;
+
+        $memberUser = Auth::user();
+        $memberName = trim(($memberUser->first_name ?? '').' '.($memberUser->last_name ?? '')) ?: 'Member';
+        $receiptRef = $request->reference_no ?: 'RCP-'.now()->format('YmdHis');
+
+        // ── SCHEDULE-BASED LOANS ───────────────────────────────────────────────
+        if ($currentInstallment) {
+            $cashReceived = round((float) $request->amount_paid, 2);
+            $installmentNumber = (int) $currentInstallment->payment_number;
+            $installmentDueDate = $currentInstallment->due_date;
+
+            if ($paymentType !== 'full') {
+                $validation = $loanCalc->validateInstallmentPayment(
+                    $loan->id,
+                    $cashReceived,
+                    (float) $penaltyAmountForRecord,
+                    true
+                );
+
+                if (! $validation['valid']) {
+                    return redirect()->back()->with('error', $validation['message']);
+                }
+
+                $installmentAmount = (float) $validation['amount_to_allocate'];
+            } else {
+                $installmentAmount = $cashReceived;
+            }
+
+            // ALL member-submitted payments: create PENDING record only — no balance changes
+            $existingCount = lending_repayments_tbl::where('lending_id', $loan->id)
+                ->where('payment_number', $installmentNumber)
+                ->where('status', '!=', 'voided')
+                ->count();
+
+            lending_repayments_tbl::create([
+                'lending_id' => $loan->id,
+                'user_id' => auth()->id(),
+                'payment_number' => $installmentNumber,
+                'payment_sequence' => $existingCount + 1,
+                'amount_due' => $installmentAmount,
+                'amount_paid' => $installmentAmount,
+                'late_fee' => $penaltyAmountForRecord,
+                'penalty_applied_at' => $penaltyAmountForRecord > 0 ? now()->timezone('Asia/Manila') : null,
+                'payment_proof_path' => $proofPath,
+                'principal_paid' => 0,
+                'interest_paid' => 0,
+                'service_fee_paid' => 0,
+                'due_date' => $installmentDueDate ?: ($status->due_date ?? now()->format('Y-m-d')),
+                'payment_date' => now()->format('Y-m-d'),
+                'payment_method' => $request->payment_method,
+                'payment_type' => $paymentType,
+                'reference_no' => $request->reference_no ?: 'RCP-'.now()->format('YmdHis'),
+                'gcash_reference_no' => $isGcash ? $request->gcash_reference_no : null,
+                'notes' => $combinedNotes ?: null,
+                'recorded_by' => null,
+                'status' => 'Pending',
+            ]);
+
+            AuditLog::log(
+                'Loan Repayment Request',
+                "{$request->payment_method} payment of ₱{$request->amount_paid} on loan (ID: {$request->lending_id}), pending verification",
+                'loan',
+                $request->lending_id
+            );
+
+            return redirect()->route('LoanStatus', ['loan_id' => $request->lending_id])->with([
+                'success' => 'Payment submitted! Your payment is pending admin verification.',
+                'loan_receipt_member' => $memberName,
+                'loan_receipt_amount' => $request->amount_paid,
+                'loan_receipt_method' => $request->payment_method,
+                'loan_receipt_ref' => $receiptRef,
+                'loan_receipt_status' => 'Pending',
+                'loan_receipt_payment_number' => $installmentNumber,
+                'loan_receipt_lending_ref' => $loan->reference_no ?? ('LN-'.$loan->id),
+            ]);
+
+            // ── LEGACY LOANS (no schedule rows) ────────────────────────────────────
+        } else {
+            if ($penaltyAmountForRecord > 0 && $status) {
+                $status->penalty_amount = (float) ($status->penalty_amount ?? 0) + $penaltyAmountForRecord;
+                $status->remaining_balance = (float) $status->remaining_balance + $penaltyAmountForRecord;
                 $status->last_penalty_date = $nextDueDate->format('Y-m-d');
                 $status->save();
 
-                $penaltyNote = "₱" . number_format($penaltyAmount, 2) . " overdue penalty applied (installment due {$nextDueDate->format('M d, Y')})";
-                $penaltyAmountForRecord = $penaltyAmount;
-
                 AuditLog::log(
                     'Loan Overdue Penalty',
-                    "Applied 2% overdue penalty of ₱{$penaltyAmount} on loan (ID: {$request->lending_id})",
+                    "Applied 2% overdue penalty of ₱{$penaltyAmountForRecord} on loan (ID: {$request->lending_id})",
                     'loan',
                     $request->lending_id
                 );
             }
-        }
 
-        // Merge any member-entered notes with the auto-generated penalty note
-        // so both are preserved and visible on the repayment record.
-        $combinedNotes = trim(implode(' — ', array_filter([$request->notes, $penaltyNote])));
-        // Compute income breakdown per payment
-        $interestRatio = ($loan->total_payment > 0) ? ($loan->total_interest / $loan->total_payment) : 0;
-
-        if ($paymentType === 'full' && $status) {
-            // ── FULL REPAYMENT (Cash) ────────────────────────────────────────
-            $remainingPayments = $status->total_payments - $status->payments_made;
-
-            for ($i = 1; $i <= $remainingPayments; $i++) {
-                $paymentsMade = lending_repayments_tbl::where('lending_id', $request->lending_id)->count();
-                $installmentAmount = $monthlyPayment;
-                $interestPaid = round($installmentAmount * $interestRatio, 2);
-                $principalPaid = round($installmentAmount - $interestPaid, 2);
-
-                lending_repayments_tbl::create([
-                    'lending_id' => $request->lending_id,
-                    'user_id' => auth()->id(),
-                    'payment_number' => $paymentsMade + 1,
-                    'amount_due' => $monthlyPayment,
-                    'amount_paid' => $monthlyPayment,
-                    'late_fee' => $i === 1 ? $penaltyAmountForRecord : 0,
-                    'penalty_applied_at' => $i === 1 && $penaltyAmountForRecord > 0 ? now()->timezone('Asia/Manila') : null,
-                    'payment_proof_path' => $i === 1 ? $proofPath : null,
-                    'principal_paid' => $principalPaid,
-                    'interest_paid' => $interestPaid,
-                    'service_fee_paid' => 0,
-                    'due_date' => $status->due_date ?? now()->format('Y-m-d'),
-                    'payment_date' => now()->format('Y-m-d'),
-                    'payment_method' => $request->payment_method,
-                    'payment_type' => $paymentType,
-                    'reference_no' => $request->reference_no ?: 'RCP-FULL-' . now()->format('YmdHis') . '-' . $i,
-                    'notes' => $i === 1 ? ($combinedNotes ?: 'Full balance repayment') : 'Full balance repayment',
-                    'recorded_by' => null,
-                ]);
-            }
-
-            // Mark loan as fully paid
-            $status->total_paid += $request->amount_paid;
-            $status->remaining_balance = 0;
-            $status->payments_made = $status->total_payments;
-            $status->status = 'Completed';
-            $status->save();
-
-            lending_program_tbl::where('id', $request->lending_id)
-                ->update(['status' => 'Completed']);
-
-        } else {
-            // ── SINGLE MONTHLY PAYMENT ───────────────────────────────────────
             $interestPaid = round($request->amount_paid * $interestRatio, 2);
             $principalPaid = round($request->amount_paid - $interestPaid, 2);
+
+            // ALL member-submitted payments: create PENDING record only — no balance changes
+            $existingCount = lending_repayments_tbl::where('lending_id', $request->lending_id)
+                ->where('payment_number', $request->payment_number)
+                ->where('status', '!=', 'voided')
+                ->count();
 
             lending_repayments_tbl::create([
                 'lending_id' => $request->lending_id,
                 'user_id' => auth()->id(),
                 'payment_number' => $request->payment_number,
+                'payment_sequence' => $existingCount + 1,
                 'amount_due' => $monthlyPayment,
                 'amount_paid' => $request->amount_paid,
                 'late_fee' => $penaltyAmountForRecord,
@@ -701,44 +792,31 @@ class lendingController extends Controller
                 'payment_date' => now()->format('Y-m-d'),
                 'payment_method' => $request->payment_method,
                 'payment_type' => $paymentType,
-                'reference_no' => $request->reference_no ?: 'RCP-' . now()->format('YmdHis'),
+                'reference_no' => $request->reference_no ?: 'RCP-'.now()->format('YmdHis'),
+                'gcash_reference_no' => $isGcash ? $request->gcash_reference_no : null,
                 'notes' => $combinedNotes ?: null,
                 'recorded_by' => null,
+                'status' => 'Pending',
             ]);
 
-            if ($status) {
-                $status->total_paid += $request->amount_paid;
-                $status->remaining_balance = max(0, $status->remaining_balance - $request->amount_paid);
-                $status->payments_made += 1;
+            AuditLog::log(
+                'Loan Repayment Request',
+                "{$request->payment_method} payment of ₱{$request->amount_paid} on loan (ID: {$request->lending_id}), pending verification",
+                'loan',
+                $request->lending_id
+            );
 
-                if ($status->remaining_balance <= 0 || $status->payments_made >= $status->total_payments) {
-                    $status->status = 'Completed';
-                    $status->payments_made = $status->total_payments;
-
-                    lending_program_tbl::where('id', $request->lending_id)
-                        ->update(['status' => 'Completed']);
-                } else {
-                    // Advance to the next unpaid installment's due date, anchored
-                    // to when the loan was originally created — not "now".
-                    $status->due_date = \Carbon\Carbon::parse($loan->created_at)
-                        ->addDays(($status->payments_made + 1) * self::PAYMENT_INTERVAL_DAYS)
-                        ->format('Y-m-d');
-                }
-
-                $status->save();
-            }
+            return redirect()->route('LoanStatus', ['loan_id' => $request->lending_id])->with([
+                'success' => 'Payment submitted! Your payment is pending admin verification.',
+                'loan_receipt_member' => $memberName,
+                'loan_receipt_amount' => $request->amount_paid,
+                'loan_receipt_method' => $request->payment_method,
+                'loan_receipt_ref' => $receiptRef,
+                'loan_receipt_status' => 'Pending',
+                'loan_receipt_payment_number' => $request->payment_number,
+                'loan_receipt_lending_ref' => $loan->reference_no ?? ('LN-'.$loan->id),
+            ]);
         }
-
-        $paymentTypeLabel = $paymentType === 'full' ? 'Full repayment' : 'Monthly payment';
-        AuditLog::log(
-            'Loan Repayment',
-            "{$paymentTypeLabel} of ₱{$request->amount_paid} on loan (ID: {$request->lending_id})",
-            'loan',
-            $request->lending_id
-        );
-
-        return redirect()->route('LoanStatus', ['loan_id' => $request->lending_id])
-            ->with('success', 'Payment recorded successfully!');
     }
 
     // ─── Loan Status page ─────────────────────────────────────────────────────────
@@ -760,7 +838,7 @@ class lendingController extends Controller
         $today = now()->timezone('Asia/Manila')->toDateString();
 
         // Show Approved AND Completed loans so members can browse everything,
-// including fully paid loans, from this one grid.
+        // including fully paid loans, from this one grid.
         $loans = DB::table('lending_program_tbls as l')
             ->leftJoin('lending_status_tbls as s', 's.lending_id', '=', 'l.id')
             ->where('l.user_id', $memberId)
@@ -789,7 +867,7 @@ class lendingController extends Controller
             });
 
         // No auto-select — leave $selectedLoan null unless the URL explicitly
-// carries ?loan_id=, so the grid shows by default.
+        // carries ?loan_id=, so the grid shows by default.
         $selectedId = $request->get('loan_id');
 
         $selectedLoan = $selectedId
@@ -804,11 +882,9 @@ class lendingController extends Controller
             ? lending_status_tbl::where('lending_id', $selectedLoan->id)->first()
             : null;
 
-        if ($selectedLoan && !$lendingStatus && $selectedLoan->status === 'Approved') {
+        if ($selectedLoan && ! $lendingStatus && $selectedLoan->status === 'Approved') {
             $termMonths = (int) filter_var($selectedLoan->lending_type_term, FILTER_SANITIZE_NUMBER_INT);
-            $interestRate = ($selectedLoan->lending_amount > 0 && $selectedLoan->total_interest > 0)
-                ? round(($selectedLoan->total_interest / $selectedLoan->lending_amount) * 100, 2)
-                : 0;
+            $interestRate = \App\Models\Loan_settings_tbl::getRate($selectedLoan->lending_type);
 
             $lendingStatus = lending_status_tbl::create([
                 'lending_id' => $selectedLoan->id,
@@ -840,14 +916,29 @@ class lendingController extends Controller
         // on lending_status_tbls) so the Payment Schedule can show exactly
         // which installment the penalty was applied to.
         $penaltyByInstallment = $paymentHistory
-            ->filter(fn($p) => ($p->late_fee ?? 0) > 0)
+            ->filter(fn ($p) => ($p->late_fee ?? 0) > 0)
             ->keyBy('payment_number');
+
+        // Installment numbers that already have a pending (non-voided) payment.
+        // Used below to skip them when determining the "next" payment the member
+        // should submit, so the form advances to the next installment after a
+        // submission instead of showing the same one again.
+        $pendingInstallmentNumbers = $selectedLoan
+            ? $paymentHistory
+                ->where('status', 'Pending')
+                ->pluck('payment_number')
+                ->unique()
+                ->values()
+                ->toArray()
+            : [];
 
         // ── Build computed hero/breakdown data ──────────────────────────────────
         $paymentSchedule = collect();
         $progressPercent = 0;
         $remainingPrincipal = 0;
         $monthlyDue = 0;
+        $currentDueAmount = 0;
+        $hasSchedule = false;
 
         $nextDueDate = null;          // earliest unpaid installment overall (may be overdue)
         // — drives status pill + penalty logic only.
@@ -881,6 +972,8 @@ class lendingController extends Controller
         $netProceeds = 0;
         $penaltyAmount = 0;
         $loanStatusLabel = 'Active';
+        $lateFeeRate = 2.00;
+        $nextPaymentNumber = ($lendingStatus->payments_made ?? 0) + 1;
 
         if ($selectedLoan && $lendingStatus) {
             $principal = (float) $selectedLoan->lending_amount;
@@ -888,6 +981,36 @@ class lendingController extends Controller
             $paymentsMade = (int) $lendingStatus->payments_made;
             $totalPayment = (float) ($selectedLoan->total_payment ?? $principal);
             $monthlyDue = $totalPayments > 0 ? round($totalPayment / $totalPayments, 2) : 0;
+
+            // Dynamic late-fee rate (%) from Finance settings (2.00 fallback).
+            $lateFeeRate = Loan_settings_tbl::getLateFeeRate($selectedLoan->lending_type);
+
+            // Schedule-based loans: the per-installment plan is authoritative.
+            // Legacy loans have no schedule rows and fall back to flat $monthlyDue.
+            $scheduleRows = DB::table('lending_installment_schedules_tbls')
+                ->where('lending_id', $selectedLoan->id)
+                ->orderBy('payment_number')
+                ->get();
+            $scheduleByNumber = $scheduleRows->keyBy('payment_number');
+            $hasSchedule = $scheduleRows->isNotEmpty();
+
+            // Amount due for the CURRENT unpaid installment (repayment prefill).
+            // Skip installments that already have a pending payment so the form
+            // advances to the next installment after a submission.
+            $currentDueAmount = $monthlyDue;
+            $currentInstallmentRow = $scheduleRows->first(
+                fn ($row) => (float) $row->amount_paid < (float) $row->amount_due
+                    && ! in_array((int) $row->payment_number, $pendingInstallmentNumbers)
+            );
+            if ($currentInstallmentRow) {
+                $currentDueAmount = (float) $currentInstallmentRow->amount_due;
+            }
+
+            // Next payment number the member should submit, accounting for
+            // already-pending installments so the hidden form input is correct.
+            $nextPaymentNumber = $currentInstallmentRow
+                ? (int) $currentInstallmentRow->payment_number
+                : (($lendingStatus->payments_made ?? 0) + 1);
 
             $progressPercent = $totalPayments > 0
                 ? min(100, round(($paymentsMade / $totalPayments) * 100, 2))
@@ -928,30 +1051,34 @@ class lendingController extends Controller
                 $dueDateForRow = $anchorDueDate->copy()
                     ->addDays(($i - $nextInstallmentNumber) * self::PAYMENT_INTERVAL_DAYS);
 
-                $isPaid = $i <= $paymentsMade;
-                $isOverdue = !$isPaid && $dueDateForRow->lt($today);
-                $isNext = !$isPaid && !$nextDueDate;
+                $scheduleRow = $scheduleByNumber[$i] ?? null;
+                $installmentAmount = $scheduleRow ? (float) $scheduleRow->amount_due : $monthlyDue;
+                $isPaid = $scheduleRow
+                    ? (float) $scheduleRow->amount_paid >= (float) $scheduleRow->amount_due
+                    : ($i <= $paymentsMade);
+                $isOverdue = ! $isPaid && $dueDateForRow->lt($today);
+                $isNext = ! $isPaid && ! $nextDueDate;
 
                 // Actual charged penalty (from a real repayment record), if any.
                 $rowPenalty = $penaltyByInstallment[$i]->late_fee ?? 0;
 
                 // If this row is overdue but hasn't actually been charged yet (no
-// repayment record), fall back to the live 2% preview — same math
-// used for $currentOverduePenalty — so the member sees the real
-// amount they'll owe, not just the base installment.
+                // repayment record), fall back to the live 2% preview — same math
+                // used for $currentOverduePenalty — so the member sees the real
+                // amount they'll owe, not just the base installment.
                 if ($isOverdue && $rowPenalty == 0) {
                     $alreadyPenalizedForRow = $lendingStatus->last_penalty_date
                         && \Carbon\Carbon::parse($lendingStatus->last_penalty_date)->gte($dueDateForRow);
 
-                    if (!$alreadyPenalizedForRow) {
-                        $rowPenalty = round($monthlyDue * 0.02, 2);
+                    if (! $alreadyPenalizedForRow) {
+                        $rowPenalty = round($installmentAmount * ($lateFeeRate / 100), 2);
                     }
                 }
 
                 $paymentSchedule->push([
                     'number' => $i,
                     'date' => $dueDateForRow->format('M d, Y'),
-                    'amount' => $monthlyDue,
+                    'amount' => $installmentAmount,
                     'paid' => $isPaid,
                     'overdue' => $isOverdue,
                     'is_next' => $isNext,
@@ -960,19 +1087,19 @@ class lendingController extends Controller
 
                 // Earliest unpaid installment overall (may be overdue) — drives
                 // the hero status pill + penalty logic. NOT what "Next Due" shows.
-                if (!$isPaid && !$nextDueDate) {
+                if (! $isPaid && ! $nextDueDate) {
                     $nextDueDate = $dueDateForRow;
                 }
 
                 // Earliest unpaid installment that is NOT overdue — this is what
                 // the "Next Due" hero box actually displays to the member.
-                if (!$isPaid && !$isOverdue && !$displayNextDueDate) {
+                if (! $isPaid && ! $isOverdue && ! $displayNextDueDate) {
                     $displayNextDueDate = $dueDateForRow;
                 }
 
                 // Earliest unpaid installment that IS overdue — surfaced as its
                 // own separate note, so it never gets confused with "Next Due".
-                if ($isOverdue && !$overdueDate) {
+                if ($isOverdue && ! $overdueDate) {
                     $overdueDate = $dueDateForRow;
                     $overdueInstallmentNumber = $i;
                     // Compare start-of-day to start-of-day so a fractional
@@ -988,8 +1115,8 @@ class lendingController extends Controller
                     $alreadyPenalizedForThisOne = $lendingStatus->last_penalty_date
                         && \Carbon\Carbon::parse($lendingStatus->last_penalty_date)->gte($dueDateForRow);
 
-                    if (!$alreadyPenalizedForThisOne) {
-                        $currentOverduePenalty = round($monthlyDue * 0.02, 2);
+                    if (! $alreadyPenalizedForThisOne) {
+                        $currentOverduePenalty = round($installmentAmount * ($lateFeeRate / 100), 2);
                     }
                 }
             }
@@ -1026,8 +1153,9 @@ class lendingController extends Controller
                 $alreadyPenalizedForThis = $lendingStatus->last_penalty_date
                     && \Carbon\Carbon::parse($lendingStatus->last_penalty_date)->gte($nextDueDate);
 
-                if (!$alreadyPenalizedForThis) {
-                    $penaltyAmount += round($monthlyDue * 0.02, 2);
+                if (! $alreadyPenalizedForThis) {
+                    $overdueScheduleRow = $scheduleByNumber[$overdueInstallmentNumber] ?? null;
+                    $penaltyAmount += round(($overdueScheduleRow ? (float) $overdueScheduleRow->amount_due : $monthlyDue) * ($lateFeeRate / 100), 2);
                 }
             }
         }
@@ -1036,6 +1164,8 @@ class lendingController extends Controller
         $gcashPaymentMethod = \App\Models\PaymentMethod::where('method_name', 'GCash')
             ->where('is_active', true)
             ->first();
+
+        $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->orderBy('id')->get();
 
         return view('members_components.loan_status', array_merge(
             ['username' => $username, 'email' => $email],
@@ -1048,6 +1178,7 @@ class lendingController extends Controller
                 'progressPercent',
                 'remainingPrincipal',
                 'monthlyDue',
+                'currentDueAmount',
                 'nextDueDate',
                 'daysAway',
                 'displayNextDueDate',
@@ -1067,7 +1198,10 @@ class lendingController extends Controller
                 'netProceeds',
                 'penaltyAmount',
                 'loanStatusLabel',
-                'gcashPaymentMethod'
+                'gcashPaymentMethod',
+                'paymentMethods',
+                'hasSchedule',
+                'nextPaymentNumber'
             )
         ));
     }

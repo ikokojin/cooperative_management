@@ -31,7 +31,7 @@ class AuditLog extends Model
 
         return self::create([
             'user_id' => $admin?->id,
-            'admin_name' => $admin ? trim($admin->first_name . ' ' . $admin->last_name) : 'System',
+            'admin_name' => $admin ? trim($admin->first_name.' '.$admin->last_name) : 'System',
             'ip_address' => $ip,
             'user_role' => $admin?->role,
             'action' => $action,

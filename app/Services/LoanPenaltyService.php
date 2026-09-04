@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\AuditLog;
 use App\Models\lending_status_tbl;
 use App\Models\savings_account_tbl;
 use App\Models\savings_transaction_tbl;
-use App\Models\AuditLog;
 use Illuminate\Support\Facades\DB;
 
 class LoanPenaltyService
@@ -27,7 +27,7 @@ class LoanPenaltyService
         $results = [];
 
         foreach ($overdueStatuses as $status) {
-            if (!$force && $status->last_penalty_date === $today) {
+            if (! $force && $status->last_penalty_date === $today) {
                 continue; // already penalized today, skip
             }
 
@@ -43,7 +43,7 @@ class LoanPenaltyService
     private function applyPenalty(lending_status_tbl $status, string $today): ?array
     {
         $loan = DB::table('lending_program_tbls')->where('id', $status->lending_id)->first();
-        if (!$loan) {
+        if (! $loan) {
             return null;
         }
 
@@ -64,7 +64,7 @@ class LoanPenaltyService
         }
 
         $savingsAccount = savings_account_tbl::where('user_id', $status->user_id)->first();
-        if (!$savingsAccount) {
+        if (! $savingsAccount) {
             return null; // nothing to deduct from
         }
 
@@ -75,7 +75,7 @@ class LoanPenaltyService
         }
 
         $newBalance = round($savingsAccount->balance - $deducted, 2);
-        $referenceNo = 'PEN-' . strtoupper(bin2hex(random_bytes(3))) . '-' . now()->format('Ymd');
+        $referenceNo = 'PEN-'.strtoupper(bin2hex(random_bytes(3))).'-'.now()->format('Ymd');
 
         DB::transaction(function () use ($savingsAccount, $newBalance, $deducted, $referenceNo, $status, $today, $loan) {
             $savingsAccount->update(['balance' => $newBalance]);

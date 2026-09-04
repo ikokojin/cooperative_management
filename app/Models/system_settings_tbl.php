@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class system_settings_tbl extends Model
 {
-    protected $table = "system_settings_tbls";
+    protected $table = 'system_settings_tbls';
 
     public static function getValue($key, $default = null)
     {
@@ -17,9 +17,10 @@ class system_settings_tbl extends Model
             'company_phone' => 'phone',
             'company_email' => 'email',
         ];
-        
+
         $column = $columns[$key] ?? $key;
         $setting = self::first();
+
         return $setting ? $setting->$column : $default;
     }
 
@@ -32,8 +33,9 @@ class system_settings_tbl extends Model
             'company_phone' => 'phone',
             'company_email' => 'email',
         ];
-        
+
         $column = $columns[$key] ?? $key;
+
         return self::updateOrCreate(
             [$column => $key],
             [$column => $value]

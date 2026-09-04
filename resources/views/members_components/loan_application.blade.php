@@ -1827,8 +1827,25 @@
                                         <span>Apply for a Loan</span>
                                     </button>
                                 </div>
+                                @if(!$canApplyLoan)
+                                <div class="gate-shield">
+                                    <div class="gate-lock"><i class="fa fa-lock"></i></div>
+                                </div>
+                                @endif
                             </div>
                         </div>
+
+                        {{-- Server-side validation feedback (e.g. net proceeds adjustment limits) --}}
+                        @if(session('loan_blocked') || $errors->any())
+                            <div style="background:rgba(220,38,38,.06);border:1px solid #dc2626;color:#b91c1c;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;margin-bottom:18px;display:flex;flex-direction:column;gap:4px;">
+                                @if(session('loan_blocked'))
+                                    <span><i class="fa fa-circle-exclamation"></i> {{ session('loan_blocked') }}</span>
+                                @endif
+                                @foreach($errors->all() as $error)
+                                    <span><i class="fa fa-circle-exclamation"></i> {{ $error }}</span>
+                                @endforeach
+                            </div>
+                        @endif
 
                         {{-- ══ STATS CARDS — its own gated/hover-lock block ══ --}}
                         <div class="{{ !$canApplyLoan ? 'gated' : '' }}">
@@ -1881,13 +1898,13 @@
                             @if(!$canApplyLoan)
                                 <div class="gate-shield">
                                     <div class="gate-lock"><i class="fa fa-lock"></i></div>
-                                    <div class="gate-msg">Loan stats are locked</div>
+                                    <div class="gate-msg">Loan application is locked</div>
                                     <div class="gate-sub">
-                                        You need at least <strong>₱{{ number_format($minSavingsToApply, 2) }}</strong> in
-                                        Savings to unlock this.
-                                        You currently have <strong>₱{{ number_format($currentSavings, 2) }}</strong> —
-                                        <strong>₱{{ number_format(max(0, $minSavingsToApply - $currentSavings), 2) }}
-                                            more</strong> needed.
+                                        You need at least <strong>{{ number_format($minimumShares, 0) }}</strong> shares of share capital to apply for a loan.
+                                        You currently have <strong>{{ number_format($currentShares, 2) }}</strong> shares.
+                                        @if($loanEligSettings->savings_to_loan_enabled)
+                                            <br>You also need savings of at least the loan amount plus the ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
+                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -2532,11 +2549,12 @@
                                     <div class="gate-lock"><i class="fa fa-lock"></i></div>
                                     <div class="gate-msg">Loan history is locked</div>
                                     <div class="gate-sub">
-                                        You need at least <strong>₱{{ number_format($minSavingsToApply, 2) }}</strong> in
-                                        Savings to unlock this.
-                                        You currently have <strong>₱{{ number_format($currentSavings, 2) }}</strong> —
-                                        <strong>₱{{ number_format(max(0, $minSavingsToApply - $currentSavings), 2) }}
-                                            more</strong> needed.
+                                        @if($loanEligSettings->savings_to_loan_enabled)
+                                            You need savings of at least the loan amount plus the ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
+                                            You currently have <strong>₱{{ number_format($currentSavings, 2) }}</strong> in savings.
+                                        @else
+                                            Please contact the administrator to apply for a loan.
+                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -2579,7 +2597,7 @@
                             <div class="mis-sub">Updates as you fill</div>
                         </div>
                         <div class="mis-amount-box">
-                            <div class="mis-amount-lbl">Monthly Payment</div>
+                            <div class="mis-amount-lbl">Average Monthly Payment</div>
                             <div class="mis-amount-val dim" id="mis-mo">—</div>
                             <div class="mis-amount-hint" id="mis-hint">Enter details to compute</div>
                         </div>
@@ -2594,6 +2612,8 @@
                                     id="mis-term">—</span></div>
                             <div class="mis-row"><span class="mis-lbl">Interest</span><span class="mis-val dim"
                                     id="mis-int">—</span></div>
+                            <div class="mis-row"><span class="mis-lbl">Total Charges</span><span class="mis-val dim"
+                                    id="mis-totfees">—</span></div>
                             <div class="mis-row"><span class="mis-lbl">Net Proceeds</span><span class="mis-val dim"
                                     id="mis-net">—</span></div>
                         </div>
@@ -2646,13 +2666,13 @@
                                     </div>
                                     <div>
                                         <div class="sc-alert-title">Savings Requirement</div>
-                                        <p class="sc-alert-text">You need at least
-                                            <strong>₱{{ number_format($minSavingsToApply, 2) }}</strong> in
-                                            Savings to apply. You currently have
-                                            <strong>₱{{ number_format($currentSavings, 2) }}</strong> —
-                                            you need
-                                            <strong>₱{{ number_format(max(0, $minSavingsToApply - $currentSavings), 2) }}
-                                                more</strong>.
+                                        <p class="sc-alert-text">
+                                            @if($loanEligSettings->savings_to_loan_enabled)
+                                                You need savings of at least the loan amount plus the ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
+                                                You currently have <strong>₱{{ number_format($currentSavings, 2) }}</strong> in savings.
+                                            @else
+                                                Please contact the administrator to apply for a loan.
+                                            @endif
                                         </p>
                                     </div>
                                 </div>
@@ -2810,6 +2830,28 @@
                                         <div class="p-field-error" id="err-purpose_loan_textarea">
                                             <i class="fa fa-circle-exclamation"></i> Please describe the purpose.
                                         </div>
+                                    </div>
+                                </div>
+
+                                <!-- Net Proceeds Adjustment (Optional) -->
+                                <div class="panel-sec-hd" style="margin-top:4px;">Net Proceeds Adjustment
+                                    (Optional)</div>
+
+                                <div class="p-form-row single">
+                                    <div class="p-field">
+                                        <label>Adjustment Type</label>
+                                        <div class="p-sel-wrap">
+                                            <select class="p-select np" name="net_proceeds_adjustment_type"
+                                                id="mAdjustType"
+                                                onchange="mHandleAdjustType(this);mCompute();mClearError(this);"
+                                                {{ !$canApplyLoan ? 'disabled' : '' }}>
+                                                <option value="">No Adjustment</option>
+                                                <option value="add">Add (+)</option>
+                                                <option value="deduct">Deduct (−)</option>
+                                            </select>
+                                        </div>
+                                        <span class="p-hint" id="mAdjustCaption">Charges are deducted — you receive
+                                            less than your loan amount.</span>
                                     </div>
                                 </div>
 
@@ -3026,7 +3068,7 @@
                                                 <div class="lsb-title">Loan Limit Reached</div>
                                                 <p style="margin:0;font-size:12.5px;line-height:1.5;">You have an active
                                                     loan of <strong>₱{{ number_format($totalActiveLoan, 2) }}</strong> — the
-                                                    max is <strong>₱25,000.00</strong>. Please repay before applying again.
+                                                    max is <strong>₱{{ number_format($effectiveCeiling, 2) }}</strong>. Please repay before applying again.
                                                 </p>
                                             </div>
                                         </div>
@@ -3044,13 +3086,13 @@
                                                 <div
                                                     style="background:#f5f5f5;border-radius:20px;height:8px;overflow:hidden;margin-bottom:6px;">
                                                     <div
-                                                        style="height:8px;border-radius:20px;background:linear-gradient(90deg,#e6a817,#f59e0b);width:{{ min(100, ($totalActiveLoan / 25000) * 100) }}%;">
+                                                        style="height:8px;border-radius:20px;background:linear-gradient(90deg,#e6a817,#f59e0b);width:{{ min(100, ($totalActiveLoan / max(1, $effectiveCeiling)) * 100) }}%;">
                                                     </div>
                                                 </div>
                                                 <div
                                                     style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin-bottom:8px;">
                                                     <span>Used: ₱{{ number_format($totalActiveLoan, 2) }}</span>
-                                                    <span>Up to: ₱25,000.00</span>
+                                                    <span>Up to: ₱{{ number_format($effectiveCeiling, 2) }}</span>
                                                 </div>
                                                 <div
                                                     style="background:#fff;border:1.5px solid #ffe082;border-radius:8px;padding:7px 12px;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color: var(--teal);">
@@ -3062,7 +3104,7 @@
                                     @else
                                         <div class="loan-status-banner lsb-ok" style="margin-top:14px;">
                                             <i class="fa fa-circle-info" style="margin-top:2px;flex-shrink:0;"></i>
-                                            <span>You may borrow up to <strong>₱25,000.00</strong>. Applications exceeding
+                                            <span>You may borrow up to <strong>₱{{ number_format($effectiveCeiling, 2) }}</strong>. Applications exceeding
                                                 this limit will not be processed.</span>
                                         </div>
                                     @endif
@@ -3177,11 +3219,21 @@
                                         </svg></div>
                                     <div class="b-lbl-m">Retention / CBU</div>
                                     <div class="b-val-m" id="cb-retention">₱ —</div>
-                                    <div class="b-hint-m" id="cb-retention-hint">Held as capital build-up</div>
+<div class="b-hint-m" id="cb-retention-hint">Held as capital build-up</div>
+                                </div>
+                                <div class="b-box-m" id="cb-adjust-box" style="display:none;">
+                                    <div class="b-ico-m bi-s"><svg viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M12 5v14M5 12h14" />
+                                            <path d="M20 12V8H6a2 2 0 0 1 0-4h12v4" />
+                                        </svg></div>
+                                    <div class="b-lbl-m">Net Proceeds Adjustment</div>
+                                    <div class="b-val-m" id="cb-adjust">₱ 0.00</div>
+                                    <div class="b-hint-m" id="cb-adjust-hint">Charges added back — full loan released</div>
                                 </div>
                                 <div class="b-box-m hl">
-                                    <div class="b-ico-m bi-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                            stroke-width="2">
+                                    <div class="b-ico-m bi-n"><svg viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
                                             <path d="M20 12V8H6a2 2 0 0 1 0-4h12v4" />
                                             <path d="M4 6v12a2 2 0 0 0 2 2h14v-4" />
                                             <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
@@ -3289,6 +3341,9 @@
                                         class="sum-val-m deduct" id="cf-protection">—</span></div>
                                 <div class="sum-row-m subtle"><span class="sum-lbl-m">Retention / CBU</span><span
                                         class="sum-val-m deduct" id="cf-retention">—</span></div>
+                                <div class="sum-row-m subtle" id="cf-adjust-row" style="display:none;"><span
+                                        class="sum-lbl-m">Net Proceeds Adjustment</span><span class="sum-val-m green"
+                                        id="cf-adjust">—</span></div>
                                 <div class="sum-row-m total"><span class="sum-lbl-m bold">Net Proceeds (you
                                         receive)</span><span class="sum-val-m green bigf" id="cf-net">—</span></div>
                             </div>
@@ -3297,7 +3352,7 @@
                                 <div class="sum-head-m">Repayment Summary</div>
                                 <div class="sum-row-m"><span class="sum-lbl-m">Total Interest</span><span
                                         class="sum-val-m" id="cf-int">—</span></div>
-                                <div class="sum-row-m"><span class="sum-lbl-m">Monthly Payment</span><span
+                                <div class="sum-row-m"><span class="sum-lbl-m">Average Monthly Payment</span><span
                                         class="sum-val-m gold" id="cf-monthly">—</span></div>
                                 <div class="sum-row-m total"><span class="sum-lbl-m bold">Total Payable</span><span
                                         class="sum-val-m green bigf" id="cf-total">—</span></div>
@@ -3449,6 +3504,9 @@
         // ══════════════════════════════════════════════════════════
         const MAX_REMAINING = {{ $remainingLoanable }};
         const SAVED_MONTHLY_INCOME = {{ $savedMonthlyIncome ?? 'null' }};
+        const CURRENT_SAVINGS = {{ $currentSavings }};
+        const SAVINGS_TO_LOAN_ENABLED = {{ $loanEligSettings->savings_to_loan_enabled ? 'true' : 'false' }};
+        const SAVINGS_HOLD_BACK = {{ $loanEligSettings->savings_to_loan_ratio }};
         const fmt = n => '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         // Read all fee settings from the selected <option data-*> attributes.
@@ -3472,15 +3530,22 @@
         //  - processing / service fees: % of principal, one-time
         //  - loan protection: flat ₱ amount per month of term
         //  - retention/CBU: % of principal, withheld
-        //  - net proceeds: principal minus all the above deductions
-        function mCalcBreakdown(principal, fees, termMonths) {
+        //  - net proceeds: base unless Add (+), then the charges are added back
+        //    so the member receives the full loan amount
+        function mCalcBreakdown(principal, fees, termMonths, isAdd) {
             const r = fees.rate;
-            const principalPerMonth = termMonths > 0 ? principal / termMonths : 0;
+            // Diminishing balance, equal principal — mirrors LoanCalculationService.
+            // The final principal installment absorbs rounding so Σ principal === principal.
+            const basePrincipal = termMonths > 0 ? Math.round((principal / termMonths) * 100) / 100 : 0;
+            const lastPrincipal = termMonths > 0 ? Math.round((principal - basePrincipal * (termMonths - 1)) * 100) / 100 : 0;
 
             let totalInterest = 0;
-            for (let i = 0; i < termMonths; i++) {
-                const remaining = principal - (principalPerMonth * i);
-                totalInterest += remaining * r;
+            let balance = principal;
+            for (let i = 1; i <= termMonths; i++) {
+                const principalDue = i === termMonths ? lastPrincipal : basePrincipal;
+                const interestDue = Math.round(balance * r * 100) / 100;
+                totalInterest += interestDue;
+                balance = Math.round((balance - principalDue) * 100) / 100;
             }
             totalInterest = Math.round(totalInterest * 100) / 100;
 
@@ -3488,15 +3553,45 @@
             const serviceFee = Math.round(principal * (fees.serviceRate / 100) * 100) / 100;
             const protectionFee = Math.round(fees.protectionPerMonth * termMonths * 100) / 100;
             const retentionFee = Math.round(principal * (fees.retentionRate / 100) * 100) / 100;
-            const netProceeds = Math.round((principal - processingFee - serviceFee - protectionFee - retentionFee) * 100) / 100;
+            const baseNetProceeds = Math.round((principal - processingFee - serviceFee - protectionFee - retentionFee) * 100) / 100;
+            const netProceeds = isAdd ? Math.round(principal * 100) / 100 : baseNetProceeds;
+            const adjDelta = isAdd ? Math.round((netProceeds - baseNetProceeds) * 100) / 100 : 0;
 
-            const totalPayment = Math.round((principal + totalInterest) * 100) / 100;
+            const totalFees = Math.round((processingFee + serviceFee + protectionFee + retentionFee) * 100) / 100;
+            // In "add fees back" mode the fees become an ADDITIONAL repayment
+            // liability folded into the installment schedule (interest is still
+            // computed on the principal only). In deduct mode fees are withheld
+            // from the release, so they are not part of the total payment.
+            const totalPayment = isAdd
+                ? Math.round((principal + totalInterest + totalFees) * 100) / 100
+                : Math.round((principal + totalInterest) * 100) / 100;
             const monthlyPayment = termMonths > 0 ? Math.round((totalPayment / termMonths) * 100) / 100 : 0;
 
             return {
-                principalPerMonth, totalInterest, processingFee, serviceFee,
-                protectionFee, retentionFee, netProceeds, totalPayment, monthlyPayment
+                basePrincipal, totalInterest, processingFee, serviceFee,
+                protectionFee, retentionFee, baseNetProceeds,
+                netProceeds, adjDelta, totalFees, totalPayment, monthlyPayment
             };
+        }
+
+        // ── Net Proceeds Adjustment helpers ───────────────────────
+        function mIsAddSelected() {
+            const el = document.getElementById('mAdjustType');
+            return el ? el.value === 'add' : false;
+        }
+
+        function mUpdateAdjustCaption() {
+            const capEl = document.getElementById('mAdjustCaption');
+            if (!capEl) return;
+            if (mIsAddSelected()) {
+                capEl.textContent = 'Charges added back — you receive the full loan amount.';
+            } else {
+                capEl.textContent = 'Charges are deducted — you receive less than your loan amount.';
+            }
+        }
+
+        function mHandleAdjustType(sel) {
+            mUpdateAdjustCaption();
         }
 
         // ── Inline validation helpers ──────────────────────────────
@@ -3541,6 +3636,9 @@
             document.getElementById('lending_type_term_nonbusiness').value = '';
             document.getElementById('lending_type_term_business').value = '';
             document.getElementById('lending_type_term').value = '';
+            const adjTypeEl = document.getElementById('mAdjustType');
+            if (adjTypeEl) adjTypeEl.value = '';
+            mUpdateAdjustCaption();
             document.getElementById('mAgree').checked = false;
             document.getElementById('mSuccess').classList.remove('show');
             document.getElementById('modalStepsBar').style.display = 'flex';
@@ -3554,6 +3652,10 @@
                 const p = document.getElementById('mp' + i);
                 p.classList.remove('active', 'back');
             });
+            const adjBox = document.getElementById('cb-adjust-box');
+            if (adjBox) adjBox.style.display = 'none';
+            const cfAdjRow = document.getElementById('cf-adjust-row');
+            if (cfAdjRow) cfAdjRow.style.display = 'none';
             document.getElementById('mp1').classList.add('active');
             mUpdateSteps(1);
             mCompute();
@@ -3692,6 +3794,7 @@
             const a = parseFloat(document.getElementById('mLoanAmount').value) || 0;
             const termStr = document.getElementById('lending_type_term').value || '';
             const t = termStr ? parseInt(termStr) : 0;
+            mUpdateAdjustCaption();
 
             const setV = (id, value, active) => {
                 const el = document.getElementById(id);
@@ -3706,20 +3809,26 @@
             setV('mis-term', t > 0 ? t + ' months' : '—', t > 0);
 
             if (fees && a > 0 && t > 0) {
-                const calc = mCalcBreakdown(a, fees, t);
+                const calc = mCalcBreakdown(a, fees, t, mIsAddSelected());
 
                 setV('mis-mo', fmt(calc.monthlyPayment), true);
                 setV('mis-int', fmt(calc.totalInterest), true);
+                setV('mis-totfees', fmt(calc.totalFees), true);
                 setV('mis-net', fmt(calc.netProceeds), true);
                 setV('mis-total', fmt(calc.totalPayment), true);
 
-                document.getElementById('mis-hint').textContent = 'Diminishing balance method';
+                const firstInterest = Math.round((a * fees.rate) * 100) / 100;
+                const firstFee = mIsAddSelected() ? Math.round((calc.totalFees / t) * 100) / 100 : 0;
+                const firstInstallment = Math.round((calc.basePrincipal + firstInterest + firstFee) * 100) / 100;
+                document.getElementById('mis-hint').textContent = 'Diminishing balance — starts at ₱' +
+                    firstInstallment.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 document.getElementById('hidden-monthly').value = calc.monthlyPayment.toFixed(2);
                 document.getElementById('hidden-total').value = calc.totalPayment.toFixed(2);
                 document.getElementById('hidden-interest').value = calc.totalInterest.toFixed(2);
             } else {
                 setV('mis-mo', '—', false);
                 setV('mis-int', '—', false);
+                setV('mis-totfees', '—', false);
                 setV('mis-net', '—', false);
                 setV('mis-total', '—', false);
                 document.getElementById('mis-hint').textContent = 'Enter details to compute';
@@ -3776,6 +3885,14 @@
                     : null;
                 if (!firstErrorEl) firstErrorEl = amountEl;
                 hasError = true;
+            } else if (SAVINGS_TO_LOAN_ENABLED && a > 0) {
+                const requiredSavings = a + SAVINGS_HOLD_BACK;
+                if (CURRENT_SAVINGS < requiredSavings) {
+                    mShowError(amountEl, 'err-mLoanAmount');
+                    document.getElementById('err-mLoanAmount').innerHTML = '<i class="fa fa-circle-exclamation"></i> You need ₱' + requiredSavings.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' in savings to borrow this amount (₱' + SAVINGS_HOLD_BACK.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' holdback must remain in savings).';
+                    if (!firstErrorEl) firstErrorEl = amountEl;
+                    hasError = true;
+                }
             }
 
             // Validate: Loan Term
@@ -3855,7 +3972,7 @@
             // All valid — build full charges breakdown (matches backend fee computation)
             const t = parseInt(termStr);
             const fees = getSelectedFees() ?? { rate: 0.02, processingRate: 0, serviceRate: 0, protectionPerMonth: 0, retentionRate: 0 };
-            const calc = mCalcBreakdown(a, fees, t);
+            const calc = mCalcBreakdown(a, fees, t, mIsAddSelected());
 
             document.getElementById('cb-pri').textContent = fmt(a);
             document.getElementById('cb-rate').textContent = (fees.rate * 100).toFixed(1) + '% / mo';
@@ -3869,17 +3986,29 @@
             document.getElementById('cb-protect-hint').textContent = '₱' + fees.protectionPerMonth + ' × ' + t + ' months';
             document.getElementById('cb-retention').textContent = fmt(calc.retentionFee);
             document.getElementById('cb-retention-hint').textContent = fees.retentionRate + '% of principal (unpaid rate)';
+            const adjBox = document.getElementById('cb-adjust-box');
+            if (adjBox) {
+                if (calc.adjDelta > 0) {
+                    adjBox.style.display = 'block';
+                    document.getElementById('cb-adjust').textContent = '+ ' + fmt(calc.adjDelta);
+                    document.getElementById('cb-adjust-hint').textContent = 'Charges added back — full loan released';
+                } else {
+                    adjBox.style.display = 'none';
+                }
+            }
             document.getElementById('cb-net').textContent = fmt(calc.netProceeds);
             document.getElementById('cb-total').textContent = fmt(calc.totalPayment);
 
             const tb = document.getElementById('amortBody');
             tb.innerHTML = '';
-            const moPrin = a / t;
+            const moPrinBase = Math.round((a / t) * 100) / 100;
+            const moPrinLast = Math.round((a - moPrinBase * (t - 1)) * 100) / 100;
             let bal = a;
             for (let m = 1; m <= t; m++) {
-                const moInt = bal * fees.rate;           // interest on remaining balance BEFORE this month's payment
-                const moPayment = moPrin + moInt;        // this month's actual payment (varies, since interest declines)
-                bal -= moPrin;
+                const moPrin = m === t ? moPrinLast : moPrinBase;      // final installment absorbs rounding
+                const moInt = Math.round(bal * fees.rate * 100) / 100; // interest on remaining balance BEFORE this month's payment
+                const moPayment = Math.round((moPrin + moInt) * 100) / 100; // this month's actual payment (varies, since interest declines)
+                bal = Math.round((bal - moPrin) * 100) / 100;
                 tb.innerHTML += `<tr>
                     <td><span class="mo-n">${m}</span></td>
                     <td><strong>${fmt(moPayment)}</strong></td>
@@ -3904,7 +4033,7 @@
             const purOth = document.getElementById('purpose_loan_textarea').value.trim();
             const t = parseInt(termStr);
             const fees = getSelectedFees() ?? { rate: 0.02, processingRate: 0, serviceRate: 0, protectionPerMonth: 0, retentionRate: 0 };
-            const calc = mCalcBreakdown(a, fees, t);
+            const calc = mCalcBreakdown(a, fees, t, mIsAddSelected());
 
             document.getElementById('cf-type').textContent = type;
             document.getElementById('cf-amount').textContent = fmt(a);
@@ -3917,6 +4046,15 @@
             document.getElementById('cf-service').textContent = '- ' + fmt(calc.serviceFee);
             document.getElementById('cf-protection').textContent = '- ' + fmt(calc.protectionFee);
             document.getElementById('cf-retention').textContent = '- ' + fmt(calc.retentionFee);
+            const cfAdjustRow = document.getElementById('cf-adjust-row');
+            if (cfAdjustRow) {
+                if (calc.adjDelta > 0) {
+                    cfAdjustRow.style.display = 'flex';
+                    document.getElementById('cf-adjust').textContent = '+ ' + fmt(calc.adjDelta);
+                } else {
+                    cfAdjustRow.style.display = 'none';
+                }
+            }
             document.getElementById('cf-net').textContent = fmt(calc.netProceeds);
 
             document.getElementById('cf-monthly').textContent = fmt(calc.monthlyPayment);

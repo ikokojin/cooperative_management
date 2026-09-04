@@ -21,8 +21,21 @@
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Finance</h1>
-        <p class="text-sm text-gray-500">Manage loan interest rates, penalties, and dividend distributions</p>
+        <p class="text-sm text-gray-500">Manage loan interest rates, penalties, dividend distributions, savings, and share capital</p>
     </div>
+
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+    <style>
+        .ts-wrapper .ts-dropdown {
+            z-index: 2 !important;
+        }
+        .modal > .modal-header {
+            position: sticky;
+            top: 0;
+            z-index: 10000 !important;
+        }
+    </style>
 
     @if(session('success'))
         <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm flex items-center gap-2">
@@ -51,264 +64,35 @@
     <!-- Tab Navigation -->
     <div class="flex gap-1 mb-6 p-1 bg-gray-100 rounded-xl w-fit">
         <button class="tab-btn px-5 py-2 text-sm font-medium rounded-lg transition-all"
-                data-tab="financial-overview"
-                onclick="switchFinanceTab('financial-overview', this)">
-            Financial Overview
+                data-tab="savings"
+                onclick="switchFinanceTab('savings', this)">
+            Savings
         </button>
+        <button class="tab-btn px-5 py-2 text-sm font-medium rounded-lg transition-all"
+                data-tab="share-capitals"
+                onclick="switchFinanceTab('share-capitals', this)">
+            Share Capital
+        </button>
+        @if(\App\Services\SoDGuard::isGeneralManager())
         <button class="tab-btn px-5 py-2 text-sm font-medium rounded-lg transition-all"
                 data-tab="dividends"
                 onclick="switchFinanceTab('dividends', this)">
-            Dividends
+            Disbursal Management
         </button>
+        @endif
         <button class="tab-btn px-5 py-2 text-sm font-medium rounded-lg transition-all"
                 data-tab="patronage-records"
                 onclick="switchFinanceTab('patronage-records', this)">
-            Patronage Records
+            Patronage Refund
         </button>
-    </div>
-
-    <!-- Tab: Financial Overview -->
-    <div id="tab-financial-overview" class="tab-content">
-
-        <!-- Cooperative Transactions Summary -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div class="stat-card border-l-4 border-l-danger-500">
-                <p class="text-xs text-gray-500 uppercase tracking-wider">Total Expenses</p>
-                <p class="text-2xl font-bold text-danger-700">₱{{ number_format($cooperativeStats['total_expenses'], 2) }}</p>
-                <p class="text-xs text-gray-400 mt-1">Cooperative capital outlays</p>
-            </div>
-            <div class="stat-card border-l-4 border-l-primary-500">
-                <p class="text-xs text-gray-500 uppercase tracking-wider">Total Investments</p>
-                <p class="text-2xl font-bold text-primary-700">₱{{ number_format($cooperativeStats['total_investments'], 2) }}</p>
-                <p class="text-xs text-gray-400 mt-1">Bank investments & other assets</p>
-            </div>
-        </div>
-
-        <!-- Record Cooperative Transaction -->
-        <div class="card p-6 mb-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                    <i data-lucide="book-open" class="w-5 h-5 text-primary-600"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900">Record Cooperative Transaction</h2>
-                    <p class="text-sm text-gray-500">Log expenses and investments for the cooperative</p>
-                </div>
-            </div>
-
-            <form id="cooperativeTransactionForm">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <div class="md:col-span-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea name="description" rows="2" class="input" placeholder="Describe the transaction..." required></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <select name="category" class="select" required>
-                            <option value="">Select category</option>
-                            <option value="Vehicle Purchase">Vehicle Purchase</option>
-                            <option value="Bank Investment">Bank Investment</option>
-                            <option value="Office Equipment">Office Equipment</option>
-                            <option value="Utilities">Utilities</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
-                        <select name="transaction_type" class="select" required>
-                            <option value="">Select type</option>
-                            <option value="expense">Expense</option>
-                            <option value="investment">Investment</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
-                        <input type="number" name="amount" step="0.01" min="0.01" class="input" placeholder="0.00" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Date</label>
-                        <input type="date" name="transaction_date" class="input" value="{{ date('Y-m-d') }}" required>
-                    </div>
-                </div>
-                <div class="flex justify-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Record Transaction
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="card p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-6">Loan Interest Rates</h2>
-            <p class="text-sm text-gray-500 mb-6">Configure interest rates for each loan type. Values are in percentage (%) per month.</p>
-
-            <form method="POST" action="{{ route('financial.activity') }}">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @foreach($loanSettingsList as $setting)
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ $setting->loan_type }} Interest Rate (%)</label>
-                            <input type="number" name="interest_{{ $setting->id }}" class="input" step="0.1" min="0" max="100" value="{{ $setting->interest_rate ?? 0 }}">
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="mt-6 flex justify-between items-center">
-                    <button type="button" onclick="openManageLoanTypeModal()" class="btn btn-outline">Manage Loan Type</button>
-                    <div>
-                        <button type="submit" class="btn btn-primary">
-                            Save Changes
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <div class="card p-6 mt-6">
-            <div class="p-4 border-b border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-900">Late Fee Penalty Settings</h3>
-                <p class="text-sm text-gray-500">Configure penalty for overdue loans</p>
-            </div>
-            <div class="p-4">
-                <form method="POST" action="{{ route('loan.settings.update') }}" class="flex flex-wrap items-end gap-4">
-                    @csrf
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Late Fee (%)</label>
-                        <input type="number" name="late_fee_percentage" step="0.01" min="0" max="100"
-                            value="{{ $lateFeePercentage ?? 2.00 }}"
-                            class="input" style="width: 120px;" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Grace Period (months)</label>
-                        <input type="number" name="grace_period_months" step="1" min="0" max="12"
-                            value="{{ $gracePeriodMonths ?? 1 }}"
-                            class="input" style="width: 120px;" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Update
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <div class="card p-6 mt-6">
-            <div class="p-4 border-b border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-900">Dividend & Patronage Refund Percentages</h3>
-                <p class="text-sm text-gray-500">Set how the remaining surplus is split between the Dividend Fund and the Patronage Refund Pool</p>
-            </div>
-            <div class="p-4">
-                <form method="POST" action="{{ route('financial.activity') }}" class="flex flex-wrap items-end gap-4">
-                    @csrf
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                        <select name="dividend_year" class="select" style="width: 120px;">
-                            @for($y = $currentYear; $y >= $currentYear - 10; $y--)
-                                <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                            @endfor
-                            @foreach($years as $y)
-                                @if($y < $currentYear - 10)
-                                    <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                @endif
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Dividend Fund (%)</label>
-                        <input type="number" name="dividend_fund_percentage" id="finDividendPct" step="0.01" min="1" max="99"
-                            value="{{ $dividendFundPercentage ?? 60.00 }}"
-                            class="input" style="width: 120px;" oninput="syncFinFundPcts()" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Patronage Refund Fund (%)</label>
-                        <input type="number" name="patronage_fund_percentage" id="finPatronagePct" step="0.01" min="1" max="99"
-                            value="{{ $patronageFundPercentage ?? 40.00 }}"
-                            class="input" style="width: 120px;" oninput="syncFinFundPcts()" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Update
-                    </button>
-                </form>
-                <p class="text-xs text-gray-400 mt-2">The two percentages must total 100%. Changing them updates the pool — regenerate patronage refunds afterwards to apply the new pool to member refunds.</p>
-            </div>
-        </div>
-
-        <div class="card p-6 mt-6">
-            <div class="p-4 border-b border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-900">Statutory Fund Allocation Percentages</h3>
-                <p class="text-sm text-gray-500">Sets how the annual net surplus is allocated to statutory and optional funds before the remaining surplus is distributed to the Dividend Fund and Patronage Refund Pool</p>
-            </div>
-            <div class="p-4">
-                <form method="POST" action="{{ route('financial.activity') }}" class="flex flex-wrap items-end gap-4" id="statutoryForm" onsubmit="return validateStatutoryAllocation()">
-                    @csrf
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                        <select name="statutory_year" class="select" style="width: 120px;">
-                            @for($y = $currentYear; $y >= $currentYear - 10; $y--)
-                                <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                            @endfor
-                            @foreach($years as $y)
-                                @if($y < $currentYear - 10)
-                                    <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                @endif
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Reserve Fund (%)</label>
-                        <input type="number" name="reserve_fund_percentage" id="statReserve" step="0.01" min="0" max="100"
-                            value="{{ $reserveFundPercentage ?? 10.00 }}"
-                            class="input" style="width: 120px;" oninput="updateStatutoryLive()" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">CETF / Education Fund (%)</label>
-                        <input type="number" name="cetf_percentage" id="statCETF" step="0.01" min="0" max="100"
-                            value="{{ $cetfPercentage ?? 10.00 }}"
-                            class="input" style="width: 120px;" oninput="updateStatutoryLive()" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Community Dev. Fund (%)</label>
-                        <input type="number" name="cdf_percentage" id="statCDF" step="0.01" min="0" max="100"
-                            value="{{ $cdfPercentage ?? 3.00 }}"
-                            class="input" style="width: 120px;" oninput="updateStatutoryLive()" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Optional Fund (%)</label>
-                        <input type="number" name="optional_fund_percentage" id="statOptional" step="0.01" min="0" max="100"
-                            value="{{ $optionalFundPercentage ?? 7.00 }}"
-                            class="input" style="width: 120px;" oninput="updateStatutoryLive()" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" id="statutorySaveBtn">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Update
-                    </button>
-                </form>
-                <div class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
-                    <span class="text-gray-500">
-                        Total Statutory Allocation:
-                        <span id="statTotalDisplay" class="font-semibold text-gray-900">{{ $statutoryTotalPercentage ?? 30 }}%</span>
-                    </span>
-                    <span class="text-gray-500">
-                        Remaining Surplus:
-                        <span id="statRemainingDisplay" class="font-semibold text-success-700">{{ $remainingSurplusPercentage ?? 70 }}%</span>
-                    </span>
-                    <span id="statErrorText" class="hidden text-sm font-medium text-red-600">Statutory fund allocations cannot exceed 100% of net surplus.</span>
-                </div>
-                <p class="text-xs text-gray-400 mt-3">These settings apply to newly generated annual distributions. Existing distributions keep the percentages used when they were generated.</p>
-            </div>
-        </div>
     </div>
 
     <!-- Tab: Dividends -->
     <div id="tab-dividends" class="tab-content hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900">Dividend Management</h2>
-                <p class="text-sm text-gray-500">RA 9520 compliant dividend distribution system</p>
+                <h2 class="text-lg font-semibold text-gray-900">Disbursal Management</h2>
+                <p class="text-sm text-gray-500">RA 9520 compliant dividend distribution and disbursement system</p>
             </div>
             <div class="flex items-center gap-3">
                 <form method="GET" action="{{ route('financial.activity') }}" class="flex items-center gap-2">
@@ -697,70 +481,18 @@
         </div>
     </div>
 
-    <!-- Manage Loan Type Modal -->
-    <div id="manageLoanTypeModal" class="modal-overlay hidden">
-        <div class="modal max-w-md">
-            <div class="p-6 border-b border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                            <i data-lucide="settings" class="w-5 h-5 text-primary-600"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-900">Manage Loan Type</h2>
-                            <p class="text-xs text-gray-500">Add new loan types or remove existing ones</p>
-                        </div>
-                    </div>
-                    <button onclick="closeManageLoanTypeModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="p-6">
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Existing Loan Types</label>
-                    <div class="space-y-2 max-h-56 overflow-y-auto">
-                        @forelse($loanSettingsList as $setting)
-                        <div class="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2.5">
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium text-gray-900">{{ $setting->loan_type }}</span>
-                                <span class="text-xs text-gray-400">{{ $setting->interest_rate }}%</span>
-                            </div>
-                            <button type="button" data-id="{{ $setting->id }}" data-name="{{ $setting->loan_type }}" onclick="deleteLoanType(this)" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition-colors" title="Delete loan type">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        @empty
-                        <p class="text-sm text-gray-400">No loan types found</p>
-                        @endforelse
-                    </div>
-                </div>
-
-                <form method="POST" action="{{ route('loan.settings.create') }}">
-                    @csrf
-                    <div class="border-t border-gray-100 pt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-3">Add New Loan Type</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Loan Type Name</label>
-                                <input type="text" name="loan_type" class="input" placeholder="e.g. Housing Loan" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Interest Rate (%)</label>
-                                <input type="number" name="interest_rate" step="0.1" min="0" max="100" class="input" value="2.0" required>
-                            </div>
-                        </div>
-                        <div class="flex justify-end gap-3 mt-4">
-                            <button type="button" onclick="closeManageLoanTypeModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
-                            <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
-                                <i data-lucide="plus" class="w-4 h-4"></i> Add Loan Type
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <!-- Tab: Savings -->
+    <div id="tab-savings" class="tab-content hidden">
+        @include('admin_components.partials.finance_savings_tab')
     </div>
+
+    <!-- Tab: Share Capital -->
+    <div id="tab-share-capitals" class="tab-content hidden">
+        @include('admin_components.partials.finance_sharecapital_tab')
+    </div>
+
+    @include('admin_components.partials.finance_savings_modals')
+    @include('admin_components.partials.finance_sharecapital_modals')
 
     <!-- Patronage Breakdown Modal -->
     <div id="patronageBreakdownModal" class="modal-overlay hidden" style="display:none;">
@@ -803,6 +535,11 @@
             btn.classList.remove('text-gray-600', 'hover:bg-gray-200');
             btn.classList.add('bg-primary-600', 'text-white');
 
+            // Persist active tab in the URL so refreshes/reloads stay on the same tab
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabId);
+            history.replaceState({}, '', url);
+
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
@@ -816,7 +553,7 @@
         // Auto-activate tab from URL hash
         document.addEventListener('DOMContentLoaded', function() {
             const params = new URLSearchParams(window.location.search);
-            const tab = params.get('tab') || 'financial-overview';
+            const tab = params.get('tab') || 'savings';
             const btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
             if (btn) {
                 switchFinanceTab(tab, btn);
@@ -1039,15 +776,6 @@
         }
 
         // Disbursement modal
-        function openDisburseModal() {
-            document.getElementById('disburseModal').classList.remove('hidden');
-            document.getElementById('disburseModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        }
-
         function closeDisburseModal() {
             document.getElementById('disburseModal').classList.add('hidden');
             document.getElementById('disburseModal').style.display = 'none';
@@ -1091,133 +819,7 @@
             });
         });
 
-        // ─── Manage Loan Type Modal ─────────────────────────────────────────
-        function openManageLoanTypeModal() {
-            document.getElementById('manageLoanTypeModal').classList.remove('hidden');
-            document.getElementById('manageLoanTypeModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        function closeManageLoanTypeModal() {
-            document.getElementById('manageLoanTypeModal').classList.add('hidden');
-            document.getElementById('manageLoanTypeModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-
-        function deleteLoanType(btn) {
-            const id = btn.dataset.id;
-            const name = btn.dataset.name;
-            if (!confirm('Delete the "' + name + '" loan type?')) return;
-
-            const url = '{{ route("loan.settings.delete", "ltid") }}'.replace('ltid', id);
-            fetch(url, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]')?.value || '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Success', data.message);
-                    setTimeout(() => window.location.reload(), 800);
-                } else {
-                    showToast('Error', data.message || 'Delete failed', 'error');
-                }
-            })
-            .catch(() => {
-                showToast('Error', 'Something went wrong. Please try again.', 'error');
-            });
-        }
-
-        // Keep the Dividend/Patronage fund percentages summing to 100
-        function syncFinFundPcts() {
-            const dEl = document.getElementById('finDividendPct');
-            const pEl = document.getElementById('finPatronagePct');
-            if (!dEl || !pEl) return;
-            const dVal = parseFloat(dEl.value);
-            const pVal = parseFloat(pEl.value);
-            if (!isNaN(dVal) && isNaN(pVal)) {
-                pEl.value = Math.max(1, Math.min(99, Math.round((100 - dVal) * 100) / 100));
-            } else if (isNaN(dVal) && !isNaN(pVal)) {
-                dEl.value = Math.max(1, Math.min(99, Math.round((100 - pVal) * 100) / 100));
-            }
-        }
-
-        // Live total + remaining surplus for the statutory allocation card
-        function updateStatutoryLive() {
-            const ids = ['statReserve', 'statCETF', 'statCDF', 'statOptional'];
-            const totalEl = document.getElementById('statTotalDisplay');
-            const remainingEl = document.getElementById('statRemainingDisplay');
-            const errorEl = document.getElementById('statErrorText');
-            const saveBtn = document.getElementById('statutorySaveBtn');
-            if (!totalEl || !remainingEl || !errorEl || !saveBtn) return;
-
-            let total = 0;
-            let invalid = false;
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                const val = parseFloat(el.value);
-                if (isNaN(val) || val < 0 || val > 100) invalid = true;
-                else total += val;
-            });
-
-            total = Math.round(total * 100) / 100;
-            totalEl.textContent = total + '%';
-            remainingEl.textContent = Math.max(0, Math.round((100 - total) * 100) / 100) + '%';
-
-            const over = total > 100 || invalid;
-            errorEl.classList.toggle('hidden', !over);
-            saveBtn.classList.toggle('opacity-50', over);
-            saveBtn.classList.toggle('pointer-events-none', over);
-        }
-
-        function validateStatutoryAllocation() {
-            const errorEl = document.getElementById('statErrorText');
-            if (errorEl && !errorEl.classList.contains('hidden')) {
-                return false;
-            }
-            return true;
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            updateStatutoryLive();
-        });
-
-        // Cooperative Transaction Form
-        document.getElementById('cooperativeTransactionForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const formData = new FormData(form);
-
-            fetch('{{ route('cooperative.transactions.store') }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]')?.value || '{{ csrf_token() }}'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Success', data.message);
-                    form.reset();
-                    form.querySelector('[name="transaction_date"]').value = '{{ date('Y-m-d') }}';
-                    setTimeout(() => window.location.reload(), 1200);
-                } else {
-                    showToast('Error', data.message || 'Failed to record transaction', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Error', 'An error occurred', 'error');
-            });
-        });
-
-        // ─── Patronage Records (Finance Page) ──────────────────────────────────
+        // ——— Patronage Records (Finance Page) ——————————————————————————————————
 
         function loadPatronageRecords() {
             const year = '{{ $year }}';
@@ -1352,7 +954,7 @@
             }
         };
 
-        // ─── Patronage Refund Distribution Functions ───────────────────────────
+        // ——— Patronage Refund Distribution Functions ———————————————————————————
 
         function loadPatronageTable() {
             const year = '{{ $year }}';
@@ -1658,4 +1260,6 @@
         }
         function formatBreakdownNum(num) { return parseFloat(num||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 @endsection

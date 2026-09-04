@@ -271,6 +271,93 @@
             margin-top: 1px;
             flex-shrink: 0;
         }
+
+        .tx-voided-row { background: #fef2f2; }
+        .tx-voided-row:hover { background: #fde8e8; }
+        .sc-status-pill.voided {
+            background: #fdecec;
+            border: 1.5px solid #f5c6c6;
+            color: #c0392b;
+        }
+
+        /* ═══ VOID REASON OVERLAY ═══ */
+        #sc-void-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+        #sc-void-overlay.active { display: flex; }
+        #sc-void-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            margin: auto;
+            animation: scModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+        .sc-void-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--line);
+        }
+        .sc-void-header .sc-void-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #c0392b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+        .sc-void-header .sc-void-circle i { color: #fff; font-size: 26px; }
+        .sc-void-header h2 { color: #1a1a1a; font-size: 1.25rem; font-weight: 700; margin: 0 0 0.25rem; }
+        .sc-void-header p { color: var(--muted); font-size: 0.82rem; margin: 0; }
+        .sc-void-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .sc-void-body .sc-void-label {
+            font-size: 0.78rem;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+        }
+        .sc-void-body .sc-void-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #c0392b;
+            background: #fdecec;
+            border: 1px solid #f5c6c6;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+        }
+        .sc-void-footer {
+            padding: 0 1.5rem 1.5rem;
+        }
+        .sc-btn-void-close {
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sc-btn-void-close:hover { background: #f5f5f5; color: #333; }
     </style>
 </head>
 
@@ -288,13 +375,20 @@
                     <div class="sc-receipt-header">
                         <div class="check-circle"><i class="fa-solid fa-check"></i></div>
                         <h2>Request Submitted!</h2>
-                        @if(session('sc_receipt_status') === 'Completed')
-                            <p>Your deposit has been recorded successfully.</p>
+                        @if(session('sc_receipt_type') === 'Deposit')
+                            @if(session('sc_receipt_status') === 'Completed')
+                                <p>Your deposit has been recorded successfully.</p>
+                            @else
+                                <p>Your deposit request is pending for approval.</p>
+                            @endif
                         @else
-                            <p>Your withdrawal request is pending for approval.</p>
+                            @if(session('sc_receipt_status') === 'Completed')
+                                <p>Your withdrawal has been processed successfully.</p>
+                            @else
+                                <p>Your withdrawal request is pending for approval.</p>
+                            @endif
                         @endif
                     </div>
-                    <div class="sc-receipt-tear"></div>
 
                     <div class="sc-receipt-body" id="sc-receipt-printable">
                         <div class="sc-receipt-row">
@@ -360,6 +454,26 @@
                 data-status="{{ session('sc_receipt_status', 'Pending') }}" style="display:none;">
             </div>
         @endif
+
+        {{-- ============================================================
+        VOID REASON OVERLAY — Share Capital
+        ============================================================ --}}
+        <div id="sc-void-overlay">
+            <div id="sc-void-modal">
+                <div class="sc-void-header">
+                    <div class="sc-void-circle"><i class="fa-solid fa-ban"></i></div>
+                    <h2>Transaction Voided</h2>
+                    <p>This transaction has been voided by the admin.</p>
+                </div>
+                <div class="sc-void-body">
+                    <div class="sc-void-label">Reason</div>
+                    <div class="sc-void-value" id="sc-void-reason-text"></div>
+                </div>
+                <div class="sc-void-footer">
+                    <button class="sc-btn-void-close" onclick="scCloseVoidModal()">Close</button>
+                </div>
+            </div>
+        </div>
 
         @include("components.sidebar")
 
@@ -487,8 +601,9 @@
                                             <select name="payment_method" class="form-select" id="modal-pay" required
                                                 style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
                                                 <option value="" disabled selected>Select payment method...</option>
-                                                <option value="cash">Cash</option>
-                                                <option value="gcash">GCash</option>
+                                                @foreach($paymentMethods as $pm)
+                                                    <option value="{{ strtolower($pm->method_name) }}">{{ $pm->method_name }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
 
@@ -530,6 +645,23 @@
                                             <div style="margin-top: 1rem;">
                                                 <label
                                                     style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: #888888; display: block; margin-bottom: 6px;">
+                                                    GCash Reference Number <span style="color: #e53e3e;">*</span>
+                                                </label>
+                                                <p id="modal-ref-used-msg"
+                                                    style="display:none; margin:0 0 6px; color:#e53e3e; font-size:12px; font-weight:600;">
+                                                    <i class="fa fa-circle-exclamation"></i> This reference number has already been used for a transaction.
+                                                </p>
+                                                <input type="text" name="gcash_reference_no" id="modal-gcash-ref-input"
+                                                    maxlength="13" pattern="\d{13}" placeholder="e.g. 1234567890123"
+                                                    style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #ddd; font-size: 14px; box-sizing: border-box; height: 46px;">
+                                                <p style="margin: 4px 0 0; font-size: 11px; color: #888;">
+                                                    Enter the 13-digit reference number from your GCash transaction.
+                                                </p>
+                                            </div>
+
+                                            <div style="margin-top: 1rem;">
+                                                <label
+                                                    style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: #888888; display: block; margin-bottom: 6px;">
                                                     Upload Payment Screenshot <span
                                                         style="font-size: 11px; color: #bbb;">(GCash proof)</span>
                                                 </label>
@@ -542,6 +674,13 @@
                                                     <img id="modal-gcash-proof-preview-img"
                                                         style="width:100%; height:180px; object-fit:cover; border-radius:8px; border:1px solid #e0e0e0;">
                                                 </div>
+                                            </div>
+
+                                            <div id="modal-deposit-fraud-warning" style="display: none; background: #fff3cd; border: 1.5px solid #ffe08a; border-radius: 10px; padding: 0.75rem 1rem; margin-top: 1rem;">
+                                                <p style="margin: 0; font-size: 12px; color: #856404;">
+                                                    <i class="fa fa-triangle-exclamation"></i>
+                                                    Deposits via GCash are <strong>pending verification</strong>. Please enter the correct GCash reference number and attach a screenshot of your payment. Submitting false or fraudulent entries will result in account suspension.
+                                                </p>
                                             </div>
                                         </div>
 
@@ -932,7 +1071,13 @@
                                                     : ($isPending ? 'pending' : 'failed');
                                             @endphp
                                             <tr data-date="{{ \Carbon\Carbon::parse($row->transaction_date)->format('Y-m-d') }}"
-                                                data-type="{{ $row->type }}" data-status="{{ $statusKey }}">
+                                                data-type="{{ $row->type }}" data-status="{{ $statusKey }}"
+                                                @if(strtolower($row->status ?? '') === 'voided')
+                                                    class="tx-voided-row" style="cursor:pointer;"
+                                                    data-reason="{{ $row->void_reason }}"
+                                                    onclick="showScVoidReason(this)"
+                                                @endif
+                                            >
                                                 <td>{{ \Carbon\Carbon::parse($row->transaction_date)->format('M d, Y') }}
                                                 </td>
                                                 <td>{{ $row->type }}</td>
@@ -951,6 +1096,8 @@
                                                         <span class="sc-status-pill posted">Completed</span>
                                                     @elseif($isPending)
                                                         <span class="sc-status-pill pending">Pending</span>
+                                                    @elseif(strtolower($row->status ?? '') === 'voided')
+                                                        <span class="sc-status-pill voided">Voided</span>
                                                     @else
                                                         <span class="sc-status-pill failed">{{ $row->status }}</span>
                                                     @endif
@@ -1147,13 +1294,25 @@
                 if (this.value === 'Withdrawal') {
                     validateWithdrawal(+inp.value * PRICE);
                 }
+                var isGcash = pay.value === 'gcash';
+                var isDeposit = this.value === 'Deposit';
+                var txGcashRefInput = document.getElementById('modal-gcash-ref-input');
+                var depositFraudWarning = document.getElementById('modal-deposit-fraud-warning');
+                if (txGcashRefInput) txGcashRefInput.required = isGcash && isDeposit;
+                document.getElementById('modal-gcash-proof-input').required = isGcash && isDeposit;
+                if (depositFraudWarning) depositFraudWarning.style.display = (isGcash && isDeposit) ? '' : 'none';
             };
 
             pay.onchange = function () {
                 const isGcash = this.value === 'gcash';
                 gcashBox.style.display = isGcash ? 'block' : 'none';
-                document.getElementById('modal-gcash-proof-input').required = isGcash;
-                submitBtn.style.display = 'flex'; // submit button always visible now — same form handles both
+                var isDeposit = typeEl.value === 'Deposit';
+                var txGcashRefInput = document.getElementById('modal-gcash-ref-input');
+                var depositFraudWarning = document.getElementById('modal-deposit-fraud-warning');
+                if (txGcashRefInput) txGcashRefInput.required = isGcash && isDeposit;
+                document.getElementById('modal-gcash-proof-input').required = isGcash && isDeposit;
+                if (depositFraudWarning) depositFraudWarning.style.display = (isGcash && isDeposit) ? '' : 'none';
+                submitBtn.style.display = 'flex';
             };
 
             document.getElementById('modal-gcash-proof-input')?.addEventListener('change', function () {
@@ -1173,13 +1332,49 @@
                 typeEl.value = '';
                 gcashBox.style.display = 'none';
                 submitBtn.style.display = 'flex';
+                setModalRefState(false);
                 withdrawalNotice.style.display = 'none';
                 fullWithdrawalWarning.style.display = 'none';
                 document.getElementById('modal-note').value = '';
                 clearInlineError();
             });
 
+            let modalRefUsed = false;
+            const modalRefInput = document.getElementById('modal-gcash-ref-input');
+            const modalRefUsedMsg = document.getElementById('modal-ref-used-msg');
+
+            function setModalRefState(used) {
+                modalRefUsed = used;
+                if (modalRefUsedMsg) modalRefUsedMsg.style.display = used ? 'block' : 'none';
+                submitBtn.disabled = used;
+                submitBtn.style.opacity = used ? 0.55 : 1;
+                submitBtn.style.cursor = used ? 'not-allowed' : 'pointer';
+            }
+
+            let modalRefTimer = null;
+            if (modalRefInput) {
+                modalRefInput.addEventListener('input', function () {
+                    clearTimeout(modalRefTimer);
+                    const v = this.value.trim();
+                    if (v.length !== 13 || !/^\d{13}$/.test(v)) {
+                        setModalRefState(false);
+                        return;
+                    }
+                    modalRefTimer = setTimeout(function () {
+                        fetch('{{ route('reference.check') }}?ref=' + encodeURIComponent(v))
+                            .then(function (r) { return r.json(); })
+                            .then(function (d) { setModalRefState(!!d.used); })
+                            .catch(function () { setModalRefState(false); });
+                    }, 300);
+                });
+            }
+
             document.getElementById('modal-sc-form').addEventListener('submit', function (e) {
+                if (modalRefUsed) {
+                    e.preventDefault();
+                    if (modalRefUsedMsg) modalRefUsedMsg.style.display = 'block';
+                    return;
+                }
                 if (typeEl.value === 'Withdrawal') {
                     if (!validateWithdrawal(+inp.value * PRICE)) {
                         e.preventDefault();
@@ -1264,13 +1459,10 @@
                     </div>
                     <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
                     <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">
-                        ${isCompleted ? 'Your deposit has been recorded successfully.' : 'Your withdrawal request is pending for approval.'}
+                        ${d.type === 'Deposit'
+                ? (isCompleted ? 'Your deposit has been recorded successfully.' : 'Your deposit request is pending for approval.')
+                : (isCompleted ? 'Your withdrawal has been processed successfully.' : 'Your withdrawal request is pending for approval.')}
                     </div>
-                </div>
-                <div style="height:16px;background:linear-gradient(135deg,#1a4a3a,#2d6a4f);position:relative;">
-                    <svg viewBox="0 0 400 16" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:16px;">
-                        <polygon fill="#ffffff" points="0,16 10,0 20,16 30,0 40,16 50,0 60,16 70,0 80,16 90,0 100,16 110,0 120,16 130,0 140,16 150,0 160,16 170,0 180,16 190,0 200,16 210,0 220,16 230,0 240,16 250,0 260,16 270,0 280,16 290,0 300,16 310,0 320,16 330,0 340,16 350,0 360,16 370,0 380,16 390,0 400,16"/>
-                    </svg>
                 </div>
                 <div style="padding:1.2rem 1.5rem;">
                     <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
@@ -1312,6 +1504,31 @@
                 </tr>
             `;
         }
+
+        /* ══════════════════════════════════════
+    VOID REASON MODAL
+══════════════════════════════════════ */
+        const VOID_LABELS = {
+            wrong_amount: 'Wrong amount entered',
+            duplicate_payment: 'Duplicate payment',
+            fraudulent: 'Fraudulent / suspicious transaction',
+            other_member: 'Sent by wrong member',
+            technical_error: 'System / technical error',
+            other: 'Other'
+        };
+        function getVoidLabel(key) { return VOID_LABELS[key] || key || 'No reason provided'; }
+
+        function showScVoidReason(el) {
+            var reason = getVoidLabel(el.dataset.reason);
+            document.getElementById('sc-void-reason-text').textContent = reason;
+            document.getElementById('sc-void-overlay').classList.add('active');
+        }
+        function scCloseVoidModal() {
+            document.getElementById('sc-void-overlay').classList.remove('active');
+        }
+        document.getElementById('sc-void-overlay')?.addEventListener('click', function (e) {
+            if (e.target === this) scCloseVoidModal();
+        });
 
         /* ══════════════════════════════════════
     CONTRIBUTION HISTORY — SEARCH + FILTERS + PAGINATION

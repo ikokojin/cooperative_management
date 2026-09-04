@@ -20,7 +20,7 @@ class ApprovedMail extends Mailable
     public function build()
     {
         return $this->subject('Cooperative Membership Approved')
-                    ->from('your@email.com', 'Kingsland Pala-Pala Cooperative')
-                    ->view('emails.approved');
+            ->from('your@email.com', 'Kingsland Pala-Pala Cooperative')
+            ->view('emails.approved');
     }
 }

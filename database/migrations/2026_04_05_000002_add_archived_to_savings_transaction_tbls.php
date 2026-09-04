@@ -8,15 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('savings_transaction_tbls', function (Blueprint $table) {
-
-        });
+        Schema::table('savings_transaction_tbls', function (Blueprint $table) {});
     }
 
     public function down(): void
     {
-        Schema::table('savings_transaction_tbls', function (Blueprint $table) {
-
-        });
+        Schema::table('savings_transaction_tbls', function (Blueprint $table) {});
     }
 };

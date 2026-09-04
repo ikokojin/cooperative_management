@@ -24,7 +24,660 @@
     <link rel="stylesheet" href="font-awesome-icon/css/all.min.css">
 
     <style>
-        
+        /* ═══ WITHDRAWAL RECEIPT OVERLAY ═══ */
+        #wv-receipt-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        #wv-receipt-overlay.active {
+            display: flex;
+        }
+
+        #wv-receipt-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            overflow: visible;
+            margin: auto;
+            animation: wvModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @keyframes wvModalIn {
+            from { opacity: 0; transform: translateY(28px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .wv-receipt-header {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid var(--line, #e8e8e8);
+        }
+
+        .wv-receipt-header .wv-check-circle {
+            width: 60px;
+            height: 60px;
+            background-color: var(--teal, #0d9488);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+
+        .wv-receipt-header .wv-check-circle i {
+            color: #fff;
+            font-size: 26px;
+        }
+
+        .wv-receipt-header h2 {
+            color: #1a1a1a;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 0.25rem;
+        }
+
+        .wv-receipt-header p {
+            color: var(--muted, #888);
+            font-size: 0.82rem;
+            margin: 0;
+        }
+
+        .wv-receipt-body {
+            padding: 1.5rem;
+        }
+
+        .wv-receipt-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #e8e8e8;
+            font-size: 0.85rem;
+        }
+
+        .wv-receipt-row:last-child {
+            border-bottom: none;
+        }
+
+        .wv-receipt-row .label {
+            color: #888;
+            font-weight: 500;
+        }
+
+        .wv-receipt-row .value {
+            color: #1a1a1a;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .wv-receipt-row .value.highlight {
+            color: #1a1a1a;
+            font-size: 13.6px;
+        }
+
+        .wv-ref-badge {
+            background: #f4f4f4;
+            border-radius: 6px;
+            padding: 0.2rem 0.6rem;
+            letter-spacing: 0.5px;
+            color: #333;
+            font-family: monospace;
+            font-size: 0.82rem;
+        }
+
+        .wv-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff8e1;
+            border: 1.5px solid #ffe082;
+            color: #b8860b;
+            border-radius: 20px;
+            padding: 0.2rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .wv-status-badge .dot {
+            width: 7px;
+            height: 7px;
+            background: #e6a817;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .wv-receipt-footer {
+            padding: 0 1.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            border-radius: 0 0 20px 20px;
+            background: #fff;
+        }
+
+        .wv-btn-download {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--teal, #0d9488);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .wv-btn-download:hover {
+            opacity: 0.88;
+        }
+
+        .wv-btn-close-modal {
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .wv-btn-close-modal:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* ═══ DEPOSIT RECEIPT OVERLAY ═══ */
+        #sv-receipt-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        #sv-receipt-overlay.active {
+            display: flex;
+        }
+
+        #sv-receipt-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            overflow: visible;
+            margin: auto;
+            animation: svModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @keyframes svModalIn {
+            from { opacity: 0; transform: translateY(28px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .sv-receipt-header {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid var(--line, #e8e8e8);
+        }
+
+        .sv-receipt-header .sv-check-circle {
+            width: 60px;
+            height: 60px;
+            background-color: var(--teal, #0d9488);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+
+        .sv-receipt-header .sv-check-circle i {
+            color: #fff;
+            font-size: 26px;
+        }
+
+        .sv-receipt-header h2 {
+            color: #1a1a1a;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 0.25rem;
+        }
+
+        .sv-receipt-header p {
+            color: var(--muted, #888);
+            font-size: 0.82rem;
+            margin: 0;
+        }
+
+        .sv-receipt-body {
+            padding: 1.5rem;
+        }
+
+        .sv-receipt-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #e8e8e8;
+            font-size: 0.85rem;
+        }
+
+        .sv-receipt-row:last-child {
+            border-bottom: none;
+        }
+
+        .sv-receipt-row .label {
+            color: #888;
+            font-weight: 500;
+        }
+
+        .sv-receipt-row .value {
+            color: #1a1a1a;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .sv-receipt-row .value.highlight {
+            color: #1a1a1a;
+            font-size: 13.6px;
+        }
+
+        .sv-ref-badge {
+            background: #f4f4f4;
+            border-radius: 6px;
+            padding: 0.2rem 0.6rem;
+            letter-spacing: 0.5px;
+            color: #333;
+            font-family: monospace;
+            font-size: 0.82rem;
+        }
+
+        .sv-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff8e1;
+            border: 1.5px solid #ffe082;
+            color: #b8860b;
+            border-radius: 20px;
+            padding: 0.2rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .sv-status-badge .dot {
+            width: 7px;
+            height: 7px;
+            background: #e6a817;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .sv-receipt-footer {
+            padding: 0 1.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            border-radius: 0 0 20px 20px;
+            background: #fff;
+        }
+
+        .sv-btn-download {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--teal, #0d9488);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .sv-btn-download:hover {
+            opacity: 0.88;
+        }
+
+        .sv-btn-close-modal {
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .sv-btn-close-modal:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+        ROW-RECEIPT OVERLAYS (opened by clicking a table row)
+        Self-contained so both SC and SV overlays render correctly.
+        ═══════════════════════════════════════════════════════ */
+        .hidden-receipt {
+            display: none;
+        }
+        #sc-row-receipt-overlay.active,
+        #sv-row-receipt-overlay.active {
+            display: flex;
+        }
+
+        #sc-row-receipt-overlay,
+        #sv-row-receipt-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        #sc-row-receipt-modal,
+        #sv-row-receipt-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            overflow: visible;
+            margin: auto;
+            animation: svModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        /* SC inner styles (not present in Financial.blade.php otherwise) */
+        .sc-receipt-header {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .sc-receipt-header .check-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #1a4a3a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+        .sc-receipt-header .check-circle i {
+            color: #fff;
+            font-size: 26px;
+        }
+        .sc-receipt-header h2 {
+            color: #1a1a1a;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 0.25rem;
+        }
+        .sc-receipt-header p {
+            color: #888;
+            font-size: 0.82rem;
+            margin: 0;
+        }
+        .sc-receipt-body {
+            padding: 1.5rem;
+        }
+        .sc-receipt-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #e8e8e8;
+            font-size: 0.85rem;
+        }
+        .sc-receipt-row:last-child {
+            border-bottom: none;
+        }
+        .sc-receipt-row .label {
+            color: #888;
+            font-weight: 500;
+        }
+        .sc-receipt-row .value {
+            color: #1a1a1a;
+            font-weight: 700;
+            text-align: right;
+        }
+        .sc-receipt-row .value.highlight {
+            font-size: 13.6px;
+        }
+        .sc-ref-badge {
+            background: #f4f4f4;
+            border-radius: 6px;
+            padding: 0.2rem 0.6rem;
+            letter-spacing: 0.5px;
+            color: #333;
+            font-family: monospace;
+            font-size: 0.82rem;
+        }
+        .sc-receipt-footer {
+            padding: 0 1.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            border-radius: 0 0 20px 20px;
+            background: #fff;
+        }
+        .sc-btn-download {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #1a4a3a;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+        .sc-btn-download:hover {
+            opacity: 0.88;
+        }
+        .sc-btn-close-modal {
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sc-btn-close-modal:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .tx-voided-row { background: #fef2f2; }
+        .tx-voided-row:hover { background: #fde8e8; }
+        .status.voided {
+            background: #fdecec;
+            border: 1.5px solid #f5c6c6;
+            color: #c0392b;
+            border-radius: 10px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .sc-status-pill.voided {
+            background: #fdecec;
+            border: 1.5px solid #f5c6c6;
+            color: #c0392b;
+        }
+
+        /* ═══ VOID REASON OVERLAY (Financial) ═══ */
+        #fin-void-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 999999;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+        #fin-void-overlay.active { display: flex; }
+        #fin-void-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            margin: auto;
+            animation: scModalIn 0.35s cubic-bezier(.22, 1, .36, 1) both;
+        }
+        .fin-void-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--line);
+        }
+        .fin-void-header .fin-void-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #c0392b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+        }
+        .fin-void-header .fin-void-circle i { color: #fff; font-size: 26px; }
+        .fin-void-header h2 { color: #1a1a1a; font-size: 1.25rem; font-weight: 700; margin: 0 0 0.25rem; }
+        .fin-void-header p { color: var(--muted); font-size: 0.82rem; margin: 0; }
+        .fin-void-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .fin-void-body .fin-void-label {
+            font-size: 0.78rem;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+        }
+        .fin-void-body .fin-void-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #c0392b;
+            background: #fdecec;
+            border: 1px solid #f5c6c6;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+        }
+        .fin-void-body .fin-void-amount-wrap {
+            background: #fdecec;
+            border: 1px solid #f5c6c6;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .fin-void-body .fin-void-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #c0392b;
+            line-height: 1.2;
+        }
+        .fin-void-body .fin-void-details {
+            text-align: left;
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 0.25rem 1rem;
+            margin-bottom: 1rem;
+        }
+        .fin-void-body .fin-void-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #f0e2e2;
+            font-size: 0.85rem;
+        }
+        .fin-void-body .fin-void-row:last-child { border-bottom: none; }
+        .fin-void-body .fin-void-row-label {
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+        }
+        .fin-void-body .fin-void-row-value {
+            color: #1a1a1a;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        .fin-void-footer {
+            padding: 0 1.5rem 1.5rem;
+        }
+        .fin-btn-void-close {
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .fin-btn-void-close:hover { background: #f5f5f5; color: #333; }
     </style>
 </head>
 
@@ -42,10 +695,18 @@
                     <div class="sc-receipt-header">
                         <div class="check-circle"><i class="fa-solid fa-check"></i></div>
                         <h2>Request Submitted!</h2>
-                        @if(session('sc_receipt_status') === 'Completed')
-                            <p>Your deposit has been recorded successfully.</p>
+                        @if(session('sc_receipt_type') === 'Deposit')
+                            @if(session('sc_receipt_status') === 'Completed')
+                                <p>Your deposit has been recorded successfully.</p>
+                            @else
+                                <p>Your deposit request is pending for approval.</p>
+                            @endif
                         @else
-                            <p>Your withdrawal request is pending for approval.</p>
+                            @if(session('sc_receipt_status') === 'Completed')
+                                <p>Your withdrawal has been processed successfully.</p>
+                            @else
+                                <p>Your withdrawal request is pending for approval.</p>
+                            @endif
                         @endif
                     </div>
 
@@ -187,86 +848,27 @@
                                             <span id="tx-inline-error-text"></span>
                                         </div>
 
-                                        {{-- SHARE CAPITAL FIELDS --}}
-                                        <div id="tx-sc-fields">
-                                            <p style="margin: 0 0 8px; font-size: 13px; color: #666;">Number of shares
-                                            </p>
-                                            <div
-                                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                                <button type="button" id="tx-dec"
-                                                    style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #ddd; background: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #333;">−</button>
-                                                <input type="number" name="shares" id="tx-shares" value="1" min="1"
-                                                    step="0.01"
-                                                    style="width: 60px; text-align: center; font-size: 14.5px; font-weight: 600; color: var(--teal); border: 1.5px solid #ddd; border-radius: 10px; padding: 6px;">
-                                                <button type="button" id="tx-inc"
-                                                    style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #ddd; background: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #333;">+</button>
-                                            </div>
-
-                                            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
-                                                <button type="button" class="tx-qbtn active" data-v="1"
-                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">1
-                                                    share</button>
-                                                <button type="button" class="tx-qbtn" data-v="6.25"
-                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">6.25
-                                                    shares</button>
-                                                <button type="button" class="tx-qbtn" data-v="10"
-                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">10
-                                                    shares</button>
-                                                <button type="button" class="tx-qbtn" data-v="12"
-                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">12
-                                                    shares</button>
-                                                <button type="button" class="tx-qbtn" data-v="25"
-                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">25
-                                                    shares</button>
-                                            </div>
-
-                                            <p style="font-size: 12px; color: #888888; margin-bottom: 1.2rem;">
-                                                Cost: <strong id="tx-cost" style="color: var(--teal);">₱200</strong> ·
-                                                ₱200 per Share (Par Value)
-                                            </p>
-                                        </div>
-
-                                        {{-- SAVINGS FIELDS --}}
-                                        <div id="tx-sv-fields" style="display:none;">
-                                            <label class="sm-form-label" for="tx-amount"
-                                                style="font-size: 13px; color: #666; display:block; margin-bottom:8px;">Amount</label>
-                                            <div class="sm-amount-wrap" style="margin-bottom: 10px;">
-                                                <span class="sm-amount-prefix">₱</span>
-                                                <input class="sm-form-input" type="number" id="tx-amount" name="amount"
-                                                    placeholder="0.00" min="1" step="0.01" disabled />
-                                            </div>
-                                            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
-                                                <button type="button" class="tx-amt-qbtn" data-v="500">₱500</button>
-                                                <button type="button" class="tx-amt-qbtn" data-v="1000">₱1,000</button>
-                                                <button type="button" class="tx-amt-qbtn" data-v="1500">₱1,500</button>
-                                                <button type="button" class="tx-amt-qbtn" data-v="2000">₱2,000</button>
-                                                <button type="button" class="tx-amt-qbtn" data-v="5000">₱5,000</button>
-                                            </div>
-                                        </div>
-
                                         <div style="margin-bottom: 1.1rem;">
                                             <label
                                                 style="font-size: 12px; text-transform: uppercase; color: #888888; font-weight: 600; display: block; margin-bottom: 6px;">Account</label>
-                                            <select id="tx-dest-select" class="form-select" required
-                                                style="border-radius: 10px;border: 1.5px solid #e0e0e0;height: 46px;font-size: 14px;color: #333;">
-                                                <option value="">Select account</option>
-                                                <option value="share_capital">🪙 Share Capital</option>
-                                                <option value="savings" {{ !$hasShareCapital ? 'disabled' : '' }}>
-                                                    🐷 Savings
-                                                    {{ !$hasShareCapital ? '(Locked — subscribe to Share Capital first)' : '' }}
-                                                </option>
-                                            </select>
+                                            <div id="tx-dest-display"
+                                                style="display: flex; align-items: center; gap: 10px; border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; padding: 0 14px; font-size: 14px; color: #333; background: #f7f7f8;">
+                                                <span id="tx-dest-display-icon">🪙</span>
+                                                <span id="tx-dest-display-text">Share Capital</span>
+                                                <i class="fa fa-lock" style="margin-left: auto; color: #b0b0b0; font-size: 12px;"></i>
+                                            </div>
                                         </div>
 
-                                        <div style="margin-bottom: 17.6px;">
+                                        <div id="tx-type-field" style="margin-bottom: 17.6px;">
                                             <label
                                                 style="font-size: 12px; text-transform: uppercase; color: #888888; font-weight: 600; display: block; margin-bottom: 6px;">Type</label>
-                                            <select name="type" class="form-select" id="tx-type" required
+                                            <select class="form-select" id="tx-type" required
                                                 style="border-radius: 10px;border: 1.5px solid #e0e0e0;height: 46px;font-size: 14px;color: #333;">
                                                 <option value="">Select type..</option>
                                                 <option value="Deposit">Deposit</option>
                                                 <option value="Withdrawal">Withdrawal</option>
                                             </select>
+                                            <input type="hidden" name="type" id="tx-type-hidden" value="">
                                         </div>
 
                                         <div id="tx-sc-withdrawal-notice"
@@ -284,58 +886,84 @@
                                             to a 60-day holding period upon approval.
                                         </div>
 
-                                        <div style="margin-bottom: 17.6px;">
+                                        <input type="hidden" name="payment_method" id="tx-pay-hidden" value="">
+
+                                        <div id="tx-pay-field" style="margin-bottom: 17.6px;">
                                             <label
                                                 style="font-size: 12px; text-transform: uppercase; color: #888888; font-weight: 600; display: block; margin-bottom: 6px;">Payment
                                                 Method</label>
-                                            <select name="payment_method" class="form-select" id="tx-pay" required
+                                            <select class="form-select" id="tx-pay"
                                                 style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
                                                 <option value="" disabled selected>Select payment method...</option>
-                                                <option value="cash">Cash</option>
-                                                <option value="gcash">GCash</option>
+                                                @foreach($paymentMethods as $pm)
+                                                    <option value="{{ strtolower($pm->method_name) }}">{{ $pm->method_name }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
 
-                                        <div id="tx-gcash-box" style="display: none; margin-top: 0.8rem;">
-                                            @if($gcashPaymentMethod && $gcashPaymentMethod->has_qr_code && $gcashPaymentMethod->qr_code_image_path)
+                                        <div id="tx-gcash-number-field" style="display:none; margin-bottom: 17.6px;">
+                                            <label
+                                                style="font-size: 12px; text-transform: uppercase; color: #888888; font-weight: 600; display: block; margin-bottom: 6px;">GCash
+                                                Mobile Number</label>
+                                            <input type="text" name="gcash_number" id="tx-gcash-number"
+                                                placeholder="e.g. 09123456789"
+                                                value="{{ old('gcash_number', Auth::user()->otherinfo->contact_no ?? '') }}"
+                                                style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #e0e0e0; font-size: 14px; color: #333; box-sizing: border-box; height: 46px;">
+                                        </div>
+
+                                        <div id="tx-qr-box" style="display: none; margin-top: 0.8rem;">
+                                            <div id="tx-qr-area" style="display:none;">
                                                 <div
                                                     style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4ff 100%); border: 1.5px solid #c2deff; border-radius: 12px; padding: 1rem 1.2rem; text-align: center;">
-                                                    <p
+                                                    <p id="tx-qr-title"
                                                         style="margin: 0 0 10px; font-size: 14px; font-weight: 700; color: #0056b3;">
                                                         <i class="fa-solid fa-mobile-screen-button"></i> Scan to Pay via
-                                                        GCash
                                                     </p>
-                                                    <img src="{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}"
-                                                        alt="GCash QR Code"
+                                                    <img id="tx-qr-img" src="" alt="QR Code"
                                                         style="width: 220px; height: 220px; max-width: 100%; object-fit: contain; border-radius: 10px; border: 1px solid #c2deff; background: #fff; padding: 12px; display: block; margin: 0 auto;">
-                                                    <p style="margin: 10px 0 0; font-size: 11px; color: #5a8ac4;">
-                                                        Scan this using your GCash app, then upload your payment screenshot
+                                                    <p id="tx-qr-hint" style="margin: 10px 0 0; font-size: 11px; color: #5a8ac4;">
+                                                        Scan this using your app, then upload your payment screenshot
                                                         below.
                                                     </p>
                                                     <p style="margin: 6px 0 0; font-size: 11px;">
-                                                        <a href="#"
-                                                            onclick="openQrLightbox('{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}'); return false;"
+                                                        <a href="#" id="tx-qr-view"
+                                                            onclick="openQrLightbox(this.dataset.src); return false;"
                                                             style="color: #0056b3; font-weight: 600;">
                                                             <i class="fa fa-up-right-and-down-left-from-center"></i> View
                                                             full-size QR
                                                         </a>
                                                     </p>
                                                 </div>
-                                            @else
-                                                <div
-                                                    style="background: #fff3cd; border: 1.5px solid #ffe08a; border-radius: 12px; padding: 1rem 1.2rem;">
-                                                    <p style="margin: 0; font-size: 13px; color: #856404;">
-                                                        <i class="fa fa-triangle-exclamation"></i> No GCash QR code has been
-                                                        set up yet. Please contact the admin.
-                                                    </p>
-                                                </div>
-                                            @endif
+                                            </div>
+                                            <div id="tx-qr-fallback" style="display:none; background: #fff3cd; border: 1.5px solid #ffe08a; border-radius: 12px; padding: 1rem 1.2rem;">
+                                                <p style="margin: 0; font-size: 13px; color: #856404;">
+                                                    <i class="fa fa-triangle-exclamation"></i> No <span id="tx-qr-fallback-name">QR</span> code has been
+                                                    set up yet. Please contact the admin.
+                                                </p>
+                                            </div>
+
+                                            <div style="margin-top: 1rem;">
+                                                <label
+                                                    style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: #888888; display: block; margin-bottom: 6px;">
+                                                    <span id="tx-qr-ref-label">Reference Number</span> <span style="color: #e53e3e;">*</span>
+                                                </label>
+                                                <p id="tx-ref-used-msg"
+                                                    style="display:none; margin:0 0 6px; color:#e53e3e; font-size:12px; font-weight:600;">
+                                                    <i class="fa fa-circle-exclamation"></i> This reference number has already been used for a transaction.
+                                                </p>
+                                                <input type="text" name="gcash_reference_no" id="tx-gcash-ref-input"
+                                                    maxlength="13" pattern="\d{13}" placeholder="e.g. 1234567890123"
+                                                    style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #ddd; font-size: 14px; box-sizing: border-box; height: 46px;">
+                                                <p style="margin: 4px 0 0; font-size: 11px; color: #888;">
+                                                    <span id="tx-qr-ref-hint">Enter the reference number from your transaction.</span>
+                                                </p>
+                                            </div>
 
                                             <div style="margin-top: 1rem;">
                                                 <label
                                                     style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: #888888; display: block; margin-bottom: 6px;">
                                                     Upload Payment Screenshot <span
-                                                        style="font-size: 11px; color: #bbb;">(GCash proof)</span>
+                                                        style="font-size: 11px; color: #bbb;" id="tx-qr-proof-tag">(proof)</span>
                                                 </label>
                                                 <input type="file" name="gcash_proof" id="tx-gcash-proof-input"
                                                     accept="image/png,image/jpeg,image/jpg"
@@ -346,6 +974,65 @@
                                                         style="width:100%; height:180px; object-fit:cover; border-radius:8px; border:1px solid #e0e0e0;">
                                                 </div>
                                             </div>
+                                        </div>
+
+                                        <div id="tx-deposit-fraud-warning" style="display: none; background: #fff3cd; border: 1.5px solid #ffe08a; border-radius: 10px; padding: 0.75rem 1rem; margin-top: 1rem;">
+                                            <p style="margin: 0; font-size: 12px; color: #856404;">
+                                                <i class="fa fa-triangle-exclamation"></i>
+                                                Deposits paid via QR code are <strong>pending verification</strong>. Please enter the correct reference number and attach a screenshot of your payment. Submitting false or fraudulent entries will result in account suspension.
+                                            </p>
+                                        </div>
+
+                                        {{-- SAVINGS AMOUNT FIELD (bottom) --}}
+                                        <div id="tx-sv-amount-field" style="display:none; margin-top: 0.8rem;">
+                                            <label class="sm-form-label" for="tx-amount"
+                                                style="font-size: 13px; color: #666; display:block; margin-bottom:8px;">Amount</label>
+                                            <div class="sm-amount-wrap" style="margin-bottom: 10px;">
+                                                <span class="sm-amount-prefix">₱</span>
+                                                <input class="sm-form-input" type="number" id="tx-amount" name="amount"
+                                                    placeholder="0.00" min="1" step="0.01" disabled />
+                                            </div>
+                                            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+                                                <button type="button" class="tx-amt-qbtn" data-v="500">₱500</button>
+                                                <button type="button" class="tx-amt-qbtn" data-v="1000">₱1,000</button>
+                                                <button type="button" class="tx-amt-qbtn" data-v="1500">₱1,500</button>
+                                                <button type="button" class="tx-amt-qbtn" data-v="2000">₱2,000</button>
+                                                    <button type="button" class="tx-amt-qbtn" data-v="5000">₱5,000</button>
+                                            </div>
+                                        </div>
+
+                                        {{-- SHARE CAPITAL FIELDS (bottom) --}}
+                                        <div id="tx-sc-fields" style="display:none; margin-top: 0.8rem;">
+                                            <label for="tx-sc-amount"
+                                                style="font-size: 13px; color: #666; display: block; margin-bottom: 8px;">Amount</label>
+                                            <div
+                                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                                <span style="font-size: 16px; font-weight: 600; color: #666;">₱</span>
+                                                <input type="number" id="tx-sc-amount" name="sc_amount" value="200"
+                                                    min="1" step="0.01" placeholder="0.00"
+                                                    style="width: 130px; font-size: 14.5px; font-weight: 600; color: var(--teal); border: 1.5px solid #ddd; border-radius: 10px; padding: 8px 10px;">
+                                                <input type="number" name="shares" id="tx-shares" value="1" min="0.01"
+                                                    step="0.01" style="display:none;">
+                                            </div>
+
+                                            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+                                                <button type="button" class="tx-qbtn active" data-v="200"
+                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">₱200</button>
+                                                <button type="button" class="tx-qbtn" data-v="1250"
+                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">₱1,250</button>
+                                                <button type="button" class="tx-qbtn" data-v="2000"
+                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">₱2,000</button>
+                                                <button type="button" class="tx-qbtn" data-v="2400"
+                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">₱2,400</button>
+                                                <button type="button" class="tx-qbtn" data-v="5000"
+                                                    style="padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: #808080; border: 1.5px solid #ddd;">₱5,000</button>
+                                            </div>
+
+                                            <p style="font-size: 12px; color: #888888; margin-bottom: 1.2rem;">
+                                                Cost: <strong id="tx-cost" style="color: var(--teal);">₱200</strong> ·
+                                                <strong id="tx-sc-share-count">1</strong> shares · ₱200 per Share (Par
+                                                Value)
+                                            </p>
                                         </div>
 
                                         <div style="margin-top: 17.6px;">
@@ -399,10 +1086,10 @@
                         </div>
 
                         <div class="fin-tabs">
-                            <a href="{{ route('Financial', ['tab' => 'share_capital']) }}"
-                                class="fin-tab {{ $activeTab === 'share_capital' ? 'active' : '' }}">Share Capital</a>
                             <a href="{{ route('Financial', ['tab' => 'savings']) }}"
                                 class="fin-tab {{ $activeTab === 'savings' ? 'active' : '' }}">Savings</a>
+                            <a href="{{ route('Financial', ['tab' => 'share_capital']) }}"
+                                class="fin-tab {{ $activeTab === 'share_capital' ? 'active' : '' }}">Share Capital</a>
                         </div>
 
                         {{-- ═══════════════════════════════════════════════════════════
@@ -715,7 +1402,19 @@
                                                             : ($isPending ? 'pending' : 'failed');
                                                     @endphp
                                                     <tr data-date="{{ \Carbon\Carbon::parse($row->transaction_date)->format('Y-m-d') }}"
-                                                        data-type="{{ $row->type }}" data-status="{{ $statusKey }}">
+                                                        data-type="{{ $row->type }}" data-status="{{ $statusKey }}"
+                                                        data-void="{{ strtolower($row->status ?? '') === 'voided' ? '1' : '0' }}"
+                                                        data-reason="{{ $row->void_reason }}"
+                                                        data-trigger="sc"
+                                                        class="{{ strtolower($row->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
+                                                        data-member="{{ Auth::user()->name ?? 'Member' }}"
+                                                        data-amount="{{ number_format((float) $row->total_amount, 2) }}"
+                                                        data-shares="{{ $row->shares ? number_format((float) $row->shares, 2) : '0' }}"
+                                                        data-method="{{ $row->payment_method ? \Illuminate\Support\Str::title($row->payment_method) : '—' }}"
+                                                        data-ref="{{ $row->reference_no ?? '—' }}"
+                                                        data-txdate="{{ \Carbon\Carbon::parse($row->transaction_date)->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
+                                                        style="cursor:pointer;"
+                                                        onclick="handleTxnRowClick(event, this, 'sc')">
                                                         <td>{{ \Carbon\Carbon::parse($row->transaction_date)->format('M d, Y') }}
                                                         </td>
                                                         <td>{{ $row->type }}</td>
@@ -734,6 +1433,8 @@
                                                                 <span class="sc-status-pill posted">Completed</span>
                                                             @elseif($isPending)
                                                                 <span class="sc-status-pill pending">Pending</span>
+                                                            @elseif(strtolower($row->status ?? '') === 'voided')
+                                                                <span class="sc-status-pill voided">Voided</span>
                                                             @else
                                                                 <span class="sc-status-pill failed">{{ $row->status }}</span>
                                                             @endif
@@ -870,70 +1571,6 @@
 
                                 <div class="{{ !$hasShareCapital ? 'gated' : '' }}">
                                     <div class="parent-panel">
-                                        <div class="panel">
-                                            <div class="panel-head">
-                                                <div class="panel-text">
-                                                    <h3>Time Deposit Accounts</h3>
-                                                    <p>Time Deposit history</p>
-                                                </div>
-                                                <div class="panel-view">
-                                                    <button type="button" data-bs-toggle="modal"
-                                                        data-bs-target="#tdHistoryModal">
-                                                        View all
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="panel-body">
-                                                @forelse ($tdHistory as $td)
-                                                    <div class="panel-card">
-                                                        <div class="panel-icon">
-                                                            @if ($td->display_status === 'completed')
-                                                                <i class="fa fa-circle-check"></i>
-                                                            @elseif ($td->display_status === 'matured')
-                                                                <i class="fa fa-hourglass-end"></i>
-                                                            @elseif ($td->display_status === 'goal_reached')
-                                                                <i class="fa fa-bullseye"></i>
-                                                            @else
-                                                                <i class="fa fa-lock"></i>
-                                                            @endif
-                                                        </div>
-                                                        <div class="panel-text">
-                                                            <div class="text">
-                                                                <h4>₱{{ number_format($td->goal_amount, 2) }} Goal</h4>
-                                                                <p>
-                                                                    Opened
-                                                                    {{ \Carbon\Carbon::parse($td->opened_at)->format('M d, Y') }}
-                                                                    · {{ number_format($td->interest_rate, 2) }}% p.a.
-                                                                </p>
-                                                            </div>
-                                                            <div class="price">
-                                                                <h4>₱{{ number_format($td->display_balance, 2) }}</h4>
-                                                                @if ($td->display_status === 'completed')
-                                                                    <p style="color:var(--green);font-weight:700;">Completed</p>
-                                                                @elseif ($td->display_status === 'matured')
-                                                                    <p style="color:var(--green);font-weight:700;">Ready to Claim
-                                                                    </p>
-                                                                @elseif ($td->display_status === 'goal_reached')
-                                                                    <p style="color:var(--blue, #1e56a0);font-weight:700;">Fully
-                                                                        Funded</p>
-                                                                @else
-                                                                    <p style="color:#AB7817;font-weight:700;">In Progress</p>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @empty
-                                                    <div style="text-align:center; padding:2.5rem 1rem;">
-                                                        <i class="fa-solid fa-piggy-bank fa-2x"
-                                                            style="color:var(--muted); opacity:.4;"></i>
-                                                        <p style="color:var(--muted); margin-top:0.75rem; font-size:13.5px;">
-                                                            No Time Deposits opened yet.
-                                                        </p>
-                                                    </div>
-                                                @endforelse
-                                            </div>
-                                        </div>
-
                                         <div class="panel graph">
                                             <div class="panel-head"
                                                 style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
@@ -1059,12 +1696,41 @@
                                                                 <th class="text-start">Date</th>
                                                                 <th class="text-start">Amount</th>
                                                                 <th class="text-start">Status</th>
-                                                                <th class="text-start">Receipt</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             @forelse ($transactions as $tx)
-                                                                <tr>
+                                                                @php
+                                                                    $rowMethod = !empty($tx->payment_method)
+                                                                        ? $tx->payment_method
+                                                                        : (!empty($tx->gcash_reference_no) ? 'GCash' : '—');
+                                                                    $rowDisplayStatus = $tx->status ?? 'completed';
+                                                                    $rowRefPref = $tx->reference_no ?? '';
+                                                                    if ($tx->type === 'deposit' && str_starts_with($rowRefPref, 'DISB')) {
+                                                                        $rowTypeLabel = 'Loan Disbursement';
+                                                                    } elseif ($tx->type === 'deposit' && str_starts_with($rowRefPref, 'PAT')) {
+                                                                        $rowTypeLabel = 'Patronage Refund';
+                                                                    } elseif ($tx->type === 'deposit') {
+                                                                        $rowTypeLabel = 'Deposit';
+                                                                    } elseif (str_starts_with($rowRefPref, 'LNPAY')) {
+                                                                        $rowTypeLabel = 'Loan Repay';
+                                                                    } else {
+                                                                        $rowTypeLabel = 'Withdrawal';
+                                                                    }
+                                                                @endphp
+                                                                 <tr data-trigger="sv"
+                                                                     data-void="{{ strtolower($tx->status ?? '') === 'voided' ? '1' : '0' }}"
+                                                                     data-reason="{{ $tx->void_reason }}"
+                                                                     class="{{ strtolower($tx->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
+                                                                     data-member="{{ Auth::user()->name ?? 'Member' }}"
+                                                                     data-type="{{ $rowTypeLabel }}"
+                                                                     data-amount="{{ number_format((float) $tx->amount, 2) }}"
+                                                                     data-method="{{ $rowMethod }}"
+                                                                     data-ref="{{ $tx->reference_no ?? '—' }}"
+                                                                     data-txdate="{{ \Carbon\Carbon::parse($tx->transaction_date)->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
+                                                                     data-status="{{ $rowDisplayStatus }}"
+                                                                     style="cursor:pointer;"
+                                                                     onclick="handleTxnRowClick(event, this, 'sv')">
                                                                     <td class="text-start">
                                                                         @if($tx->type === 'deposit' && str_starts_with($tx->reference_no ?? '', 'DISB'))
                                                                             <div class="deposit">Loan Disbursement</div>
@@ -1072,8 +1738,6 @@
                                                                             <div class="deposit">Patronage Refund</div>
                                                                         @elseif($tx->type === 'deposit')
                                                                             <div class="deposit">Deposit</div>
-                                                                        @elseif($tx->type === 'td_release')
-                                                                            <div class="deposit">Time Deposit Claimed</div>
                                                                         @elseif(str_starts_with($tx->reference_no ?? '', 'LNPAY'))
                                                                             <div class="withdraw">Loan Repay</div>
                                                                         @else
@@ -1113,6 +1777,8 @@
                                                                             <span class="status rejected">Rejected</span>
                                                                         @elseif ($displayStatus === 'credited')
                                                                             <span class="status credited">Credited</span>
+                                                                        @elseif ($displayStatus === 'voided')
+                                                                            <span class="status voided">Voided</span>
                                                                         @elseif ($displayStatus === 'locked')
                                                                             <span class="status locked">Locked</span>
                                                                         @else
@@ -1120,21 +1786,10 @@
                                                                                 class="status">{{ ucfirst($displayStatus) }}</span>
                                                                         @endif
                                                                     </td>
-                                                                    <td class="text-start">
-                                                                        @if ($tx->reference_no && in_array($tx->type, ['deposit', 'withdrawal']))
-                                                                            <a href="{{ route('savings.receipt', $tx->reference_no) }}"
-                                                                                title="Download Receipt"
-                                                                                style="color: var(--teal);font-size: 18px;">
-                                                                                <i class="fa-solid fa-file-arrow-down"></i>
-                                                                            </a>
-                                                                        @else
-                                                                            <span style="color:#c4c4c4;font-size:0.78rem">—</span>
-                                                                        @endif
-                                                                    </td>
                                                                 </tr>
                                                             @empty
                                                                 <tr>
-                                                                    <td colspan="6" class="text-center py-5">
+                                                                    <td colspan="5" class="text-center py-5">
                                                                         <i class="fa-solid fa-folder-open fa-2x mb-3"
                                                                             style="color: var(--muted);"></i>
                                                                         <p style="color:var(--muted);margin-top:0.5rem;">No
@@ -1259,247 +1914,315 @@
     ═══════════════════════════════════════ --}}
     @if($activeTab === 'savings')
 
-        <div class="modal fade" id="depositSuccessModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content sm-modal-content">
-                    <div class="modal-body sm-success-body">
+        {{-- ============================================================
+        RECEIPT OVERLAY — Deposit (matches share-capital/withdrawal style)
+        ============================================================ --}}
+        @if(session('deposit_success'))
+            <div id="sv-receipt-overlay" class="active">
+                <div id="sv-receipt-modal">
+                    <div class="sv-receipt-header">
+                        <div class="sv-check-circle"><i class="fa-solid fa-check"></i></div>
+                        <h2>Request Submitted!</h2>
+                        <p>Your deposit request is pending for approval.</p>
+                    </div>
 
-                        <div class="sm-success-icon sm-success-green">
-                            <i class="fa-solid fa-check"></i>
+                    <div class="sv-receipt-body" id="sv-receipt-printable">
+                        <div class="sv-receipt-row">
+                            <span class="label">Organization</span>
+                            <span class="value">KMPCATS</span>
                         </div>
-
-                        <h5 class="sm-success-title">Deposit Successful!</h5>
-
-                        <p class="sm-success-msg">
-                            Your deposit of
-                            <strong>₱
-                                {{ session('deposit_amount') ? number_format(session('deposit_amount'), 2) : '0.00' }}</strong>
-                            has been added to your savings account.
-                        </p>
-
-                        @if (session('deposit_reference'))
-                            <div class="sm-ref-pill">
-                                <span class="sm-ref-label">Reference No.</span>
-                                <span class="sm-ref-value" id="deposit-ref-no">{{ session('deposit_reference') }}</span>
-                                <button class="sm-copy-btn" onclick="copyRef('deposit-ref-no')" title="Copy">
-                                    <i class="fa-regular fa-copy"></i>
-                                </button>
-                            </div>
-                        @endif
-
-                        <div class="sm-success-balance-pill">
-                            <span>New Balance</span>
-                            <span>₱ {{ number_format($savingsAccount->balance, 2) }}</span>
+                        <div class="sv-receipt-row">
+                            <span class="label">Member</span>
+                            <span class="value">{{ session('deposit_member', Auth::user()->name ?? 'Member') }}</span>
                         </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Transaction Type</span>
+                            <span class="value">Deposit</span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Amount</span>
+                            <span class="value highlight">₱{{ number_format(session('deposit_amount', 0), 2) }}</span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Payment Method</span>
+                            <span class="value">{{ session('deposit_method', '—') }}</span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Reference No.</span>
+                            <span class="value"><span class="sv-ref-badge">{{ session('deposit_reference', '—') }}</span></span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Date</span>
+                            <span class="value">{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}</span>
+                        </div>
+                        <div class="sv-receipt-row">
+                            <span class="label">Status</span>
+                            <span class="value">
+                                <span class="sv-status-badge"><span class="dot"></span> Pending Approval</span>
+                            </span>
+                        </div>
+                    </div>
 
-                        @if (session('deposit_reference'))
-                            <a href="{{ route('savings.receipt', session('deposit_reference')) }}" class="sm-btn-download">
-                                <i class="fa-solid fa-file-arrow-down"></i> Download Receipt
-                            </a>
-                        @endif
-
-                        <button type="button" class="sm-btn-confirm sm-deposit-confirm w-100 mt-3" data-bs-dismiss="modal">
-                            <i class="fa-solid fa-check"></i> Done
+                    <div class="sv-receipt-footer">
+                        <button class="sv-btn-download" onclick="svDownloadReceipt()">
+                            <i class="fa-solid fa-download"></i> Download Receipt
                         </button>
-
+                        <button class="sv-btn-close-modal" onclick="svCloseModal()">Close</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="modal fade" id="withdrawSuccessModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content sm-modal-content">
-                    <div class="modal-body sm-success-body">
+            <div id="sv-receipt-data" data-member="{{ session('deposit_member', Auth::user()->name ?? 'Member') }}"
+                data-type="Deposit"
+                data-amount="{{ number_format(session('deposit_amount', 0), 2) }}"
+                data-method="{{ session('deposit_method', '—') }}"
+                data-ref="{{ session('deposit_reference', '—') }}"
+                data-date="{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
+                data-status="Pending" style="display:none;">
+            </div>
+        @endif
 
-                        <div class="sm-success-icon sm-success-red">
-                            <i class="fa-solid fa-check"></i>
+        {{-- ============================================================
+        RECEIPT OVERLAY — Withdrawal (matches deposit/share-capital style)
+        ============================================================ --}}
+        @if(session('withdraw_success'))
+            <div id="wv-receipt-overlay" class="active">
+                <div id="wv-receipt-modal">
+                    <div class="wv-receipt-header">
+                        <div class="wv-check-circle"><i class="fa-solid fa-check"></i></div>
+                        <h2>Request Submitted!</h2>
+                        <p>Your withdrawal request is pending for approval.</p>
+                    </div>
+
+                    <div class="wv-receipt-body" id="wv-receipt-printable">
+                        <div class="wv-receipt-row">
+                            <span class="label">Organization</span>
+                            <span class="value">KMPCATS</span>
                         </div>
-
-                        <h5 class="sm-success-title">Withdraw Successful!</h5>
-
-                        <p class="sm-success-msg">
-                            Your withdrawal of
-                            <strong>₱
-                                {{ session('withdraw_amount') ? number_format(session('withdraw_amount'), 2) : '0.00' }}</strong>
-                            has been deducted from your savings account.
-                        </p>
-
-                        @if (session('withdraw_reference'))
-                            <div class="sm-ref-pill">
-                                <span class="sm-ref-label">Reference No.</span>
-                                <span class="sm-ref-value" id="withdraw-ref-no">{{ session('withdraw_reference') }}</span>
-                                <button class="sm-copy-btn" onclick="copyRef('withdraw-ref-no')" title="Copy">
-                                    <i class="fa-regular fa-copy"></i>
-                                </button>
-                            </div>
-                        @endif
-
-                        <div class="sm-success-balance-pill">
-                            <span>New Balance</span>
-                            <span>₱ {{ number_format($savingsAccount->balance, 2) }}</span>
+                        <div class="wv-receipt-row">
+                            <span class="label">Member</span>
+                            <span class="value">{{ session('withdraw_member', Auth::user()->name ?? 'Member') }}</span>
                         </div>
+                        <div class="wv-receipt-row">
+                            <span class="label">Transaction Type</span>
+                            <span class="value">Withdrawal</span>
+                        </div>
+                        <div class="wv-receipt-row">
+                            <span class="label">Amount</span>
+                            <span class="value highlight">₱{{ number_format(session('withdraw_amount', 0), 2) }}</span>
+                        </div>
+                        <div class="wv-receipt-row">
+                            <span class="label">Payment Method</span>
+                            <span class="value">{{ session('withdraw_method', '—') }}</span>
+                        </div>
+                        <div class="wv-receipt-row">
+                            <span class="label">Reference No.</span>
+                            <span class="value"><span class="wv-ref-badge">{{ session('withdraw_reference', '—') }}</span></span>
+                        </div>
+                        <div class="wv-receipt-row">
+                            <span class="label">Date</span>
+                            <span class="value">{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}</span>
+                        </div>
+                        <div class="wv-receipt-row">
+                            <span class="label">Status</span>
+                            <span class="value">
+                                <span class="wv-status-badge"><span class="dot"></span> Pending Approval</span>
+                            </span>
+                        </div>
+                    </div>
 
-                        @if (session('withdraw_reference'))
-                            <a href="{{ route('savings.receipt', session('withdraw_reference')) }}" class="sm-btn-download">
-                                <i class="fa-solid fa-file-arrow-down"></i> Download Receipt
-                            </a>
-                        @endif
-
-                        <button type="button" class="sm-btn-confirm sm-withdraw-confirm w-100 mt-3" data-bs-dismiss="modal">
-                            <i class="fa-solid fa-check"></i> Done
+                    <div class="wv-receipt-footer">
+                        <button class="wv-btn-download" onclick="wvDownloadReceipt()">
+                            <i class="fa-solid fa-download"></i> Download Receipt
                         </button>
-
+                        <button class="wv-btn-close-modal" onclick="wvCloseModal()">Close</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="modal fade" id="tdHistoryModal" tabindex="-1" aria-labelledby="tdHistoryModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content sm-modal-content">
-
-                    <div class="modal-header sm-modal-header" style="padding: 24px 20px;">
-                        <div class="modal-text">
-                            <div class="sm-modal-icon sm-deposit-icon">
-                                <i class="fa-solid fa-lock" style="color:#fff;"></i>
-                            </div>
-                            <div class="sm-modal-text">
-                                <h1 class="modal-title sm-modal-title" id="tdHistoryModalLabel">Time Deposit Accounts
-                                </h1>
-                                <p class="sm-modal-subtitle">All your Time Deposit history</p>
-                            </div>
-                        </div>
-                        <button type="button" class="sm-modal-close" data-bs-dismiss="modal" aria-label="Close">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-
-                    <div class="modal-body sm-modal-body" style="padding: 1.25rem 1.5rem;">
-
-                        <div class="sm-tx-toolbar" style="margin:0 0 1rem;">
-                            <div class="sm-search-box">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="tdSearchInput" placeholder="Search by reference no. or goal amount">
-                            </div>
-                            <input type="date" class="sm-filter-select" id="tdDateFilter">
-                            <select class="sm-filter-select" id="tdStatusFilter">
-                                <option value="all">All Status</option>
-                                <option value="completed">Completed</option>
-                                <option value="matured">Ready to Claim</option>
-                                <option value="goal_reached">Fully Funded</option>
-                                <option value="in_progress">In Progress</option>
-                            </select>
-                            <a href="#" id="tdClearFilters" class="sm-filter-clear">Clear filters</a>
-                        </div>
-
-                        <div id="tdHistoryList">
-                            @forelse ($tdHistory as $td)
-                                <div class="td-modal-row" data-ref="{{ strtolower($td->reference_no ?? '') }}"
-                                    data-goal="{{ $td->goal_amount }}"
-                                    data-date="{{ \Carbon\Carbon::parse($td->opened_at)->format('Y-m-d') }}"
-                                    data-status="{{ $td->display_status }}">
-                                    <div class="td-modal-icon td-icon-{{ $td->display_status }}">
-                                        @if ($td->display_status === 'completed')
-                                            <i class="fa fa-circle-check"></i>
-                                        @elseif ($td->display_status === 'matured')
-                                            <i class="fa fa-hourglass-end"></i>
-                                        @elseif ($td->display_status === 'goal_reached')
-                                            <i class="fa fa-bullseye"></i>
-                                        @else
-                                            <i class="fa fa-lock"></i>
-                                        @endif
-                                    </div>
-                                    <div class="td-modal-info">
-                                        <h4>₱{{ number_format($td->goal_amount, 2) }} Goal</h4>
-                                        <p>
-                                            Ref: {{ $td->reference_no ?? '—' }} ·
-                                            Opened {{ \Carbon\Carbon::parse($td->opened_at)->format('M d, Y') }}
-                                            · {{ number_format($td->interest_rate, 2) }}% p.a.
-                                        </p>
-                                    </div>
-                                    <div class="td-modal-amount">
-                                        <h4>₱{{ number_format($td->display_balance, 2) }}</h4>
-                                        @if ($td->display_status === 'completed')
-                                            <span class="td-status-badge td-status-completed">Completed</span>
-                                        @elseif ($td->display_status === 'matured')
-                                            <span class="td-status-badge td-status-matured">Ready to Claim</span>
-                                        @elseif ($td->display_status === 'goal_reached')
-                                            <span class="td-status-badge td-status-goal_reached">Fully Funded</span>
-                                        @else
-                                            <span class="td-status-badge td-status-in_progress">In Progress</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            @empty
-                                <div style="text-align:center; padding:2.5rem 1rem;">
-                                    <i class="fa-solid fa-piggy-bank fa-2x" style="color:var(--muted); opacity:.4;"></i>
-                                    <p style="color:var(--muted); margin-top:0.75rem; font-size:13.5px;">
-                                        No Time Deposits opened yet.
-                                    </p>
-                                </div>
-                            @endforelse
-
-                            <div id="tdNoResults" style="display:none; text-align:center; padding:2.5rem 1rem;">
-                                <i class="fa-solid fa-magnifying-glass fa-2x" style="color:var(--muted); opacity:.4;"></i>
-                                <p style="color:var(--muted); margin-top:0.75rem; font-size:13.5px;">
-                                    No matching Time Deposits found.
-                                </p>
-                            </div>
-                        </div>
-
-                        @if($tdHistory->count() > 0)
-                            <div class="td-pagination-wrap">
-                                <div class="sm-pagination-info" id="tdPaginationInfo"></div>
-                                <div class="sm-pagination" id="tdPaginationBtns"></div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
+            <div id="wv-receipt-data" data-member="{{ session('withdraw_member', Auth::user()->name ?? 'Member') }}"
+                data-type="Withdrawal"
+                data-amount="{{ number_format(session('withdraw_amount', 0), 2) }}"
+                data-method="{{ session('withdraw_method', '—') }}"
+                data-ref="{{ session('withdraw_reference', '—') }}"
+                data-date="{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
+                data-status="Pending" style="display:none;">
             </div>
-        </div>
-
-        <div class="modal fade" id="tdClaimSuccessModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content sm-modal-content">
-                    <div class="modal-body sm-success-body">
-                        <div class="sm-success-icon sm-success-green">
-                            <i class="fa-solid fa-check"></i>
-                        </div>
-                        <h5 class="sm-success-title">Time Deposit Claimed!</h5>
-                        <p class="sm-success-msg">
-                            <strong>₱{{ session('td_claim_amount') ? number_format(session('td_claim_amount'), 2) : '0.00' }}</strong>
-                            (principal + interest) has been added to your Regular Savings.
-                        </p>
-                        @if (session('td_claim_reference'))
-                            <div class="sm-ref-pill">
-                                <span class="sm-ref-label">Reference No.</span>
-                                <span class="sm-ref-value" id="tdclaim-ref-no">{{ session('td_claim_reference') }}</span>
-                                <button class="sm-copy-btn" onclick="copyRef('tdclaim-ref-no')" title="Copy">
-                                    <i class="fa-regular fa-copy"></i>
-                                </button>
-                            </div>
-                        @endif
-                        <div class="sm-success-balance-pill">
-                            <span>New Regular Savings Balance</span>
-                            <span>₱ {{ number_format($savingsAccount->balance, 2) }}</span>
-                        </div>
-                        <button type="button" class="sm-btn-confirm sm-deposit-confirm w-100 mt-3" data-bs-dismiss="modal">
-                            <i class="fa-solid fa-check"></i> Done
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <button id="triggerDepositSuccess" data-bs-toggle="modal" data-bs-target="#depositSuccessModal"
-            style="display:none;"></button>
-        <button id="triggerWithdrawSuccess" data-bs-toggle="modal" data-bs-target="#withdrawSuccessModal"
-            style="display:none;"></button>
-        <button id="triggerTdClaimSuccess" data-bs-toggle="modal" data-bs-target="#tdClaimSuccessModal"
-            style="display:none;"></button>
+        @endif
 
     @endif
+
+    {{-- ═══════════════════════════════════════════════════════════
+    RECEIPT OVERLAY — Share Capital (opened by clicking a table row)
+    ═══════════════════════════════════════════════════════════ --}}
+    @if($activeTab === 'share_capital' || $activeTab === 'savings')
+        <div id="sc-row-receipt-overlay" class="sc-receipt-overlay hidden-receipt">
+            <div id="sc-row-receipt-modal" class="sc-receipt-modal">
+                <div class="sc-receipt-header">
+                    <div class="check-circle"><i class="fa-solid fa-check"></i></div>
+                    <h2>Transaction Receipt</h2>
+                    <p id="sc-row-receipt-sub">Share capital transaction details.</p>
+                </div>
+
+                <div class="sc-receipt-body" id="sc-row-receipt-printable">
+                    <div class="sc-receipt-row">
+                        <span class="label">Organization</span>
+                        <span class="value">KMPCATS</span>
+                    </div>
+                    <div class="sc-receipt-row">
+                        <span class="label">Member</span>
+                        <span class="value" id="sc-row-receipt-member">—</span>
+                    </div>
+                    <div class="sc-receipt-row">
+                        <span class="label">Transaction Type</span>
+                        <span class="value" id="sc-row-receipt-type">—</span>
+                    </div>
+                    <div class="sc-receipt-row">
+                        <span class="label">Shares</span>
+                        <span class="value highlight" id="sc-row-receipt-shares">— shares</span>
+                    </div>
+                    <div class="sc-receipt-row">
+                        <span class="label">Amount</span>
+                        <span class="value highlight" id="sc-row-receipt-amount">—</span>
+                    </div>
+                    <div class="sc-receipt-row">
+                        <span class="label">Payment Method</span>
+                        <span class="value" id="sc-row-receipt-method">—</span>
+                    </div>
+                    <div class="sc-receipt-row">
+                        <span class="label">Reference No.</span>
+                        <span class="value"><span class="sc-ref-badge" id="sc-row-receipt-ref">—</span></span>
+                    </div>
+                    <div class="sc-receipt-row">
+                        <span class="label">Date</span>
+                        <span class="value" id="sc-row-receipt-date">—</span>
+                    </div>
+                    <div class="sc-receipt-row">
+                        <span class="label">Status</span>
+                        <span class="value" id="sc-row-receipt-status">—</span>
+                    </div>
+                </div>
+
+                <div class="sc-receipt-footer">
+                    <button class="sc-btn-download" onclick="scRowDownloadReceipt()">
+                        <i class="fa-solid fa-download"></i> Download Receipt
+                    </button>
+                    <button class="sc-btn-close-modal" onclick="closeRowReceipt('sc')">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="sc-row-receipt-data" style="display:none;"
+            data-member="" data-type="" data-shares="" data-amount=""
+            data-method="" data-ref="" data-date="" data-status=""></div>
+
+        {{-- ═══════════════════════════════════════════════════════════
+        RECEIPT OVERLAY — Savings (opened by clicking a table row)
+        ═══════════════════════════════════════════════════════════ --}}
+        <div id="sv-row-receipt-overlay" class="sv-receipt-overlay hidden-receipt">
+            <div id="sv-row-receipt-modal" class="sv-receipt-modal">
+                <div class="sv-receipt-header">
+                    <div class="sv-check-circle"><i class="fa-solid fa-check"></i></div>
+                    <h2>Transaction Receipt</h2>
+                    <p id="sv-row-receipt-sub">Savings transaction details.</p>
+                </div>
+
+                <div class="sv-receipt-body" id="sv-row-receipt-printable">
+                    <div class="sv-receipt-row">
+                        <span class="label">Organization</span>
+                        <span class="value">KMPCATS</span>
+                    </div>
+                    <div class="sv-receipt-row">
+                        <span class="label">Member</span>
+                        <span class="value" id="sv-row-receipt-member">—</span>
+                    </div>
+                    <div class="sv-receipt-row">
+                        <span class="label">Transaction Type</span>
+                        <span class="value" id="sv-row-receipt-type">—</span>
+                    </div>
+                    <div class="sv-receipt-row">
+                        <span class="label">Amount</span>
+                        <span class="value highlight" id="sv-row-receipt-amount">—</span>
+                    </div>
+                    <div class="sv-receipt-row">
+                        <span class="label">Payment Method</span>
+                        <span class="value" id="sv-row-receipt-method">—</span>
+                    </div>
+                    <div class="sv-receipt-row">
+                        <span class="label">Reference No.</span>
+                        <span class="value"><span class="sv-ref-badge" id="sv-row-receipt-ref">—</span></span>
+                    </div>
+                    <div class="sv-receipt-row">
+                        <span class="label">Date</span>
+                        <span class="value" id="sv-row-receipt-date">—</span>
+                    </div>
+                    <div class="sv-receipt-row">
+                        <span class="label">Status</span>
+                        <span class="value" id="sv-row-receipt-status">—</span>
+                    </div>
+                </div>
+
+                <div class="sv-receipt-footer">
+                    <button class="sv-btn-download" onclick="svRowDownloadReceipt()">
+                        <i class="fa-solid fa-download"></i> Download Receipt
+                    </button>
+                    <button class="sv-btn-close-modal" onclick="closeRowReceipt('sv')">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="sv-row-receipt-data" style="display:none;"
+            data-member="" data-type="" data-amount=""
+            data-method="" data-ref="" data-date="" data-status=""></div>
+    @endif
+
+    {{-- ═══════════════════════════════════════
+    VOID REASON MODAL (Financial — savings & share capital)
+    ═══════════════════════════════════════ --}}
+    <div id="fin-void-overlay">
+        <div id="fin-void-modal">
+            <div class="fin-void-header">
+                <div class="fin-void-circle"><i class="fa-solid fa-ban"></i></div>
+                <h2>Transaction Voided</h2>
+                <p>This transaction has been voided and cannot be viewed as a receipt.</p>
+            </div>
+            <div class="fin-void-body">
+                <div class="fin-void-amount-wrap">
+                    <div class="fin-void-label">Voided Amount</div>
+                    <div class="fin-void-amount" id="fin-void-amount-text">—</div>
+                </div>
+                <div class="fin-void-details">
+                    <div class="fin-void-row">
+                        <span class="fin-void-row-label">Type</span>
+                        <span class="fin-void-row-value" id="fin-void-type-text">—</span>
+                    </div>
+                    <div class="fin-void-row">
+                        <span class="fin-void-row-label">Member</span>
+                        <span class="fin-void-row-value" id="fin-void-member-text">—</span>
+                    </div>
+                    <div class="fin-void-row">
+                        <span class="fin-void-row-label">Shares</span>
+                        <span class="fin-void-row-value" id="fin-void-shares-text">—</span>
+                    </div>
+                    <div class="fin-void-row">
+                        <span class="fin-void-row-label">Reference No.</span>
+                        <span class="fin-void-row-value" id="fin-void-ref-text">—</span>
+                    </div>
+                    <div class="fin-void-row">
+                        <span class="fin-void-row-label">Date &amp; Time</span>
+                        <span class="fin-void-row-value" id="fin-void-date-text">—</span>
+                    </div>
+                    <div class="fin-void-row">
+                        <span class="fin-void-row-label">Method</span>
+                        <span class="fin-void-row-value" id="fin-void-method-text">—</span>
+                    </div>
+                </div>
+                <div class="fin-void-label">Void Reason</div>
+                <div class="fin-void-value" id="fin-void-reason-text">—</div>
+            </div>
+            <div class="fin-void-footer">
+                <button class="fin-btn-void-close" onclick="finCloseVoidModal()">Close</button>
+            </div>
+        </div>
+    </div>
 
     <button id="triggerUnifiedTx" data-bs-toggle="modal" data-bs-target="#unifiedTxModal"
         style="display:none;"></button>
@@ -1550,16 +2273,38 @@
             const SV_BALANCE = {{ $totalSavingsBalance ?? 0 }};
 
             const HAS_SHARE_CAPITAL = {{ $hasShareCapital ? 'true' : 'false' }};
+            const DEFAULT_DEST = "{{ $activeTab }}";
 
-            const destSelect = document.getElementById('tx-dest-select');
+            const PAY_METHODS = {
+                @foreach($paymentMethods as $pm)
+                    "{{ strtolower($pm->method_name) }}": {
+                        name: "{{ $pm->method_name }}",
+                        hasQr: {{ $pm->has_qr_code ? 'true' : 'false' }},
+                        qrPath: "{{ $pm->qr_code_image_path ? asset('storage/' . $pm->qr_code_image_path) : '' }}"
+                    },
+                @endforeach
+            };
+
+            function getPayMethod(v) {
+                v = String(v).toLowerCase();
+                return PAY_METHODS[v] || null;
+            }
+
+            const destDisplay = document.getElementById('tx-dest-display');
+            const destDisplayIcon = document.getElementById('tx-dest-display-icon');
+            const destDisplayText = document.getElementById('tx-dest-display-text');
             const scFields = document.getElementById('tx-sc-fields');
-            const svFields = document.getElementById('tx-sv-fields');
+            const svFields = document.getElementById('tx-sv-amount-field');
             const typeEl = document.getElementById('tx-type');
+            const typeField = document.getElementById('tx-type-field');
+            const typeHidden = document.getElementById('tx-type-hidden');
             const pay = document.getElementById('tx-pay');
-            const gcashBox = document.getElementById('tx-gcash-box');
+            const qrBox = document.getElementById('tx-qr-box');
             const balanceLabel = document.getElementById('tx-balance-label');
             const balanceValue = document.getElementById('tx-balance-value');
             const sharesInput = document.getElementById('tx-shares');
+            const scAmountInput = document.getElementById('tx-sc-amount');
+            const shareCountEl = document.getElementById('tx-sc-share-count');
             const amountInput = document.getElementById('tx-amount');
             const costEl = document.getElementById('tx-cost');
             const submitBtn = document.getElementById('tx-submit-btn');
@@ -1568,8 +2313,43 @@
             const inlineError = document.getElementById('tx-inline-error');
             const inlineErrorText = document.getElementById('tx-inline-error-text');
             const formMarker = document.getElementById('tx-form-marker');
+            const payHidden = document.getElementById('tx-pay-hidden');
+            const payField = document.getElementById('tx-pay-field');
+            const gcashNumberField = document.getElementById('tx-gcash-number-field');
+            const gcashNumberInput = document.getElementById('tx-gcash-number');
+            const defaultContactNo = '{{ Auth::user()->otherinfo->contact_no ?? '' }}';
 
             let dest = '';
+            let txRefUsed = false;
+            const txRefInput = document.getElementById('tx-gcash-ref-input');
+            const txRefUsedMsg = document.getElementById('tx-ref-used-msg');
+
+            function setTxRefState(used) {
+                txRefUsed = used;
+                if (txRefUsedMsg) txRefUsedMsg.style.display = used ? 'block' : 'none';
+                submitBtn.disabled = used;
+                submitBtn.style.opacity = used ? 0.55 : 1;
+                submitBtn.style.cursor = used ? 'not-allowed' : 'pointer';
+            }
+
+            let txRefTimer = null;
+            if (txRefInput) {
+                txRefInput.addEventListener('input', function () {
+                    clearTimeout(txRefTimer);
+                    const v = this.value.trim();
+                    if (v.length !== 13 || !/^\d{13}$/.test(v)) {
+                        setTxRefState(false);
+                        return;
+                    }
+                    txRefTimer = setTimeout(function () {
+                        fetch('{{ route('reference.check') }}?ref=' + encodeURIComponent(v))
+                            .then(function (r) { return r.json(); })
+                            .then(function (d) { setTxRefState(!!d.used); })
+                            .catch(function () { setTxRefState(false); });
+                    }, 300);
+                });
+            }
+
 
             function showInlineError(msg) {
                 inlineErrorText.textContent = msg;
@@ -1580,6 +2360,79 @@
             function clearInlineError() {
                 inlineError.classList.remove('show');
                 inlineErrorText.textContent = '';
+            }
+
+            function updateDestDisplay() {
+                if (dest === 'share_capital') {
+                    destDisplayIcon.textContent = '🪙';
+                    destDisplayText.textContent = 'Share Capital';
+                } else if (dest === 'savings') {
+                    destDisplayIcon.textContent = '🐷';
+                    destDisplayText.textContent = 'Savings';
+                } else {
+                    destDisplayIcon.textContent = '—';
+                    destDisplayText.textContent = 'Select an account';
+                }
+            }
+
+            function renderQrBox(method) {
+                var qrArea = document.getElementById('tx-qr-area');
+                var qrFallback = document.getElementById('tx-qr-fallback');
+                if (!method) {
+                    qrArea.style.display = 'none';
+                    qrFallback.style.display = 'none';
+                    return;
+                }
+                var name = method.name || 'QR';
+                document.getElementById('tx-qr-title').textContent = 'Scan to Pay via ' + name;
+                document.getElementById('tx-qr-fallback-name').textContent = name;
+                document.getElementById('tx-qr-ref-label').textContent = name + ' Reference Number';
+                document.getElementById('tx-qr-ref-hint').textContent = 'Enter the reference number from your ' + name + ' transaction.';
+                document.getElementById('tx-qr-proof-tag').textContent = '(' + name + ' proof)';
+                var viewLink = document.getElementById('tx-qr-view');
+                if (method.qrPath) {
+                    document.getElementById('tx-qr-img').src = method.qrPath;
+                    viewLink.dataset.src = method.qrPath;
+                    qrArea.style.display = 'block';
+                    qrFallback.style.display = 'none';
+                } else {
+                    qrArea.style.display = 'none';
+                    qrFallback.style.display = 'block';
+                }
+            }
+
+            function updatePaymentFields() {
+                var txGcashRefInput = document.getElementById('tx-gcash-ref-input');
+                var depositFraudWarning = document.getElementById('tx-deposit-fraud-warning');
+                var proofInput = document.getElementById('tx-gcash-proof-input');
+                var method = getPayMethod(pay.value);
+                var hasQr = !!(method && method.hasQr);
+
+                if (dest === 'savings' && typeEl.value === 'Withdrawal') {
+                    payField.style.display = 'none';
+                    gcashNumberField.style.display = '';
+                    gcashNumberInput.value = defaultContactNo;
+                    payHidden.value = 'gcash';
+                    qrBox.style.display = 'none';
+                    if (proofInput) proofInput.required = false;
+                    if (txGcashRefInput) txGcashRefInput.required = false;
+                    if (depositFraudWarning) depositFraudWarning.style.display = 'none';
+                } else {
+                    payField.style.display = '';
+                    gcashNumberField.style.display = 'none';
+                    payHidden.value = pay.value || '';
+                    var isDeposit = dest === 'savings' || typeEl.value === 'Deposit';
+                    var showQr = hasQr && isDeposit;
+                    if (hasQr) {
+                        renderQrBox(method);
+                        qrBox.style.display = '';
+                    } else {
+                        qrBox.style.display = 'none';
+                    }
+                    if (txGcashRefInput) txGcashRefInput.required = showQr;
+                    if (proofInput) proofInput.required = showQr;
+                    if (depositFraudWarning) depositFraudWarning.style.display = showQr ? '' : 'none';
+                }
             }
 
             function updateFormAction() {
@@ -1634,19 +2487,19 @@
 
             function setDest(d) {
                 if (d === 'savings' && !HAS_SHARE_CAPITAL) {
-                    destSelect.value = '';
+                    dest = '';
+                    updateDestDisplay();
                     showInlineError('Savings is locked. You need an active Share Capital subscription before you can deposit or withdraw from Savings.');
                     scFields.style.display = 'none';
                     svFields.style.display = 'none';
                     balanceLabel.textContent = 'Current Balance';
                     balanceValue.textContent = 'Select an account';
-                    dest = '';
                     updateFormAction();
                     return;
                 }
 
                 dest = d;
-                destSelect.value = d;
+                updateDestDisplay();
                 clearInlineError();
                 withdrawalNotice.style.display = 'none';
                 fullWithdrawalWarning.style.display = 'none';
@@ -1656,6 +2509,10 @@
                     svFields.style.display = 'none';
                     sharesInput.disabled = false;
                     amountInput.disabled = true;
+                    typeField.style.display = '';
+                    typeEl.disabled = true;
+                    typeEl.value = 'Deposit';
+                    typeHidden.value = 'Deposit';
                     balanceLabel.textContent = 'Current Balance';
                     balanceValue.textContent = '₱' + SC_BALANCE.toLocaleString() + ' · ' + SC_SHARES + ' shares';
                     if (typeEl.value === 'Withdrawal') {
@@ -1667,6 +2524,8 @@
                     svFields.style.display = '';
                     sharesInput.disabled = true;
                     amountInput.disabled = false;
+                    typeField.style.display = '';
+                    typeEl.disabled = false;
                     balanceLabel.textContent = 'My Savings Balance';
                     balanceValue.textContent = '₱' + SV_BALANCE.toLocaleString(undefined, { minimumFractionDigits: 2 });
                     if (typeEl.value === 'Withdrawal') {
@@ -1676,47 +2535,49 @@
                     // Nothing selected yet
                     scFields.style.display = 'none';
                     svFields.style.display = 'none';
+                    typeField.style.display = 'none';
+                    typeEl.disabled = false;
                     balanceLabel.textContent = 'Current Balance';
                     balanceValue.textContent = 'Select an account';
                 }
+                updatePaymentFields();
                 updateFormAction();
             }
 
-            function setShares(v) {
-                v = parseFloat(v);
-                if (isNaN(v) || v < 1) return;
-                v = Math.round(v * 100) / 100; // avoid float drift like 12.000000000000002
-                sharesInput.value = v;
-                costEl.textContent = '₱' + (v * PRICE).toLocaleString();
+            function pesoToShares(p) {
+                p = parseFloat(p);
+                return (!isNaN(p) && p > 0) ? Math.round((p / PRICE) * 100) / 100 : 0;
+            }
+
+            function updateSharesFromPeso(p) {
+                p = parseFloat(p);
+                if (isNaN(p) || p < 0) return;
+                var shares = pesoToShares(p);
+                sharesInput.value = shares;
+                costEl.textContent = '₱' + (isNaN(p) ? 0 : p).toLocaleString();
+                shareCountEl.textContent = shares;
                 document.querySelectorAll('.tx-qbtn').forEach(b => {
-                    b.classList.toggle('active', parseFloat(b.dataset.v) === v);
+                    b.classList.toggle('active', parseFloat(b.dataset.v) === p);
                 });
                 if (dest === 'share_capital' && typeEl.value === 'Withdrawal') {
-                    validateScWithdrawal(v * PRICE);
+                    validateScWithdrawal(shares * PRICE);
                 }
             }
 
-            destSelect.addEventListener('change', () => setDest(destSelect.value));
-
-            document.getElementById('tx-dec').onclick = () => setShares((parseFloat(sharesInput.value) || 1) - 0.25);
-            document.getElementById('tx-inc').onclick = () => setShares((parseFloat(sharesInput.value) || 1) + 0.25);
-
-            sharesInput.addEventListener('input', () => {
-                const raw = sharesInput.value;
-                const v = parseFloat(raw);
-                if (!isNaN(v) && v > 0) {
-                    costEl.textContent = '₱' + (v * PRICE).toLocaleString();
-                    document.querySelectorAll('.tx-qbtn').forEach(b => {
-                        b.classList.toggle('active', parseFloat(b.dataset.v) === v);
-                    });
-                    if (dest === 'share_capital' && typeEl.value === 'Withdrawal') {
-                        validateScWithdrawal(v * PRICE);
-                    }
+            scAmountInput.addEventListener('input', () => updateSharesFromPeso(scAmountInput.value));
+            scAmountInput.addEventListener('blur', () => {
+                const p = parseFloat(scAmountInput.value);
+                if (isNaN(p) || p <= 0) {
+                    scAmountInput.value = 200;
+                    updateSharesFromPeso(200);
+                } else {
+                    updateSharesFromPeso(p);
                 }
             });
-
-            sharesInput.addEventListener('blur', () => setShares(sharesInput.value || 1));
-            document.querySelectorAll('.tx-qbtn').forEach(b => b.onclick = () => setShares(+b.dataset.v));
+            document.querySelectorAll('.tx-qbtn').forEach(b => b.onclick = () => {
+                scAmountInput.value = b.dataset.v;
+                updateSharesFromPeso(+b.dataset.v);
+            });
 
             document.querySelectorAll('.tx-amt-qbtn').forEach(b => b.onclick = () => {
                 amountInput.value = b.dataset.v;
@@ -1724,6 +2585,7 @@
             });
 
             typeEl.onchange = function () {
+                typeHidden.value = this.value;
                 clearInlineError();
                 fullWithdrawalWarning.style.display = 'none';
 
@@ -1734,13 +2596,13 @@
                     withdrawalNotice.style.display = 'none';
                     if (this.value === 'Withdrawal') validateSvWithdrawal(parseFloat(amountInput.value || 0));
                 }
+                updatePaymentFields();
                 updateFormAction();
             };
 
             pay.onchange = function () {
-                const isGcash = this.value === 'gcash';
-                gcashBox.style.display = isGcash ? 'block' : 'none';
-                document.getElementById('tx-gcash-proof-input').required = isGcash;
+                payHidden.value = this.value;
+                updatePaymentFields();
                 submitBtn.style.display = 'flex';
             };
 
@@ -1756,20 +2618,41 @@
             });
 
             document.getElementById('unifiedTxModal').addEventListener('show.bs.modal', () => {
-                setDest('');
-                setShares(1);
                 amountInput.value = '';
                 pay.value = '';
+                payHidden.value = '';
                 typeEl.value = '';
-                gcashBox.style.display = 'none';
+                typeEl.disabled = false;
+                typeHidden.value = '';
+                typeField.style.display = 'none';
+                qrBox.style.display = 'none';
+                document.getElementById('tx-qr-area').style.display = 'none';
+                document.getElementById('tx-qr-fallback').style.display = 'none';
+                payField.style.display = '';
+                gcashNumberField.style.display = 'none';
+                gcashNumberInput.value = defaultContactNo;
                 submitBtn.style.display = 'flex';
                 withdrawalNotice.style.display = 'none';
                 fullWithdrawalWarning.style.display = 'none';
                 document.getElementById('tx-note').value = '';
+                document.getElementById('tx-gcash-proof-input').required = false;
+                var refResets = document.getElementById('tx-gcash-ref-input');
+                if (refResets) { refResets.value = ''; refResets.required = false; }
+                setTxRefState(false);
+                var depositFraudWarning = document.getElementById('tx-deposit-fraud-warning');
+                if (depositFraudWarning) depositFraudWarning.style.display = 'none';
                 clearInlineError();
+                scAmountInput.value = 200;
+                updateSharesFromPeso(200);
+                setDest(DEFAULT_DEST);
             });
 
             form.addEventListener('submit', function (e) {
+                if (txRefUsed) {
+                    e.preventDefault();
+                    if (txRefUsedMsg) txRefUsedMsg.style.display = 'block';
+                    return;
+                }
                 if (!dest) {
                     e.preventDefault();
                     showInlineError('Please select an account (Share Capital or Savings).');
@@ -1829,13 +2712,14 @@
                                                                         </div>
                                                                         <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
                                                                         <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">
-                                                                            ${isCompleted ? 'Your deposit has been recorded successfully.' : 'Your withdrawal request is pending for approval.'}
+                                                                            ${d.type === 'Deposit'
+                                                                                ? (isCompleted
+                                                                                    ? 'Your deposit has been recorded successfully.'
+                                                                                    : 'Your deposit request is pending for approval.')
+                                                                                : (isCompleted
+                                                                                    ? 'Your withdrawal has been processed successfully.'
+                                                                                    : 'Your withdrawal request is pending for approval.')}
                                                                         </div>
-                                                                    </div>
-                                                                    <div style="height:16px;background:linear-gradient(135deg,#1a4a3a,#2d6a4f);position:relative;">
-                                                                        <svg viewBox="0 0 400 16" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:16px;">
-                                                                            <polygon fill="#ffffff" points="0,16 10,0 20,16 30,0 40,16 50,0 60,16 70,0 80,16 90,0 100,16 110,0 120,16 130,0 140,16 150,0 160,16 170,0 180,16 190,0 200,16 210,0 220,16 230,0 240,16 250,0 260,16 270,0 280,16 290,0 300,16 310,0 320,16 330,0 340,16 350,0 360,16 370,0 380,16 390,0 400,16"/>
-                                                                        </svg>
                                                                     </div>
                                                                     <div style="padding:1.2rem 1.5rem;">
                                                                         <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
@@ -2036,119 +2920,386 @@
                 });
             }
 
-            window.addEventListener('DOMContentLoaded', function () {
+            /* ═══ DEPOSIT RECEIPT OVERLAY ═══ */
+            function svCloseModal() {
+                const overlay = document.getElementById('sv-receipt-overlay');
+                if (overlay) overlay.remove();
+            }
 
-                @if (session('deposit_success'))
-                    document.getElementById('triggerDepositSuccess').click();
-                @endif
+            document.getElementById('sv-receipt-overlay')?.addEventListener('click', function (e) {
+                if (e.target === this) svCloseModal();
+            });
 
-                @if (session('withdraw_success'))
-                    document.getElementById('triggerWithdrawSuccess').click();
-                @endif
+            function svReceiptRow(label, value) {
+                return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
+                    <span style="color:#888;">${label}</span>
+                    <span style="color:#1a1a1a;font-weight:700;">${value}</span>
+                </div>`;
+            }
 
-                @if (session('td_claim_success'))
-                    document.getElementById('triggerTdClaimSuccess').click();
-                @endif
+            function svDownloadReceipt() {
+                const d = document.getElementById('sv-receipt-data')?.dataset;
+                if (!d) return;
 
-                                                            });
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
+                    position: fixed; left: -9999px; top: 0;
+                    width: 400px; background: #fff;
+                    border-radius: 20px; overflow: hidden;
+                    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+                `;
+
+                wrapper.innerHTML = `
+                    <div style="background-color:var(--teal, #0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                        <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
+                        <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">Your deposit request is pending for approval.</div>
+                    </div>
+                    <div style="padding:1.2rem 1.5rem;">
+                        ${svReceiptRow('Organization', 'KMPCATS')}
+                        ${svReceiptRow('Member', d.member)}
+                        ${svReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                        ${svReceiptRow('Amount', '<strong style="color:var(--teal, #0d9488)">&#8369;' + d.amount + '</strong>')}
+                        ${svReceiptRow('Payment Method', d.method)}
+                        ${svReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                        ${svReceiptRow('Date & Time', d.date)}
+                        ${svReceiptRow('Status', '<span style="color:#b8860b;font-weight:700;font-size:0.72rem;">&#9203; Pending Approval</span>')}
+                        <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">KMPCATS Savings Receipt</div>
+                    </div>
+                `;
+
+                document.body.appendChild(wrapper);
+
+                if (typeof html2canvas !== 'undefined') {
+                    html2canvas(wrapper, { scale: 2, useCORS: true }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `KMPCATS_Deposit_Receipt_${d.ref}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        wrapper.remove();
+                    });
+                } else {
+                    wrapper.style.left = '0';
+                    wrapper.style.top = '50%';
+                    wrapper.style.transform = 'translateY(-50%)';
+                    wrapper.style.zIndex = '999999';
+                    alert('Screenshot library loading — press Ctrl+P to save as PDF, then close this receipt.');
+                }
+            }
+
+            /* ═══ WITHDRAWAL RECEIPT OVERLAY ═══ */
+            function wvCloseModal() {
+                const overlay = document.getElementById('wv-receipt-overlay');
+                if (overlay) overlay.remove();
+            }
+
+            document.getElementById('wv-receipt-overlay')?.addEventListener('click', function (e) {
+                if (e.target === this) wvCloseModal();
+            });
+
+            function wvReceiptRow(label, value) {
+                return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
+                    <span style="color:#888;">${label}</span>
+                    <span style="color:#1a1a1a;font-weight:700;">${value}</span>
+                </div>`;
+            }
+
+            function wvDownloadReceipt() {
+                const d = document.getElementById('wv-receipt-data')?.dataset;
+                if (!d) return;
+
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
+                    position: fixed; left: -9999px; top: 0;
+                    width: 400px; background: #fff;
+                    border-radius: 20px; overflow: hidden;
+                    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+                `;
+
+                wrapper.innerHTML = `
+                    <div style="background-color:var(--teal, #0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                        <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
+                        <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">Your withdrawal request is pending for approval.</div>
+                    </div>
+                    <div style="padding:1.2rem 1.5rem;">
+                        ${wvReceiptRow('Organization', 'KMPCATS')}
+                        ${wvReceiptRow('Member', d.member)}
+                        ${wvReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                        ${wvReceiptRow('Amount', '<strong style="color:var(--teal, #0d9488)">&#8369;' + d.amount + '</strong>')}
+                        ${wvReceiptRow('Payment Method', d.method)}
+                        ${wvReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                        ${wvReceiptRow('Date & Time', d.date)}
+                        ${wvReceiptRow('Status', '<span style="color:#b8860b;font-weight:700;font-size:0.72rem;">&#9203; Pending Approval</span>')}
+                        <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">KMPCATS Savings Receipt</div>
+                    </div>
+                `;
+
+                document.body.appendChild(wrapper);
+
+                if (typeof html2canvas !== 'undefined') {
+                    html2canvas(wrapper, { scale: 2, useCORS: true }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `KMPCATS_Withdrawal_Receipt_${d.ref}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        wrapper.remove();
+                    });
+                } else {
+                    wrapper.style.left = '0';
+                    wrapper.style.top = '50%';
+                    wrapper.style.transform = 'translateY(-50%)';
+                    wrapper.style.zIndex = '999999';
+                    alert('Screenshot library loading — press Ctrl+P to save as PDF, then close this receipt.');
+                }
+            }
 
             document.querySelectorAll('.parent-panel .panel-body').forEach(el => el.scrollTop = 0);
+        </script>
+    @endif
 
-            // Time Deposit modal — search, filter & pagination (10 per page)
-            (function () {
-                const searchInput = document.getElementById('tdSearchInput');
-                const dateFilter = document.getElementById('tdDateFilter');
-                const statusFilter = document.getElementById('tdStatusFilter');
-                const clearBtn = document.getElementById('tdClearFilters');
-                const noResults = document.getElementById('tdNoResults');
-                const paginationInfo = document.getElementById('tdPaginationInfo');
-                const paginationBtns = document.getElementById('tdPaginationBtns');
-                const allRows = Array.from(document.querySelectorAll('.td-modal-row'));
-                const PAGE_SIZE = 10;
-                let currentPage = 1;
+    {{-- ═══════════════════════════════════════════════════════
+    ROW-RECEIPT SCRIPTS (both tabs) — click a table row to view
+    ═══════════════════════════════════════════════════════ --}}
+    @if($activeTab === 'share_capital' || $activeTab === 'savings')
+        <script>
+            function scRowReceiptRow(label, value) {
+                return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
+                    <span style="color:#888;">${label}</span>
+                    <span style="color:#1a1a1a;font-weight:700;text-align:right;">${value}</span>
+                </div>`;
+            }
 
-                function getFilteredRows() {
-                    const q = (searchInput?.value || '').trim().toLowerCase();
-                    const date = dateFilter?.value || '';
-                    const status = statusFilter?.value || 'all';
+            function svRowReceiptRow(label, value) {
+                return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
+                    <span style="color:#888;">${label}</span>
+                    <span style="color:#1a1a1a;font-weight:700;text-align:right;">${value}</span>
+                </div>`;
+            }
 
-                    return allRows.filter(row => {
-                        const matchesSearch = !q || row.dataset.ref.includes(q) || row.dataset.goal.includes(q);
-                        const matchesDate = !date || row.dataset.date === date;
-                        const matchesStatus = status === 'all' || row.dataset.status === status;
-                        return matchesSearch && matchesDate && matchesStatus;
+            function scStatusBadge(status) {
+                const key = String(status || '').toLowerCase();
+                if (key === 'posted' || key === 'completed' || key === 'approved') {
+                    return '<span class="sc-status-badge completed" style="background:#e7f6ec;border:1px solid #b7e4c3;color:#1a7f37;display:inline-flex;align-items:center;gap:6px;padding:0.2rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;"><span class="dot" style="width:7px;height:7px;background:#1a7f37;border-radius:50%;flex-shrink:0;"></span> Completed</span>';
+                }
+                if (key === 'pending' || key === 'awaiting') {
+                    return '<span class="sc-status-badge" style="background:#fff8e1;border:1.5px solid #ffe082;color:#b8860b;display:inline-flex;align-items:center;gap:6px;padding:0.2rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;"><span class="dot" style="width:7px;height:7px;background:#e6a817;border-radius:50%;flex-shrink:0;"></span> Pending</span>';
+                }
+                return '<span class="sc-status-badge" style="background:#fdecec;border:1.5px solid #f5c6c6;color:#c0392b;display:inline-flex;align-items:center;gap:6px;padding:0.2rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;"><span class="dot" style="width:7px;height:7px;background:#c0392b;border-radius:50%;flex-shrink:0;"></span> ' + (status || 'Failed') + '</span>';
+            }
+
+            function svStatusBadge(status) {
+                const key = String(status || '').toLowerCase();
+                const pendingKeys = ['pending', 'awaiting', 'released', 'deducted'];
+                const badKeys = ['rejected', 'failed', 'cancelled', 'voided'];
+                if (key === 'completed' || key === 'approved' || key === 'credited') {
+                    return '<span style="background:#e7f6ec;border:1px solid #b7e4c3;color:#1a7f37;display:inline-flex;align-items:center;gap:6px;padding:0.2rem 0.75rem;border-radius:20px;font-size:0.76rem;font-weight:700;text-transform:capitalize;"><span style="width:7px;height:7px;background:#1a7f37;border-radius:50%;"></span> ' + status + '</span>';
+                }
+                if (pendingKeys.includes(key)) {
+                    return '<span style="background:#fff8e1;border:1.5px solid #ffe082;color:#b8860b;display:inline-flex;align-items:center;gap:6px;padding:0.2rem 0.75rem;border-radius:20px;font-size:0.76rem;font-weight:700;text-transform:capitalize;"><span style="width:7px;height:7px;background:#e6a817;border-radius:50%;"></span> ' + status + '</span>';
+                }
+                if (badKeys.includes(key)) {
+                    return '<span style="background:#fdecec;border:1.5px solid #f5c6c6;color:#c0392b;display:inline-flex;align-items:center;gap:6px;padding:0.2rem 0.75rem;border-radius:20px;font-size:0.76rem;font-weight:700;text-transform:capitalize;"><span style="width:7px;height:7px;background:#c0392b;border-radius:50%;"></span> ' + status + '</span>';
+                }
+                return '<span style="background:#eef2f6;border:1px solid #d5dee6;color:#556;display:inline-flex;align-items:center;gap:6px;padding:0.2rem 0.75rem;border-radius:20px;font-size:0.76rem;font-weight:700;text-transform:capitalize;">' + status + '</span>';
+            }
+
+            const VOID_LABELS = {
+                wrong_amount: 'Wrong amount entered',
+                duplicate_payment: 'Duplicate payment',
+                fraudulent: 'Fraudulent / suspicious transaction',
+                other_member: 'Sent by wrong member',
+                technical_error: 'System / technical error',
+                other: 'Other'
+            };
+            function getVoidLabel(key) {
+                return VOID_LABELS[key] || key || 'No reason provided';
+            }
+
+            function handleTxnRowClick(e, row, which) {
+                if (row.dataset.void === '1') {
+                    const d = row.dataset;
+                    document.getElementById('fin-void-reason-text').textContent = getVoidLabel(d.reason);
+                    document.getElementById('fin-void-amount-text').textContent = '₱' + (Number(d.amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2}));
+                    document.getElementById('fin-void-type-text').textContent = d.type || '—';
+                    document.getElementById('fin-void-member-text').textContent = d.member || '—';
+                    document.getElementById('fin-void-ref-text').textContent = d.ref || '—';
+                    document.getElementById('fin-void-date-text').textContent = d.txdate || d.date || '—';
+                    document.getElementById('fin-void-method-text').textContent = d.method || '—';
+                    const sharesEl = document.getElementById('fin-void-shares-text');
+                    if (d.shares) {
+                        sharesEl.textContent = (d.shares !== '0' ? d.shares : '—') + ' shares';
+                        sharesEl.parentElement.style.display = '';
+                    } else {
+                        sharesEl.textContent = '—';
+                        sharesEl.parentElement.style.display = 'none';
+                    }
+                    document.getElementById('fin-void-overlay').classList.add('active');
+                    return;
+                }
+                openReceipt(e, row, which);
+            }
+
+            function finCloseVoidModal() {
+                const overlay = document.getElementById('fin-void-overlay');
+                if (overlay) overlay.classList.remove('active');
+            }
+            document.getElementById('fin-void-overlay')?.addEventListener('click', function (e) {
+                if (e.target === this) finCloseVoidModal();
+            });
+
+            function openReceipt(e, row, which) {
+                if (e && e.target && e.target.closest && e.target.closest('a')) return;
+                if (row.dataset.void === '1') return;
+                const d = row.dataset;
+                if (which === 'sc') {
+                    const overlay = document.getElementById('sc-row-receipt-overlay');
+                    const dataEl = document.getElementById('sc-row-receipt-data');
+                    if (!overlay) return;
+                    document.getElementById('sc-row-receipt-member').textContent = d.member || '—';
+                    document.getElementById('sc-row-receipt-type').textContent = d.type || '—';
+                    const shares = d.shares && d.shares !== '0' ? d.shares + ' shares' : '— shares';
+                    document.getElementById('sc-row-receipt-shares').textContent = shares;
+                    document.getElementById('sc-row-receipt-amount').textContent = '₱' + d.amount;
+                    document.getElementById('sc-row-receipt-method').textContent = d.method || '—';
+                    document.getElementById('sc-row-receipt-ref').textContent = d.ref || '—';
+                    document.getElementById('sc-row-receipt-date').textContent = d.txdate || d.date || '—';
+                    document.getElementById('sc-row-receipt-status').innerHTML = scStatusBadge(d.status);
+                    document.getElementById('sc-row-receipt-sub').textContent = 'Share capital transaction details.';
+                    if (dataEl) {
+                        dataEl.setAttribute('data-member', d.member || '');
+                        dataEl.setAttribute('data-type', d.type || '');
+                        dataEl.setAttribute('data-shares', shares);
+                        dataEl.setAttribute('data-amount', d.amount || '');
+                        dataEl.setAttribute('data-method', d.method || '');
+                        dataEl.setAttribute('data-ref', d.ref || '');
+                        dataEl.setAttribute('data-date', d.txdate || d.date || '');
+                        dataEl.setAttribute('data-status', d.status || '');
+                    }
+                    overlay.classList.add('active');
+                } else {
+                    const overlay = document.getElementById('sv-row-receipt-overlay');
+                    const dataEl = document.getElementById('sv-row-receipt-data');
+                    if (!overlay) return;
+                    document.getElementById('sv-row-receipt-member').textContent = d.member || '—';
+                    document.getElementById('sv-row-receipt-type').textContent = d.type || '—';
+                    document.getElementById('sv-row-receipt-amount').textContent = '₱' + d.amount;
+                    document.getElementById('sv-row-receipt-method').textContent = d.method || '—';
+                    document.getElementById('sv-row-receipt-ref').textContent = d.ref || '—';
+                    document.getElementById('sv-row-receipt-date').textContent = d.txdate || d.date || '—';
+                    document.getElementById('sv-row-receipt-status').innerHTML = svStatusBadge(d.status);
+                    document.getElementById('sv-row-receipt-sub').textContent = 'Savings transaction details.';
+                    if (dataEl) {
+                        dataEl.setAttribute('data-member', d.member || '');
+                        dataEl.setAttribute('data-type', d.type || '');
+                        dataEl.setAttribute('data-amount', d.amount || '');
+                        dataEl.setAttribute('data-method', d.method || '');
+                        dataEl.setAttribute('data-ref', d.ref || '');
+                        dataEl.setAttribute('data-date', d.txdate || d.date || '');
+                        dataEl.setAttribute('data-status', d.status || '');
+                    }
+                    overlay.classList.add('active');
+                }
+            }
+
+            function closeRowReceipt(which) {
+                const overlay = document.getElementById(which + '-row-receipt-overlay');
+                if (overlay) overlay.classList.remove('active');
+            }
+
+            document.getElementById('sc-row-receipt-overlay')?.addEventListener('click', function (e) {
+                if (e.target === this) closeRowReceipt('sc');
+            });
+            document.getElementById('sv-row-receipt-overlay')?.addEventListener('click', function (e) {
+                if (e.target === this) closeRowReceipt('sv');
+            });
+
+            function scRowDownloadReceipt() {
+                const d = document.getElementById('sc-row-receipt-data')?.dataset;
+                if (!d || !d.ref) return;
+                const statusBadge = scStatusBadge(d.status);
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15);';
+                wrapper.innerHTML = `
+                    <div style="background:linear-gradient(135deg,#1a4a3a,#2d6a4f);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                        <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Transaction Receipt</div>
+                        <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">KMPCATS Share Capital</div>
+                    </div>
+                    <div style="padding:1.2rem 1.5rem;">
+                        ${scRowReceiptRow('Organization', 'KMPCATS')}
+                        ${scRowReceiptRow('Member', d.member)}
+                        ${scRowReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                        ${scRowReceiptRow('Shares', '<strong>' + d.shares + '</strong>')}
+                        ${scRowReceiptRow('Amount', '<strong style="color:#1a4a3a">&#8369;' + d.amount + '</strong>')}
+                        ${scRowReceiptRow('Payment Method', d.method)}
+                        ${scRowReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                        ${scRowReceiptRow('Date & Time', d.date)}
+                        ${scRowReceiptRow('Status', statusBadge)}
+                        <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">This is an official transaction receipt from KMPCATS.</div>
+                    </div>
+                `;
+                document.body.appendChild(wrapper);
+                if (typeof html2canvas !== 'undefined') {
+                    html2canvas(wrapper, { scale: 2, useCORS: true }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'KMPCATS_ShareCapital_Receipt_' + d.ref + '.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        wrapper.remove();
                     });
+                } else {
+                    wrapper.style.left = '0'; wrapper.style.top = '50%'; wrapper.style.transform = 'translateY(-50%)'; wrapper.style.zIndex = '999999';
+                    alert('Screenshot library loading — press Ctrl+P to save as PDF, then close this receipt.');
                 }
+            }
 
-                function renderPage() {
-                    const filtered = getFilteredRows();
-                    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-                    currentPage = Math.min(currentPage, totalPages);
-
-                    allRows.forEach(row => row.style.display = 'none');
-
-                    const start = (currentPage - 1) * PAGE_SIZE;
-                    const pageRows = filtered.slice(start, start + PAGE_SIZE);
-                    pageRows.forEach(row => row.style.display = 'flex');
-
-                    if (noResults) noResults.style.display = filtered.length === 0 ? 'block' : 'none';
-
-                    if (paginationInfo) {
-                        paginationInfo.innerHTML = filtered.length === 0
-                            ? ''
-                            : `Showing <b>${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)}</b> of <b>${filtered.length}</b> Time Deposits`;
-                    }
-
-                    if (paginationBtns) {
-                        paginationBtns.innerHTML = '';
-                        if (filtered.length > PAGE_SIZE) {
-                            const prevBtn = document.createElement('span');
-                            prevBtn.className = 'sm-page-btn' + (currentPage === 1 ? ' disabled' : '');
-                            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-                            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderPage(); } };
-                            paginationBtns.appendChild(prevBtn);
-
-                            for (let i = 1; i <= totalPages; i++) {
-                                const btn = document.createElement('a');
-                                btn.href = '#';
-                                btn.className = 'sm-page-btn' + (i === currentPage ? ' active' : '');
-                                btn.textContent = i;
-                                btn.onclick = (e) => { e.preventDefault(); currentPage = i; renderPage(); };
-                                paginationBtns.appendChild(btn);
-                            }
-
-                            const nextBtn = document.createElement('span');
-                            nextBtn.className = 'sm-page-btn' + (currentPage === totalPages ? ' disabled' : '');
-                            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-                            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderPage(); } };
-                            paginationBtns.appendChild(nextBtn);
-                        }
-                    }
+            function svRowDownloadReceipt() {
+                const d = document.getElementById('sv-row-receipt-data')?.dataset;
+                if (!d || !d.ref) return;
+                const statusBadge = svStatusBadge(d.status);
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15);';
+                wrapper.innerHTML = `
+                    <div style="background-color:var(--teal,#0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                        <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Transaction Receipt</div>
+                        <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">KMPCATS Savings</div>
+                    </div>
+                    <div style="padding:1.2rem 1.5rem;">
+                        ${svRowReceiptRow('Organization', 'KMPCATS')}
+                        ${svRowReceiptRow('Member', d.member)}
+                        ${svRowReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                        ${svRowReceiptRow('Amount', '<strong style="color:var(--teal,#0d9488)">&#8369;' + d.amount + '</strong>')}
+                        ${svRowReceiptRow('Payment Method', d.method)}
+                        ${svRowReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                        ${svRowReceiptRow('Date & Time', d.date)}
+                        ${svRowReceiptRow('Status', statusBadge)}
+                        <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">This is an official transaction receipt from KMPCATS.</div>
+                    </div>
+                `;
+                document.body.appendChild(wrapper);
+                if (typeof html2canvas !== 'undefined') {
+                    html2canvas(wrapper, { scale: 2, useCORS: true }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'KMPCATS_Savings_Receipt_' + d.ref + '.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        wrapper.remove();
+                    });
+                } else {
+                    wrapper.style.left = '0'; wrapper.style.top = '50%'; wrapper.style.transform = 'translateY(-50%)'; wrapper.style.zIndex = '999999';
+                    alert('Screenshot library loading — press Ctrl+P to save as PDF, then close this receipt.');
                 }
-
-                function applyTdFilters() {
-                    currentPage = 1;
-                    renderPage();
-                }
-
-                searchInput?.addEventListener('input', applyTdFilters);
-                dateFilter?.addEventListener('change', applyTdFilters);
-                statusFilter?.addEventListener('change', applyTdFilters);
-                clearBtn?.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    searchInput.value = '';
-                    dateFilter.value = '';
-                    statusFilter.value = 'all';
-                    applyTdFilters();
-                });
-
-                document.getElementById('tdHistoryModal')?.addEventListener('show.bs.modal', () => {
-                    currentPage = 1;
-                    renderPage();
-                });
-
-                renderPage();
-            })();
+            }
         </script>
     @endif
 
