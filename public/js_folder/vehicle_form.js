@@ -76,7 +76,7 @@ function buildCards() {
                         name="${vehicle.qtyName}"
                         min="0" max="99"
                         placeholder="0"
-                        onkeydown="if(event.key==='e'||event.key==='E'||event.key==='+'||event.key==='-') event.preventDefault();"
+                        data-numeric-guard
                     />
                 </div>
             </div>

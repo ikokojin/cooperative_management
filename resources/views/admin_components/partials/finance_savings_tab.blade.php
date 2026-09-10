@@ -4,11 +4,11 @@
             <p class="text-sm text-gray-500">Manage member savings and contributions</p>
         </div>
         <div class="flex items-center gap-3">
-            <button onclick="openModal('addContributionModal')" class="btn btn-primary">
+            <button data-action="openModal" data-arg='["addContributionModal"]' class="btn btn-primary">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 Manage Savings
             </button>
-            <button onclick="openConvertToSCModal()" class="btn btn-outline">
+            <button data-action="openConvertToSCModal" class="btn btn-outline">
                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                 Convert to Share Capital
             </button>
@@ -18,7 +18,7 @@
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" onclick="openSavingsBalanceModal()">
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" data-action="openSavingsBalanceModal">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Savings Balance</p>
@@ -34,7 +34,7 @@
             </div>
         </div>
 
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-success-200 transition-all group" onclick="openInterestEligibilityModal()">
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-success-200 transition-all group" data-action="openInterestEligibilityModal">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Interest Eligibility</p>
@@ -90,8 +90,15 @@
                         $pdContact = $pd->gcash_number ?? ($pdMember->otherinfo->contact_no ?? 'N/A');
                         $pdBalance = number_format($pd->savingsAccount->balance, 2);
                     @endphp
-                    <tr class="cursor-pointer hover:bg-gray-50 transition-colors"
-                        onclick="openDepositDetailModal('{{ $pd->id }}', '{{ e(($pdMember->first_name ?? '') . ' ' . ($pdMember->last_name ?? '')) }}', '{{ $pdBalance }}', '{{ number_format($pd->amount, 2) }}', '{{ e($pdContact) }}', '{{ $pd->payment_method ?? 'cash' }}', '{{ $pd->gcash_proof_path ?? '' }}', '{{ $pd->gcash_reference_no ?? '' }}')">
+                    <tr class="js-deposit-detail cursor-pointer hover:bg-gray-50 transition-colors"
+                        data-deposit-id="{{ $pd->id }}"
+                        data-deposit-member="{{ ($pdMember->first_name ?? '') . ' ' . ($pdMember->last_name ?? '') }}"
+                        data-deposit-balance="{{ $pdBalance }}"
+                        data-deposit-amount="{{ number_format($pd->amount, 2) }}"
+                        data-deposit-contact="{{ $pdContact }}"
+                        data-deposit-method="{{ $pd->payment_method ?? 'cash' }}"
+                        data-deposit-proof="{{ $pd->gcash_proof_path ?? '' }}"
+                        data-deposit-ref="{{ $pd->gcash_reference_no ?? '' }}">
                         <td class="text-sm text-gray-900">{{ $pd->created_at->format('M d, Y') }}</td>
                         <td>
                             <div class="flex items-center gap-2">
@@ -172,8 +179,12 @@
                         <td class="text-sm text-gray-600">{{ ucfirst($pw->payment_method ?? 'N/A') }}</td>
                         <td class="text-right">
                             <button type="button"
-                                class="btn btn-xs px-2 py-1 bg-warning-500 text-white hover:bg-warning-600 transition-colors"
-                                onclick="openWithdrawalDisburseModal('{{ $pw->id }}', '{{ e(($pwMember->first_name ?? '') . ' ' . ($pwMember->last_name ?? '')) }}', '{{ $pwBalance }}', '{{ number_format($pw->amount, 2) }}', '{{ e($pwContact) }}')">
+                                class="js-disburse-withdrawal btn btn-xs px-2 py-1 bg-warning-500 text-white hover:bg-warning-600 transition-colors"
+                                data-withdrawal-id="{{ $pw->id }}"
+                                data-withdrawal-member="{{ ($pwMember->first_name ?? '') . ' ' . ($pwMember->last_name ?? '') }}"
+                                data-withdrawal-balance="{{ $pwBalance }}"
+                                data-withdrawal-amount="{{ number_format($pw->amount, 2) }}"
+                                data-withdrawal-contact="{{ $pwContact }}">
                                 <i data-lucide="banknote" class="w-3 h-3 inline-block mr-1"></i> Disburse
                             </button>
                         </td>
@@ -197,12 +208,12 @@
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <select name="type" class="select w-40" onchange="this.form.submit()">
+                    <select name="type" class="select w-40" data-submit-on-change>
                         <option value="all">All Types</option>
                         <option value="deposit" {{ request('type') === 'deposit' ? 'selected' : '' }}>Deposit</option>
                         <option value="withdraw" {{ request('type') === 'withdraw' ? 'selected' : '' }}>Withdrawal</option>
                     </select>
-                    <select name="status" class="select w-32" onchange="this.form.submit()">
+                    <select name="status" class="select w-32" data-submit-on-change>
                         <option value="all">All Status</option>
                         <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -245,7 +256,7 @@
                             data-date="{{ $tx->created_at ? $tx->created_at->format('M d, Y h:i A') : '' }}"
                             data-balance="{{ $tx->balance_after ?? 0 }}"
                             data-note="{{ $tx->note ?? 'N/A' }}"
-                            onclick="openSavingsRow(event, this)"
+                            data-action="openSavingsRow" data-arg='["|event|","|el|"]'
                         @endif
                     >
                         <td class="text-sm text-gray-900">{{ $tx->created_at->format('M d, Y') }}</td>

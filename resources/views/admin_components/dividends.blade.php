@@ -28,7 +28,7 @@
         </div>
         <div class="flex items-center gap-3">
             <form method="GET" action="{{ route('dividends.index') }}" class="flex items-center gap-2">
-                <select name="year" onchange="this.form.submit()" class="select w-32">
+                <select name="year" data-submit-on-change class="select w-32">
                     @for ($y = $currentYear; $y >= $currentYear - 10; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
@@ -88,7 +88,7 @@
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">₱</span>
                         <input type="number" name="net_surplus" id="netSurplusInput" step="0.01" min="1"
                             class="input pl-10 text-lg font-bold text-gray-900" placeholder="0.00"
-                            oninput="updateBreakdownPreview()" required>
+                            data-action="updateBreakdownPreview" data-trigger="input" required>
                     </div>
                     <p class="text-xs text-gray-400 mt-1">The net surplus for fiscal year {{ $year }}</p>
                 </div>
@@ -159,7 +159,7 @@
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-sm text-gray-500">Dividend Fund</p>
                     <div class="flex items-center gap-1">
-                        <button onclick="openDividendFundModal()" class="p-1 rounded hover:bg-gray-100 transition-colors" title="Edit Fund Percentage">
+                        <button data-action="openDividendFundModal" class="p-1 rounded hover:bg-gray-100 transition-colors" title="Edit Fund Percentage">
                             <i data-lucide="pencil" class="w-3.5 h-3.5 text-gray-400"></i>
                         </button>
                         <div class="w-8 h-8 rounded-lg bg-success-100 flex items-center justify-center">
@@ -175,7 +175,7 @@
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-sm text-gray-500">Patronage Refund Fund</p>
                     <div class="flex items-center gap-1">
-                        <button onclick="openPatronageFundModal()" class="p-1 rounded hover:bg-gray-100 transition-colors" title="Edit Patronage Fund Percentage">
+                        <button data-action="openPatronageFundModal" class="p-1 rounded hover:bg-gray-100 transition-colors" title="Edit Patronage Fund Percentage">
                             <i data-lucide="pencil" class="w-3.5 h-3.5 text-gray-400"></i>
                         </button>
                         <div class="w-8 h-8 rounded-lg bg-warning-100 flex items-center justify-center">
@@ -257,26 +257,26 @@
                 <div class="flex items-center gap-2 flex-wrap">
                     @if ($distribution->status !== 'released' && ($approvedCount > 0 || $patronageApprovedCount > 0))
                         @if ($approvedCount > 0)
-                            <button onclick="disburseAllDividends()" id="disburse-all-btn" class="btn btn-primary btn-sm">
+                            <button data-action="disburseAllDividends" id="disburse-all-btn" class="btn btn-primary btn-sm">
                                 <i data-lucide="send" class="w-4 h-4"></i>
                                 Disburse Dividends
                             </button>
                         @endif
                         @if ($patronageApprovedCount > 0)
-                            <button onclick="disburseAllPatronage()" id="disburse-patronage-btn" class="btn btn-warning btn-sm">
+                            <button data-action="disburseAllPatronage" id="disburse-patronage-btn" class="btn btn-warning btn-sm">
                                 <i data-lucide="send" class="w-4 h-4"></i>
                                 Disburse Patronage
                             </button>
                         @endif
                         @if ($approvedCount > 0 && $patronageApprovedCount > 0)
-                            <button onclick="disburseBoth()" id="disburse-both-btn" class="btn btn-success btn-sm">
+                            <button data-action="disburseBoth" id="disburse-both-btn" class="btn btn-success btn-sm">
                                 <i data-lucide="zap" class="w-4 h-4"></i>
                                 Disburse Both
                             </button>
                         @endif
                     @endif
                     @if ($distribution->status !== 'released')
-                        <button onclick="resetDistribution()" class="btn btn-sm" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
+                        <button data-action="resetDistribution" class="btn btn-sm" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
                             <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                             Reset
                         </button>
@@ -304,7 +304,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="generatePatronageRefunds()" id="gen-patronage-btn" class="btn btn-warning btn-sm">
+                    <button data-action="generatePatronageRefunds" id="gen-patronage-btn" class="btn btn-warning btn-sm">
                         <i data-lucide="wand-2" class="w-4 h-4"></i>
                         Generate Patronage Refunds
                     </button>
@@ -359,7 +359,7 @@
                             <p class="text-xs text-gray-500">Adjust fund percentages for {{ $year }}</p>
                         </div>
                     </div>
-                    <button onclick="closeDividendFundModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closeDividendFundModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -379,7 +379,7 @@
                     <p class="text-xs text-gray-400 mt-1">Remaining {{ 100 - $dividendFundPercentage }}% goes to Patronage Refund Pool</p>
                 </div>
                 <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closeDividendFundModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                    <button type="button" data-action="closeDividendFundModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
                         Cancel
                     </button>
                     <button type="submit" class="px-5 py-2.5 bg-success-600 text-white font-medium rounded-lg hover:bg-success-700 transition-colors flex items-center gap-2">
@@ -405,7 +405,7 @@
                             <p class="text-xs text-gray-500">Adjust the patronage refund fund percentage for {{ $year }}</p>
                         </div>
                     </div>
-                    <button onclick="closePatronageFundModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closePatronageFundModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -425,7 +425,7 @@
                     <p class="text-xs text-gray-400 mt-1">Remaining {{ $dividendFundPercentage }}% goes to Dividend Fund</p>
                 </div>
                 <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closePatronageFundModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                    <button type="button" data-action="closePatronageFundModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
                         Cancel
                     </button>
                     <button type="submit" class="px-5 py-2.5 bg-warning-600 text-white font-medium rounded-lg hover:bg-warning-700 transition-colors flex items-center gap-2">
@@ -451,7 +451,7 @@
                             <p class="text-xs text-gray-500" id="breakdown-subtitle">Patronage Breakdown</p>
                         </div>
                     </div>
-                    <button onclick="closePatronageBreakdownModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closePatronageBreakdownModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -465,7 +465,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('DOMContentLoaded', function() {
             loadDividendsTable();
             loadPatronageTable();
@@ -501,6 +501,16 @@
             .then(html => { container.innerHTML = html; if (typeof lucide !== 'undefined') lucide.createIcons(); })
             .catch(e => { container.innerHTML = '<div class="card p-6 text-center text-red-500"><p>Failed to load.</p></div>'; });
         }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-patronage-page');
+            if (btn && btn.dataset.pageUrl) loadPatronagePage(btn.dataset.pageUrl);
+        });
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-dividends-page');
+            if (btn && btn.dataset.pageUrl && typeof loadDividendsPage === 'function') loadDividendsPage(btn.dataset.pageUrl);
+        });
 
         // ─── Breakdown Preview ─────────────────────────────────────────────────
         function updateBreakdownPreview() {

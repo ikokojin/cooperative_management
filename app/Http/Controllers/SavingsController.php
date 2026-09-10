@@ -440,51 +440,6 @@ class SavingsController extends Controller
             ->with('withdraw_method', 'GCash');
     }
 
-    public function payViaGcash(Request $request)
-    {
-        if (! env('PAYMONGO_SECRET_KEY')) {
-            return redirect()->back()->with('error', 'Payment gateway is not configured yet.');
-        }
-
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'transaction_type' => 'required|in:deposit,withdraw',
-            'note' => 'nullable|string|max:255',
-        ]);
-
-        $amount = (float) $request->amount;
-
-        session([
-            'sav_pending_amount' => $amount,
-            'sav_pending_note' => $request->note,
-            'sav_pending_type' => $request->transaction_type,
-        ]);
-
-        $response = \Illuminate\Support\Facades\Http::withBasicAuth(env('PAYMONGO_SECRET_KEY'), '')
-            ->withOptions(['verify' => false])
-            ->post('https://api.paymongo.com/v1/sources', [
-                'data' => [
-                    'attributes' => [
-                        'amount' => (int) ($amount * 100),
-                        'currency' => 'PHP',
-                        'type' => 'gcash',
-                        'redirect' => [
-                            'success' => route('savings.gcash.success'),
-                            'failed' => route('savings.gcash.failed'),
-                        ],
-                    ],
-                ],
-            ]);
-
-        $data = $response->json();
-
-        if (isset($data['data']['attributes']['redirect']['checkout_url'])) {
-            return redirect($data['data']['attributes']['redirect']['checkout_url']);
-        }
-
-        return redirect()->back()->with('error', 'GCash payment failed. Please try again.');
-    }
-
     /**
      * Computes the Regular Savings balance purely from completed transactions,
      * and syncs it back to the stored balance column so the database stays
@@ -521,16 +476,19 @@ class SavingsController extends Controller
     {
         $user = Auth::user();
 
-        // Check if this is admin requesting - find transaction by reference_no
         $tx = savings_transaction_tbl::where('reference_no', $referenceNo)->first();
 
-        if (! $tx) {
-            // Fall back to member lookup
-            $savingsAccount = savings_account_tbl::where('user_id', $user->id)->firstOrFail();
-            $tx = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
-                ->where('reference_no', $referenceNo)
-                ->firstOrFail();
-        }
+        abort_if(! $tx, 404, 'Transaction not found.');
+
+        $receiptAccount = savings_account_tbl::find($tx->savings_account_id);
+        $receiptOwnerId = $receiptAccount ? (int) $receiptAccount->user_id : null;
+
+        abort_unless(
+            $receiptOwnerId
+            && ($receiptOwnerId === (int) auth()->id() || \App\Services\SoDGuard::actingAsStaff()),
+            403,
+            'You do not have permission to view this receipt.'
+        );
 
         // Receipt is only available for completed transactions
         if (strtolower($tx->status ?? '') !== 'completed') {

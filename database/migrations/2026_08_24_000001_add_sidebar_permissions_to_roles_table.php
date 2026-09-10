@@ -15,7 +15,7 @@ return new class extends Migration
 
         $validKeys = [
             'dashboard', 'members', 'savings', 'sharecapitals', 'lendings',
-            'payments', 'finance', 'reports', 'notifications', 'seminars',
+            'payments', 'finance', 'reports', 'seminars',
             'officers-committees', 'settings',
         ];
 

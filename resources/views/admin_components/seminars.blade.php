@@ -53,11 +53,11 @@
             <p class="text-sm text-gray-500">Manage pre-membership seminars and completion tracking</p>
         </div>
         <div class="flex items-center gap-3">
-            <button onclick="openModal('createTypeModal')" class="btn btn-primary">
+            <button data-action="openModal" data-arg='["createTypeModal"]' class="btn btn-primary">
                 <i data-lucide="layers" class="w-4 h-4"></i>
                 Create Seminar Type
             </button>
-            <button onclick="openModal('scheduleSeminarModal')" class="btn btn-primary">
+            <button data-action="openModal" data-arg='["scheduleSeminarModal"]' class="btn btn-primary">
                 <i data-lucide="calendar-plus" class="w-4 h-4"></i>
                 Schedule Seminar
             </button>
@@ -99,7 +99,7 @@
                 </thead>
                 <tbody>
                     @forelse($users as $user)
-                    <tr class="cursor-pointer hover:bg-gray-50 transition-colors" onclick="openMemberModal({{ $user->id }})">
+                    <tr class="cursor-pointer hover:bg-gray-50 transition-colors" data-action="openMemberModal" data-arg='[{{ $user->id }}]'>
                         <td>
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full {{ $user->role === 'pending' ? 'bg-gradient-to-br from-yellow-400 to-orange-400' : 'bg-gradient-to-br from-primary-400 to-primary-600' }} flex items-center justify-center">
@@ -205,7 +205,7 @@
                             <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a new seminar session</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('scheduleSeminarModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["scheduleSeminarModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -215,7 +215,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Seminar Type <span class="text-red-500">*</span></label>
-                        <select name="seminar_type" class="input" required onchange="togglePasscodeFields()">
+                        <select name="seminar_type" class="input" required data-action="togglePasscodeFields">
                             <option value="">Select...</option>
                             @foreach($seminarTypes as $type)
                                 <option value="{{ $type->slug }}" {{ old('seminar_type') === $type->slug ? 'selected' : '' }} {{ in_array($type->slug, \App\Http\Controllers\SeminarController::CORE_TYPES) ? 'data-core="1"' : '' }}>{{ $type->label }}</option>
@@ -232,11 +232,11 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Type <span class="text-red-500">*</span></label>
                     <div class="flex gap-4">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="delivery_type" value="online" class="w-4 h-4 text-primary-600" onchange="toggleDeliveryFields()" {{ old('delivery_type', 'online') === 'online' ? 'checked' : '' }}>
+                            <input type="radio" name="delivery_type" value="online" class="w-4 h-4 text-primary-600" data-action="toggleDeliveryFields" {{ old('delivery_type', 'online') === 'online' ? 'checked' : '' }}>
                             <span class="text-sm text-gray-700">Online</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="delivery_type" value="f2f" class="w-4 h-4 text-primary-600" onchange="toggleDeliveryFields()" {{ old('delivery_type') === 'f2f' ? 'checked' : '' }}>
+                            <input type="radio" name="delivery_type" value="f2f" class="w-4 h-4 text-primary-600" data-action="toggleDeliveryFields" {{ old('delivery_type') === 'f2f' ? 'checked' : '' }}>
                             <span class="text-sm text-gray-700">Face-to-Face</span>
                         </label>
                     </div>
@@ -270,7 +270,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Seminar Passcode <span class="text-red-500" id="passcodeRequiredStar">*</span></label>
                             <div class="relative">
                                 <input type="text" name="passcode" id="passcodeInput" class="input pr-28" placeholder="Generate a code" required maxlength="64" value="{{ old('passcode') }}">
-                                <button type="button" onclick="generatePasscode()" class="btn btn-primary btn-xs px-2 py-1 absolute right-1.5 top-1/2 -translate-y-1/2" title="Generate a random passcode">
+                                <button type="button" data-action="generatePasscode" class="btn btn-primary btn-xs px-2 py-1 absolute right-1.5 top-1/2 -translate-y-1/2" title="Generate a random passcode">
                                     <i data-lucide="dices" class="w-3.5 h-3.5"></i>
                                     Generate
                                 </button>
@@ -299,7 +299,7 @@
                             @foreach(old('attendees') as $attId)
                                 <span class="inline-flex items-center gap-1.5 bg-primary-50 text-primary-700 text-xs font-medium px-2.5 py-1 rounded-full" data-id="{{ $attId }}">
                                     <span class="attendee-name">Member #{{ $attId }}</span>
-                                    <button type="button" onclick="removeAttendee({{ $attId }})" class="hover:text-primary-900">&times;</button>
+                                    <button type="button" data-action="removeAttendee" data-arg='[{{ $attId }}]' class="hover:text-primary-900">&times;</button>
                                 </span>
                             @endforeach
                         @endif
@@ -312,7 +312,7 @@
                 <div id="attendeesHiddenInputs"></div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button type="button" onclick="closeModal('scheduleSeminarModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+                    <button type="button" data-action="closeModal" data-arg='["scheduleSeminarModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                         <i data-lucide="calendar-plus" class="w-4 h-4"></i>
                         Schedule Seminar
@@ -336,7 +336,7 @@
                             <p id="attendanceModalSubtitle" style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Mark attendees for this seminar</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('attendanceModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["attendanceModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -350,7 +350,7 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end">
-                <button onclick="closeModal('attendanceModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["attendanceModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
             </div>
         </div>
     </div>
@@ -369,7 +369,7 @@
                             <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Attended and not-yet-attended seminars</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('memberSeminarModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["memberSeminarModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -383,7 +383,7 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end">
-                <button onclick="closeModal('memberSeminarModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["memberSeminarModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
             </div>
         </div>
     </div>
@@ -402,7 +402,7 @@
                             <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Add an additional seminar type beyond the core three</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('createTypeModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["createTypeModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -415,7 +415,7 @@
                     <p class="text-xs text-gray-400 mt-1">A unique name for the new seminar type.</p>
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button type="button" onclick="closeModal('createTypeModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+                    <button type="button" data-action="closeModal" data-arg='["createTypeModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         Create Seminar Type
@@ -425,7 +425,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function toggleDeliveryFields() {
             const online = document.querySelector('input[name="delivery_type"][value="online"]').checked;
             document.getElementById('onlineFields').style.display = online ? 'block' : 'none';
@@ -573,11 +573,11 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick="markAttendance(${seminar.id}, ${a.user_id}, 'attended')" class="btn btn-success btn-xs px-2.5 py-1.5 ${a.status === 'attended' ? 'opacity-50 cursor-not-allowed' : ''}" ${a.status === 'attended' ? 'disabled' : ''}>
+                                <button data-action="markAttendance" data-arg=\'[${seminar.id}, ${a.user_id}, "attended"]\' class="btn btn-success btn-xs px-2.5 py-1.5 ${a.status === 'attended' ? 'opacity-50 cursor-not-allowed' : ''}" ${a.status === 'attended' ? 'disabled' : ''}>
                                     <i data-lucide="check" class="w-3 h-3"></i>
                                     Attended
                                 </button>
-                                <button onclick="markAttendance(${seminar.id}, ${a.user_id}, 'absent')" class="btn btn-danger btn-xs px-2.5 py-1.5 ${a.status === 'absent' ? 'opacity-50 cursor-not-allowed' : ''}" ${a.status === 'absent' ? 'disabled' : ''}>
+                                <button data-action="markAttendance" data-arg=\'[${seminar.id}, ${a.user_id}, "absent"]\' class="btn btn-danger btn-xs px-2.5 py-1.5 ${a.status === 'absent' ? 'opacity-50 cursor-not-allowed' : ''}" ${a.status === 'absent' ? 'disabled' : ''}>
                                     <i data-lucide="x" class="w-3 h-3"></i>
                                     Absent
                                 </button>
@@ -657,7 +657,7 @@
                         const initials = (m.first_name?.[0] || '') + (m.last_name?.[0] || '');
                         const roleBg = m.role === 'pending' ? 'from-yellow-400 to-orange-400' : 'from-primary-400 to-primary-600';
                         return `<div class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer ${already ? 'opacity-50' : ''}"
-                            onclick="${already ? '' : `addAttendee(${m.id}, '${m.first_name.replace(/'/g, "\\'")}', '${(m.last_name || '').replace(/'/g, "\\'")}')`}">
+                            data-action="${already ? '' : `addAttendee`}" data-arg='${already ? '' : `[${m.id}, "${m.first_name}", "${(m.last_name || '')}"]`}'>
                             <div class="w-8 h-8 rounded-full bg-gradient-to-br ${roleBg} flex items-center justify-center flex-shrink-0">
                                 <span class="text-white font-bold text-xs">${initials}</span>
                             </div>
@@ -710,7 +710,7 @@
             container.innerHTML = entries.map(m => {
                 return `<span class="inline-flex items-center gap-1.5 bg-primary-50 text-primary-700 text-xs font-medium px-2.5 py-1 rounded-full">
                     <span class="attendee-name">${m.first_name} ${m.last_name || ''}</span>
-                    <button type="button" onclick="removeAttendee(${m.id})" class="hover:text-primary-900">&times;</button>
+                    <button type="button" data-action="removeAttendee" data-arg=\'[${m.id}]\' class="hover:text-primary-900">&times;</button>
                 </span>`;
             }).join('');
         }

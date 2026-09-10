@@ -30,7 +30,7 @@
             <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
             <p class="text-sm text-gray-500">Manage your account and application preferences</p>
         </div>
-        <a href="{{ route('logout') }}" class="btn btn-danger flex-shrink-0" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+        <a href="{{ route('logout') }}" class="btn btn-danger flex-shrink-0" data-action="settings-logout">
             <i data-lucide="log-out" class="w-4 h-4"></i>
             Logout
         </a>
@@ -42,20 +42,20 @@
     <div class="flex gap-1 mb-6 p-1 bg-gray-100 rounded-lg w-fit">
         <button class="tab-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap"
                 data-tab="profile"
-                onclick="switchSettingsTab('profile', this)">
+                data-action="switchSettingsTab" data-arg='["profile","|el|"]'>
             <i data-lucide="user" class="w-3.5 h-3.5"></i>
             Profile
         </button>
         <button class="tab-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap"
                 data-tab="security"
-                onclick="switchSettingsTab('security', this)">
+                data-action="switchSettingsTab" data-arg='["security","|el|"]'>
             <i data-lucide="shield" class="w-3.5 h-3.5"></i>
             Security
         </button>
         @if($settingsIsPrivileged)
         <button class="tab-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap"
                 data-tab="company"
-                onclick="switchSettingsTab('company', this)">
+                data-action="switchSettingsTab" data-arg='["company","|el|"]'>
             <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
             Company
         </button>
@@ -63,7 +63,7 @@
         @if($settingsIsPrivileged)
         <button class="tab-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap"
                 data-tab="finance"
-                onclick="switchSettingsTab('finance', this)">
+                data-action="switchSettingsTab" data-arg='["finance","|el|"]'>
             <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
             Finance Settings
         </button>
@@ -132,7 +132,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <button onclick="showToast('Saved', 'Profile settings updated successfully')" class="btn btn-primary">
+                    <button type="button" data-action="showToast" data-arg='["Saved","Profile settings updated successfully"]' class="btn btn-primary">
                         Save Changes
                     </button>
                 </div>
@@ -166,7 +166,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <button onclick="submitPasswordChange()" id="changePasswordBtn" class="btn btn-primary">
+                    <button type="button" data-action="submitPasswordChange" id="changePasswordBtn" class="btn btn-primary">
                         Save Changes
                     </button>
                 </div>
@@ -203,7 +203,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <button onclick="showToast('Saved', 'Company settings updated successfully')" class="btn btn-primary">
+                    <button type="button" data-action="showToast" data-arg='["Saved","Company settings updated successfully"]' class="btn btn-primary">
                         Save Changes
                     </button>
                 </div>
@@ -215,7 +215,7 @@
                 @include('admin_components.partials.finance_settings')
             @endif
 
-            <script>
+            <script nonce="{{ csp_nonce() }}">
                 function submitPasswordChange() {
                     const form = document.getElementById('changePasswordForm');
                     const errorDiv = document.getElementById('passwordError');
@@ -257,7 +257,7 @@
                 }
             </script>
 
-            <script>
+            <script nonce="{{ csp_nonce() }}">
                 function switchSettingsTab(tabId, btn) {
                     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
                     const panel = document.getElementById('tab-' + tabId);
@@ -294,8 +294,20 @@
                 });
             </script>
 
+            <script nonce="{{ csp_nonce() }}">
+                (function () {
+                    var A = window.CSP_actions;
+                    if (!A) return;
+                    A.register('settings-logout', function (e) {
+                        e.preventDefault();
+                        var form = document.getElementById('logout-form');
+                        if (form) form.submit();
+                    });
+                })();
+            </script>
+
             @if($errors->any())
-            <script>
+            <script nonce="{{ csp_nonce() }}">
                 document.addEventListener('DOMContentLoaded', function() {
                     showToast('Validation Error', '{{ $errors->first() }}', 'error');
                 });

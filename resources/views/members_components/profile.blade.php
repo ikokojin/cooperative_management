@@ -604,7 +604,7 @@
     {{-- AOS animation link js --}}
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         AOS.init();
     </script>
 </body>

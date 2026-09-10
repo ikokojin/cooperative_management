@@ -55,12 +55,21 @@ class UserController extends Controller
 
     public function applicationForm($id)
     {
+        $id = (int) $id;
         $user = Users_tbl::findOrFail($id);
+
+        abort_unless(
+            (int) auth()->id() === $id
+            || in_array(strtolower((string) $user->role), ['pending', 'inactive'], true)
+            || \App\Services\SoDGuard::actingAsStaff(),
+            403
+        );
+
         $vehicles = Membervehi_tbl::where('user_id', $id)->get()->groupBy('vehicle_type');
-        $spouse = Spouse_tbl::where('user_id', $id)->first();
+        $spouse = \App\Models\Family_tbl::where('user_id', $id)->first();
         $other = Otherinfo_tbl::where('user_id', $id)->first();
         $education = educational_tbl::where('user_id', $id)->get();
-        $governmentIds = Membervehi_tbl::where('user_id', $id)->first();
+        $governmentIds = Membergovern_ids_tbl::where('user_id', $id)->first();
 
         // Check if already submitted (has contact_no or any filled data)
         $alreadySubmitted = $other && ! empty($other->contact_no);
@@ -164,6 +173,63 @@ class UserController extends Controller
         return redirect()->back()->with('error', 'Member request declined and removed.');
     }
 
+    public function approveReactivation($id)
+    {
+        $user = Users_tbl::findOrFail($id);
+
+        if (strtolower((string) $user->status) !== 'reactivation_pending') {
+            return redirect()->back()->with('error', 'This member has no pending reactivation request.');
+        }
+
+        $user->status = 'active';
+        if (strtolower((string) $user->role) === 'inactive') {
+            $user->role = 'member';
+        }
+        $user->save();
+
+        $otherInfo = \App\Models\Otherinfo_tbl::where('user_id', $id)->first();
+        if ($otherInfo) {
+            $otherInfo->membership_status = 'Active';
+            $otherInfo->save();
+        }
+
+        $scAccount = share_capital_account_tbl::where('user_id', $id)->first();
+        if ($scAccount && strtolower((string) $scAccount->status) !== 'closed') {
+            $scAccount->status = 'Active';
+            $scAccount->save();
+        }
+
+        AuditLog::log(
+            'Approved Reactivation',
+            "Approved reactivation for {$user->first_name} {$user->last_name} (ID: {$id}). Share capital, savings, loans and historical records untouched.",
+            'member',
+            $id
+        );
+
+        return redirect()->back()->with('success', 'Reactivation approved. Member is active again.');
+    }
+
+    public function rejectReactivation($id)
+    {
+        $user = Users_tbl::findOrFail($id);
+
+        if (strtolower((string) $user->status) !== 'reactivation_pending') {
+            return redirect()->back()->with('error', 'This member has no pending reactivation request.');
+        }
+
+        $user->status = 'inactive';
+        $user->save();
+
+        AuditLog::log(
+            'Rejected Reactivation',
+            "Rejected reactivation for {$user->first_name} {$user->last_name} (ID: {$id}). Member remains inactive.",
+            'member',
+            $id
+        );
+
+        return redirect()->back()->with('success', 'Reactivation request rejected. Member remains inactive.');
+    }
+
     public function updateMember(Request $request)
     {
         try {
@@ -174,8 +240,22 @@ class UserController extends Controller
             $user = Users_tbl::findOrFail($request->id);
             $previousRole = $user->role;
 
-            if ($request->has('role') && in_array($request->role, ['admin', 'officer']) && ! auth()->user()->isMainAdmin()) {
-                return response()->json(['success' => false, 'message' => 'Only the main admin can assign admin or officer roles.'], 403);
+            if ($request->has('role')) {
+                $requestedRole = strtolower((string) $request->role);
+                $isMemberRole = in_array($requestedRole, ['member', 'pending', 'inactive'], true);
+                $isKnownRole = \App\Models\Role::where('slug', $requestedRole)->exists();
+
+                if (in_array($requestedRole, ['admin', 'officer'], true)) {
+                    return response()->json(['success' => false, 'message' => 'The admin and officer roles no longer exist. Use General Manager or a custom role instead.'], 422);
+                }
+
+                if (! $isMemberRole && ! $isKnownRole) {
+                    return response()->json(['success' => false, 'message' => "Unknown role '{$request->role}'."], 422);
+                }
+
+                if ($requestedRole === 'general-manager' && ! auth()->user()->isMainAdmin()) {
+                    return response()->json(['success' => false, 'message' => 'Only the main admin can assign the General Manager role.'], 403);
+                }
             }
 
             $fillable = ['first_name', 'middle_name', 'last_name', 'email', 'contact_no', 'date_of_birth', 'present_address', 'permanent_address', 'sex', 'civil_status', 'citizenship', 'place_of_birth', 'blood_type', 'height', 'weight', 'role'];
@@ -708,7 +788,7 @@ class UserController extends Controller
             'inactive' => 0,
         ];
 
-        // Loans by Type (for loan distribution) â€” dynamic from loan_settings_tbls
+        // Loans by Type (for loan distribution) — dynamic from loan_settings_tbls
         $allLoans = lending_program_tbl::whereIn('status', ['Approved', 'Completed'])->with('user')->get();
 
         $loanSettingsList = Loan_settings_tbl::where('is_active', true)->orderBy('loan_type')->get();
@@ -808,7 +888,7 @@ class UserController extends Controller
 
     public function dashboard_members(Request $request)
     {
-        // Auto-transition resignation_pending â†’ inactive when release_date has passed
+        // Auto-transition resignation_pending → inactive when release_date has passed
         Users_tbl::where('status', 'resignation_pending')
             ->whereIn('id', function ($q) {
                 $q->select('user_id')
@@ -881,6 +961,10 @@ class UserController extends Controller
                             ->where('withdraw_share_capital', false);
                     });
             })
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $reactivationRequests = Users_tbl::where('status', 'reactivation_pending')
             ->orderBy('updated_at', 'desc')
             ->get();
 
@@ -1000,7 +1084,7 @@ class UserController extends Controller
             return $member;
         });
 
-        return view('admin_components.members', compact('members', 'pendingRequests', 'adminList', 'memberCategoryCounts', 'adminCategoryCounts', 'resignationRequests', 'inProcessResignations', 'resignees', 'roles', 'roleCounts'));
+        return view('admin_components.members', compact('members', 'pendingRequests', 'adminList', 'memberCategoryCounts', 'adminCategoryCounts', 'resignationRequests', 'inProcessResignations', 'resignees', 'reactivationRequests', 'roles', 'roleCounts'));
     }
 
     public function dashboard_savings(Request $request)
@@ -1080,7 +1164,7 @@ class UserController extends Controller
                 $reasons[] = 'Account is not active';
             }
             if ((float) $account->balance < $minBalanceForInterest) {
-                $reasons[] = 'Balance below minimum (â‚±'.number_format($minBalanceForInterest, 2).' required)';
+                $reasons[] = 'Balance below minimum (₱'.number_format($minBalanceForInterest, 2).' required)';
             }
             if (empty($reasons)) {
                 $eligibleAccounts[] = $account;
@@ -1277,7 +1361,7 @@ class UserController extends Controller
             if ($transaction->type === 'withdrawal' && $savingsAccount->balance < $transaction->amount) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Insufficient balance to approve this withdrawal. Available: â‚±'.number_format($savingsAccount->balance, 2),
+                    'message' => 'Insufficient balance to approve this withdrawal. Available: ₱'.number_format($savingsAccount->balance, 2),
                 ], 400);
             }
 
@@ -1294,7 +1378,7 @@ class UserController extends Controller
 
             AuditLog::log(
                 'Approved Savings '.ucfirst($transaction->type),
-                "Approved {$transaction->type} of â‚±{$transaction->amount} (Ref: {$transaction->reference_no})",
+                "Approved {$transaction->type} of ₱{$transaction->amount} (Ref: {$transaction->reference_no})",
                 'savings',
                 $id
             );
@@ -1310,7 +1394,7 @@ class UserController extends Controller
 
             AuditLog::log(
                 'Rejected Savings '.ucfirst($transaction->type),
-                "Rejected {$transaction->type} of â‚±{$transaction->amount} (Ref: {$transaction->reference_no})",
+                "Rejected {$transaction->type} of ₱{$transaction->amount} (Ref: {$transaction->reference_no})",
                 'savings',
                 $id
             );
@@ -1356,7 +1440,7 @@ class UserController extends Controller
         if ($savingsAccount->balance < $transaction->amount) {
             return response()->json([
                 'success' => false,
-                'message' => 'Insufficient balance to disburse this withdrawal. Available: â‚±'.number_format($savingsAccount->balance, 2),
+                'message' => 'Insufficient balance to disburse this withdrawal. Available: ₱'.number_format($savingsAccount->balance, 2),
             ], 400);
         }
 
@@ -1375,14 +1459,14 @@ class UserController extends Controller
         \App\Models\Notifications_tbl::create([
             'user_id' => $memberId,
             'title' => 'Savings Withdrawal Disbursed',
-            'message' => 'Your savings withdrawal of â‚±'.number_format($transaction->amount, 2).' has been disbursed via GCash (Ref: '.$transaction->reference_no.'). Your new savings balance is â‚±'.number_format($newBalance, 2).'.',
+            'message' => 'Your savings withdrawal of ₱'.number_format($transaction->amount, 2).' has been disbursed via GCash (Ref: '.$transaction->reference_no.'). Your new savings balance is ₱'.number_format($newBalance, 2).'.',
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
             'Disbursed Savings Withdrawal',
-            "Disbursed withdrawal of â‚±{$transaction->amount} (Ref: {$transaction->reference_no}). New balance: â‚±{$newBalance}",
+            "Disbursed withdrawal of ₱{$transaction->amount} (Ref: {$transaction->reference_no}). New balance: ₱{$newBalance}",
             'savings',
             $id
         );
@@ -1433,14 +1517,14 @@ class UserController extends Controller
         \App\Models\Notifications_tbl::create([
             'user_id' => $memberId,
             'title' => 'Savings Deposit Confirmed',
-            'message' => 'Your savings deposit of â‚±'.number_format($transaction->amount, 2).' has been confirmed. Your new savings balance is â‚±'.number_format($newBalance, 2).'. (Ref: '.$transaction->reference_no.')',
+            'message' => 'Your savings deposit of ₱'.number_format($transaction->amount, 2).' has been confirmed. Your new savings balance is ₱'.number_format($newBalance, 2).'. (Ref: '.$transaction->reference_no.')',
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
             'Completed Savings Deposit',
-            "Confirmed deposit of â‚±{$transaction->amount} (Ref: {$transaction->reference_no}). New balance: â‚±{$newBalance}",
+            "Confirmed deposit of ₱{$transaction->amount} (Ref: {$transaction->reference_no}). New balance: ₱{$newBalance}",
             'savings',
             $id
         );
@@ -1494,14 +1578,14 @@ class UserController extends Controller
         \App\Models\Notifications_tbl::create([
             'user_id' => $memberId,
             'title' => 'Savings Deposit Voided',
-            'message' => 'Your savings deposit of â‚±'.number_format($transaction->amount, 2).' has been voided by the admin. Reason: '.str_replace('_', ' ', ucfirst($transaction->void_reason)).'. (Ref: '.$transaction->reference_no.')',
+            'message' => 'Your savings deposit of ₱'.number_format($transaction->amount, 2).' has been voided by the admin. Reason: '.str_replace('_', ' ', ucfirst($transaction->void_reason)).'. (Ref: '.$transaction->reference_no.')',
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
             'Voided Savings Deposit',
-            "Voided deposit of â‚±{$transaction->amount} (Ref: {$transaction->reference_no}). Reason: {$transaction->void_reason}",
+            "Voided deposit of ₱{$transaction->amount} (Ref: {$transaction->reference_no}). Reason: {$transaction->void_reason}",
             'savings',
             $id
         );
@@ -1708,7 +1792,7 @@ class UserController extends Controller
 
         AuditLog::log(
             'Admin Created Loan',
-            "Created {$request->lending_type} loan of â‚±{$request->lending_amount} for {$member->first_name} {$member->last_name} (Ref: {$referenceNo})",
+            "Created {$request->lending_type} loan of ₱{$request->lending_amount} for {$member->first_name} {$member->last_name} (Ref: {$referenceNo})",
             'loan',
             $loan->id
         );
@@ -1725,7 +1809,7 @@ class UserController extends Controller
         $user = $loan->user;
         AuditLog::log(
             'Approved Loan',
-            "Approved loan (Ref: {$loan->reference_no}) for {$user->first_name} {$user->last_name} - â‚±".number_format($loan->lending_amount, 2),
+            "Approved loan (Ref: {$loan->reference_no}) for {$user->first_name} {$user->last_name} - ₱".number_format($loan->lending_amount, 2),
             'loan',
             $id
         );
@@ -1893,7 +1977,7 @@ class UserController extends Controller
             $newShares = $account->total_shares - $shares;
             $newAmount = $account->total_amount - $totalAmount;
 
-            // Full withdrawal via admin â†’ auto-resignation
+            // Full withdrawal via admin → auto-resignation
             if ($newShares <= 0) {
                 $existing = \App\Models\ResignationRequest_tbl::where('user_id', $memberId)
                     ->whereIn('status', ['pending'])
@@ -1956,14 +2040,14 @@ class UserController extends Controller
         $member = Users_tbl::find($memberId);
         AuditLog::log(
             'Admin '.ucfirst($type).' Share Capital',
-            ucfirst($type)." of {$shares} shares (â‚±{$totalAmount}) for {$member?->first_name} {$member?->last_name} (Ref: {$referenceNo})",
+            ucfirst($type)." of {$shares} shares (₱{$totalAmount}) for {$member?->first_name} {$member?->last_name} (Ref: {$referenceNo})",
             'share_capital',
             $account->id
         );
 
         return response()->json([
             'success' => true,
-            'message' => ucfirst($type).' of '.$shares.' shares (â‚±'.number_format($totalAmount, 2).') successful!',
+            'message' => ucfirst($type).' of '.$shares.' shares (₱'.number_format($totalAmount, 2).') successful!',
             'reference_no' => $referenceNo,
             'new_shares' => $newShares,
             'new_amount' => $newAmount,
@@ -2110,14 +2194,14 @@ class UserController extends Controller
         \App\Models\Notifications_tbl::create([
             'user_id' => $memberId,
             'title' => 'Share Capital Deposit Confirmed',
-            'message' => 'Your share capital deposit of '.$transaction->shares.' shares (â‚±'.number_format($transaction->total_amount, 2).') has been confirmed. (Ref: '.$transaction->reference_no.')',
+            'message' => 'Your share capital deposit of '.$transaction->shares.' shares (₱'.number_format($transaction->total_amount, 2).') has been confirmed. (Ref: '.$transaction->reference_no.')',
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
             'Completed Share Capital Deposit',
-            "Confirmed deposit of {$transaction->shares} shares / â‚±{$transaction->total_amount} (Ref: {$transaction->reference_no})",
+            "Confirmed deposit of {$transaction->shares} shares / ₱{$transaction->total_amount} (Ref: {$transaction->reference_no})",
             'share_capital',
             $id
         );
@@ -2170,14 +2254,14 @@ class UserController extends Controller
         \App\Models\Notifications_tbl::create([
             'user_id' => $memberId,
             'title' => 'Share Capital Deposit Voided',
-            'message' => 'Your share capital deposit of '.$transaction->shares.' shares (â‚±'.number_format($transaction->total_amount, 2).') has been voided. Reason: '.str_replace('_', ' ', ucfirst($transaction->void_reason)).'. (Ref: '.$transaction->reference_no.')',
+            'message' => 'Your share capital deposit of '.$transaction->shares.' shares (₱'.number_format($transaction->total_amount, 2).') has been voided. Reason: '.str_replace('_', ' ', ucfirst($transaction->void_reason)).'. (Ref: '.$transaction->reference_no.')',
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
             'Voided Share Capital Deposit',
-            "Voided deposit of {$transaction->shares} shares / â‚±{$transaction->total_amount} (Ref: {$transaction->reference_no}). Reason: {$transaction->void_reason}",
+            "Voided deposit of {$transaction->shares} shares / ₱{$transaction->total_amount} (Ref: {$transaction->reference_no}). Reason: {$transaction->void_reason}",
             'share_capital',
             $id
         );
@@ -2190,8 +2274,8 @@ class UserController extends Controller
 
     public function dashboard_reports(Request $request)
     {
-        $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
-        $toDate = $request->get('to_date', now()->endOfMonth()->format('Y-m-d'));
+        $fromDate = $this->validDateParam($request, 'from_date', now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $this->validDateParam($request, 'to_date', now()->endOfMonth()->format('Y-m-d'));
         $reportType = $request->get('report_type', 'all');
         $chartType = $request->get('chart', 'all');
 
@@ -2831,6 +2915,14 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => 'Only the main admin can create roles.'], 403);
         }
 
+        $customRoleCount = \App\Models\Role::where('is_system', false)->count();
+        if ($customRoleCount >= \App\Models\Role::MAX_CUSTOM_ROLES) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Role limit reached ('.\App\Models\Role::MAX_CUSTOM_ROLES.'). Delete an existing custom role before creating another.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:roles,name',
             'slug' => 'nullable|string|max:100',
@@ -2839,8 +2931,8 @@ class UserController extends Controller
             'sidebar_permissions.*' => 'string',
         ]);
 
-        // Protected permissions (Settings, Finance, Role Management, GM Review)
-        // can only be granted by the Main Admin or the General Manager. Other
+        // Protected permissions (Settings, Finance) can only be granted by
+        // the Main Admin or the General Manager. Other
         // role creators cannot delegate them to custom roles.
         $protected = \App\Services\SoDGuard::protectedPermissions();
         $canGrantProtected = auth()->user()->isMainAdmin() || \App\Services\SoDGuard::isGeneralManager();
@@ -2849,6 +2941,7 @@ class UserController extends Controller
                 ! $canGrantProtected,
                 fn ($c) => $c->reject(fn ($p) => in_array($p, $protected, true))
             )
+            ->reject(fn ($p) => $p === 'audit-logs')
             ->values();
 
         $slug = \Illuminate\Support\Str::slug($validated['name'] ?? '');
@@ -2919,6 +3012,7 @@ class UserController extends Controller
                 ! $canGrantProtected,
                 fn ($c) => $c->reject(fn ($p) => in_array($p, $protected, true))
             )
+            ->reject(fn ($p) => $p === 'audit-logs')
             ->values();
 
         $role->update([
@@ -2961,7 +3055,7 @@ class UserController extends Controller
         if ($usersCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Cannot delete '{$role->name}' â€” {$usersCount} user(s) are assigned this role.",
+                'message' => "Cannot delete '{$role->name}' — {$usersCount} user(s) are assigned this role.",
             ], 409);
         }
 
@@ -3006,7 +3100,7 @@ class UserController extends Controller
 
             AuditLog::log(
                 'Recorded Cooperative Transaction',
-                "Recorded {$request->transaction_type} of â‚±{$request->amount} ({$category}: {$request->description})",
+                "Recorded {$request->transaction_type} of ₱{$request->amount} ({$category}: {$request->description})",
                 'cooperative_transaction',
                 $transaction->id
             );
@@ -3031,6 +3125,7 @@ class UserController extends Controller
         $distribution = DB::table('dividend_distributions')->where('year', $year)->first();
         $approvedCount = 0;
         $disbursedCount = 0;
+        $pendingCount = 0;
         $totalSumShareCapital = 0;
         $totalSumRecommended = 0;
         $totalSumApproved = 0;
@@ -3053,6 +3148,7 @@ class UserController extends Controller
 
             $approvedCount = Dividend::where('year', $year)->where('status', 'approved')->count();
             $disbursedCount = Dividend::where('year', $year)->where('status', 'disbursed')->count();
+            $pendingCount = Dividend::where('year', $year)->where('status', 'pending')->count();
             $totalSumShareCapital = Dividend::where('year', $year)->sum('share_capital_amount');
             $totalSumRecommended = Dividend::where('year', $year)->sum('recommended_amount');
             $totalSumApproved = Dividend::where('year', $year)->sum('approved_amount');
@@ -3071,11 +3167,13 @@ class UserController extends Controller
         $remainingSurplusPercentage = 100 - $statutoryTotalPercentage;
         $patronageApprovedCount = 0;
         $patronageDisbursedCount = 0;
+        $patronagePendingCount = 0;
         $totalSumPatronageApproved = 0;
 
         if ($distribution) {
             $patronageApprovedCount = \App\Models\PatronageRefundDistribution::where('year', $year)->where('status', 'approved')->count();
             $patronageDisbursedCount = \App\Models\PatronageRefundDistribution::where('year', $year)->where('status', 'disbursed')->count();
+            $patronagePendingCount = \App\Models\PatronageRefundDistribution::where('year', $year)->where('status', 'pending')->count();
             $totalSumPatronageApproved = \App\Models\PatronageRefundDistribution::where('year', $year)->where('status', 'approved')->sum('amount');
         }
 
@@ -3168,7 +3266,7 @@ $search = $request->get('search', '');
                 $reasons[] = 'Account is not active';
             }
             if ((float) $account->balance < $minBalanceForInterest) {
-                $reasons[] = 'Balance below minimum (â‚±'.number_format($minBalanceForInterest, 2).' required)';
+                $reasons[] = 'Balance below minimum (₱'.number_format($minBalanceForInterest, 2).' required)';
             }
             if (empty($reasons)) {
                 $eligibleAccounts[] = $account;
@@ -3286,7 +3384,7 @@ $search = $request->get('search', '');
             ->latest()
             ->get();
 
-        // â”€â”€â”€ Share Capital tab data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── Share Capital tab data ───────────────────────────────────────────
         $scSearch = $request->get('sc_search', '');
         $scTypeFilter = $request->get('sc_type', 'all');
         $scStatusFilter = $request->get('sc_status', 'all');
@@ -3367,6 +3465,7 @@ $search = $request->get('search', '');
             'currentYear',
             'approvedCount',
             'disbursedCount',
+            'pendingCount',
             'totalSumShareCapital',
             'totalSumRecommended',
             'totalSumApproved',
@@ -3383,6 +3482,7 @@ $search = $request->get('search', '');
             'remainingSurplusPercentage',
             'patronageApprovedCount',
             'patronageDisbursedCount',
+            'patronagePendingCount',
             'totalSumPatronageApproved',
             'savingsTransactions',
             'currentBalance',
@@ -3608,11 +3708,11 @@ $search = $request->get('search', '');
             }
 
             if ($currentInstallment) {
-                // â”€â”€ SCHEDULE-BASED (new loans) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // ── SCHEDULE-BASED (new loans) ───────────────────────────────
                 // FULL-INSTALLMENT-ONLY RULE: the admin form sends no
-                // payment_type, so the mode is auto-detected by amount â€”
-                // matches current installment + late fee â†’ monthly; matches
-                // full balance + late fee â†’ full (existing rule). Anything
+                // payment_type, so the mode is auto-detected by amount —
+                // matches current installment + late fee → monthly; matches
+                // full balance + late fee → full (existing rule). Anything
                 // else (partial or excess) is rejected with no writes.
                 $amount = round((float) $request->amount_paid, 2);
                 $monthlyTotal = round((float) $currentInstallment->amount_due + $lateFee, 2);
@@ -3624,7 +3724,7 @@ $search = $request->get('search', '');
                     $installmentAmount = $amount;
                 } else {
                     DB::rollBack();
-                    $label = 'â‚±'.number_format($monthlyTotal, 2);
+                    $label = '₱'.number_format($monthlyTotal, 2);
                     $msg = $amount < $monthlyTotal
                         ? "Partial payments are not allowed. Please pay the full current installment of {$label}."
                         : "Payment exceeds the current installment. Please enter exactly {$label}.";
@@ -3678,7 +3778,7 @@ $search = $request->get('search', '');
                     $status->save();
                 }
             } else {
-                // â”€â”€ LEGACY (existing loans without schedule rows) â€” flat ratio â”€â”€â”€â”€
+                // ── LEGACY (existing loans without schedule rows) — flat ratio ────
                 $paymentsMade = lending_repayments_tbl::where('lending_id', $request->lending_id)->count();
 
                 $interestPaid = round($request->amount_paid * $interestRatio, 2);
@@ -3726,7 +3826,7 @@ $search = $request->get('search', '');
             $member = Users_tbl::find($request->member_id);
             AuditLog::log(
                 'Admin Recorded Loan Repayment',
-                "Recorded loan repayment of â‚±{$request->amount_paid} for {$member?->first_name} {$member?->last_name} (Loan ID: {$request->lending_id})",
+                "Recorded loan repayment of ₱{$request->amount_paid} for {$member?->first_name} {$member?->last_name} (Loan ID: {$request->lending_id})",
                 'loan',
                 $request->lending_id
             );
@@ -3792,6 +3892,10 @@ $search = $request->get('search', '');
 
     public function auditLogsIndex(Request $request)
     {
+        if (! \App\Services\SoDGuard::isGeneralManager()) {
+            abort(403, 'Only the General Manager can view audit logs.');
+        }
+
         $query = AuditLog::query();
 
         if ($search = $request->input('search')) {
@@ -3825,7 +3929,7 @@ $search = $request->get('search', '');
         return view('admin_components.audit_logs', compact('logs'));
     }
 
-    // â”€â”€â”€ Additional Patronage Records (Finance Page) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Additional Patronage Records (Finance Page) ─────────────────────
 
     public function patronageRecordsPartial(Request $request)
     {
@@ -3878,7 +3982,7 @@ $search = $request->get('search', '');
         $member = Users_tbl::find($request->user_id);
         AuditLog::log(
             'Created Additional Patronage Record',
-            "Added patronage record for {$member->first_name} {$member->last_name} (Year: {$request->year}, Source: {$request->source}, Amount: â‚±".number_format($request->amount, 2).')',
+            "Added patronage record for {$member->first_name} {$member->last_name} (Year: {$request->year}, Source: {$request->source}, Amount: ₱".number_format($request->amount, 2).')',
             'patronage_record',
             $record->id
         );
@@ -3931,7 +4035,7 @@ $search = $request->get('search', '');
         $member = Users_tbl::find($record->user_id);
         AuditLog::log(
             'Updated Additional Patronage Record',
-            "Updated patronage record for {$member->first_name} {$member->last_name} (Year: {$record->year}) from â‚±".number_format($oldAmount, 2).' to â‚±'.number_format($record->amount, 2),
+            "Updated patronage record for {$member->first_name} {$member->last_name} (Year: {$record->year}) from ₱".number_format($oldAmount, 2).' to ₱'.number_format($record->amount, 2),
             'patronage_record',
             $id
         );
@@ -3955,7 +4059,7 @@ $search = $request->get('search', '');
 
         AuditLog::log(
             'Deleted Additional Patronage Record',
-            "Deleted patronage record for {$memberName} (Year: {$year}, Source: {$source}, Amount: â‚±".number_format($amount, 2).')',
+            "Deleted patronage record for {$memberName} (Year: {$year}, Source: {$source}, Amount: ₱".number_format($amount, 2).')',
             'patronage_record',
             $id
         );
@@ -3993,7 +4097,7 @@ $search = $request->get('search', '');
         DB::beginTransaction();
         try {
             if ($currentInstallment) {
-                // â”€â”€ SCHEDULE-BASED: apply penalty + allocate payment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // ── SCHEDULE-BASED: apply penalty + allocate payment ────────────
                 if ($penaltyAmount > 0 && $status) {
                     $status->penalty_amount = (float) ($status->penalty_amount ?? 0) + $penaltyAmount;
                     $status->remaining_balance = (float) $status->remaining_balance + $penaltyAmount;
@@ -4004,7 +4108,7 @@ $search = $request->get('search', '');
 
                     AuditLog::log(
                         'Loan Overdue Penalty',
-                        "Applied â‚±{$penaltyAmount} overdue penalty on loan (ID: {$repayment->lending_id})",
+                        "Applied ₱{$penaltyAmount} overdue penalty on loan (ID: {$repayment->lending_id})",
                         'loan',
                         $repayment->lending_id
                     );
@@ -4045,7 +4149,7 @@ $search = $request->get('search', '');
                     $status->save();
                 }
             } else {
-                // â”€â”€ LEGACY: flat-ratio allocation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // ── LEGACY: flat-ratio allocation ───────────────────────────────
                 $interestRatio = ($loan->total_payment > 0) ? ($loan->total_interest / $loan->total_payment) : 0;
                 $interestPaid = round($cashReceived * $interestRatio, 2);
                 $principalPaid = round($cashReceived - $interestPaid, 2);
@@ -4082,14 +4186,14 @@ $search = $request->get('search', '');
             \App\Models\Notifications_tbl::create([
                 'user_id' => $repayment->user_id,
                 'title' => 'Loan Repayment Confirmed',
-                'message' => 'Your loan repayment of â‚±'.number_format($repayment->amount_paid, 2)." has been confirmed. (Ref: {$repayment->reference_no})",
+                'message' => 'Your loan repayment of ₱'.number_format($repayment->amount_paid, 2)." has been confirmed. (Ref: {$repayment->reference_no})",
                 'category' => 'inbox',
                 'is_important' => true,
             ]);
 
             AuditLog::log(
                 'Completed Loan Repayment',
-                "Confirmed repayment of â‚±{$repayment->amount_paid} (Ref: {$repayment->reference_no}) on loan (ID: {$repayment->lending_id})",
+                "Confirmed repayment of ₱{$repayment->amount_paid} (Ref: {$repayment->reference_no}) on loan (ID: {$repayment->lending_id})",
                 'loan',
                 $repayment->lending_id
             );
@@ -4139,14 +4243,14 @@ $search = $request->get('search', '');
         \App\Models\Notifications_tbl::create([
             'user_id' => $repayment->user_id,
             'title' => 'Loan Repayment Voided',
-            'message' => 'Your loan repayment of â‚±'.number_format($repayment->amount_paid, 2)." has been voided. Reason: {$request->void_reason}. (Ref: {$repayment->reference_no})",
+            'message' => 'Your loan repayment of ₱'.number_format($repayment->amount_paid, 2)." has been voided. Reason: {$request->void_reason}. (Ref: {$repayment->reference_no})",
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
             'Voided Loan Repayment',
-            "Voided repayment of â‚±{$repayment->amount_paid} (Ref: {$repayment->reference_no}) on loan (ID: {$repayment->lending_id}). Reason: {$request->void_reason}",
+            "Voided repayment of ₱{$repayment->amount_paid} (Ref: {$repayment->reference_no}) on loan (ID: {$repayment->lending_id}). Reason: {$request->void_reason}",
             'loan',
             $repayment->lending_id
         );

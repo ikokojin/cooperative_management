@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css_folder/loan_application.css">
     <link rel="stylesheet" href="css_folder/loading.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/csp-events.js') }}"></script>
     <link rel="stylesheet" href="../font-awesome-icon/css/all.min.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
@@ -1743,7 +1744,7 @@
         }
     </style>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function closeSuccessModal() {
             document.getElementById('success-modal').style.display = 'none';
         }
@@ -1821,7 +1822,7 @@
                             </div>
                             <div class="{{ !$canApplyLoan ? 'gated' : '' }}">
                                 <div class="main-button">
-                                    <button onclick="openLoanModal()" @if(!$canApplyLoan) disabled
+                                    <button data-action="openLoanModal" @if(!$canApplyLoan) disabled
                                     style="opacity:.5;cursor:not-allowed;" @endif>
                                         <i class="fa fa-plus"></i>
                                         <span>Apply for a Loan</span>
@@ -1959,7 +1960,7 @@
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
                                                 <input type="search" id="search-all"
-                                                    oninput="applyFilters('all-loans-list','search-all','date-all','status-all')"
+                                                    data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' data-trigger="input"
                                                     placeholder="Search by reference, type, purpose"
                                                     class="form-control">
                                             </div>
@@ -1967,13 +1968,13 @@
                                             <div class="filter-parent">
                                                 <div class="filter date">
                                                     <input type="date" id="date-all" class="date-input"
-                                                        onchange="applyFilters('all-loans-list','search-all','date-all','status-all')"
+                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]'
                                                         class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
                                                     <select id="status-all"
-                                                        onchange="applyFilters('all-loans-list','search-all','date-all','status-all')"
+                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]'
                                                         class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
@@ -1996,7 +1997,7 @@
                                                 <div class="loan-card" data-ref="{{ $loan->reference_no }}"
                                                     data-status="{{ $loan->status }}"
                                                     data-date="{{ \Carbon\Carbon::parse($loan->created_at)->format('Y-m-d') }}">
-                                                    <div class="loan-row" onclick="toggleLoanCard(this)">
+                                                    <div class="loan-row" data-action="toggleLoanCard" data-arg='["|el|"]'>
                                                         <div class="loan-ref-block">
                                                             <div class="loan-type-icon"><i class="fa fa-file-lines"></i>
                                                             </div>
@@ -2111,7 +2112,7 @@
                                                                 @if(in_array($loan->status, ['Approved', 'Completed']))
                                                                     <a class="btn-ghost"
                                                                         href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
-                                                                        onclick="event.stopPropagation();">
+                                                                        data-action="stop-propagation">
                                                                         <i class="fa fa-calendar-check"></i> View Repayment
                                                                         Schedule
                                                                     </a>
@@ -2148,19 +2149,19 @@
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
                                                 <input type="search" id="search-all"
-                                                    oninput="applyFilters('all-loans-list','search-all','date-all','status-all')"
+                                                    data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
                                                     <input type="date" id="date-all" class="date-input"
-                                                        onchange="applyFilters('all-loans-list','search-all','date-all','status-all')" class="form-control">
+                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
                                                     <select id="status-all"
-                                                        onchange="applyFilters('all-loans-list','search-all','date-all','status-all')" class="form-select">
+                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
                                                         <option value="Approved">Approved</option>
@@ -2175,7 +2176,7 @@
                                             @forelse($dueTodayLoans ?? [] as $loan)
                                                 @php $progress = ($loan->total_payments ?? 0) > 0 ? min(100, round((($loan->payments_made ?? 0) / $loan->total_payments) * 100)) : 0; @endphp
                                                 <div class="loan-card" data-ref="{{ $loan->reference_no }}">
-                                                    <div class="loan-row" onclick="toggleLoanCard(this)">
+                                                    <div class="loan-row" data-action="toggleLoanCard" data-arg='["|el|"]'>
                                                         <div class="loan-ref-block">
                                                             <div class="loan-type-icon"><i class="fa fa-file-lines"></i>
                                                             </div>
@@ -2247,10 +2248,10 @@
                                                                 </div>
                                                             </div>
                                                             <div class="detail-actions">
-                                                                <a class="btn-ghost"
-                                                                    href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
-                                                                    onclick="event.stopPropagation();">
-                                                                    <i class="fa fa-calendar-check"></i> View Repayment
+<a class="btn-ghost"
+                                                                href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
+                                                                data-action="stop-propagation">
+                                                                <i class="fa fa-calendar-check"></i> View Repayment
                                                                     Schedule
                                                                 </a>
                                                             </div>
@@ -2282,19 +2283,19 @@
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
                                                 <input type="search" id="search-all"
-                                                    oninput="applyFilters('all-loans-list','search-all','date-all','status-all')"
+                                                    data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
                                                     <input type="date" id="date-all" class="date-input"
-                                                        onchange="applyFilters('all-loans-list','search-all','date-all','status-all')" class="form-control">
+                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
                                                     <select id="status-all"
-                                                        onchange="applyFilters('all-loans-list','search-all','date-all','status-all')" class="form-select">
+                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
                                                         <option value="Approved">Approved</option>
@@ -2309,7 +2310,7 @@
                                             @forelse($dueThisWeekLoans ?? [] as $loan)
                                                 @php $progress = ($loan->total_payments ?? 0) > 0 ? min(100, round((($loan->payments_made ?? 0) / $loan->total_payments) * 100)) : 0; @endphp
                                                 <div class="loan-card" data-ref="{{ $loan->reference_no }}">
-                                                    <div class="loan-row" onclick="toggleLoanCard(this)">
+                                                    <div class="loan-row" data-action="toggleLoanCard" data-arg='["|el|"]'>
                                                         <div class="loan-ref-block">
                                                             <div class="loan-type-icon"><i class="fa fa-file-lines"></i>
                                                             </div>
@@ -2381,10 +2382,10 @@
                                                                 </div>
                                                             </div>
                                                             <div class="detail-actions">
-                                                                <a class="btn-ghost"
-                                                                    href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
-                                                                    onclick="event.stopPropagation();">
-                                                                    <i class="fa fa-calendar-check"></i> View Repayment
+<a class="btn-ghost"
+                                                                href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
+                                                                data-action="stop-propagation">
+                                                                <i class="fa fa-calendar-check"></i> View Repayment
                                                                     Schedule
                                                                 </a>
                                                             </div>
@@ -2416,19 +2417,19 @@
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
                                                 <input type="search" id="search-all"
-                                                    oninput="applyFilters('all-loans-list','search-all','date-all','status-all')"
+                                                    data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
                                                     <input type="date" id="date-all" class="date-input"
-                                                        onchange="applyFilters('all-loans-list','search-all','date-all','status-all')" class="form-control">
+                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
                                                     <select id="status-all"
-                                                        onchange="applyFilters('all-loans-list','search-all','date-all','status-all')" class="form-select">
+                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
                                                         <option value="Approved">Approved</option>
@@ -2443,7 +2444,7 @@
                                             @forelse($overdueLoans ?? [] as $loan)
                                                 @php $progress = ($loan->total_payments ?? 0) > 0 ? min(100, round((($loan->payments_made ?? 0) / $loan->total_payments) * 100)) : 0; @endphp
                                                 <div class="loan-card" data-ref="{{ $loan->reference_no }}">
-                                                    <div class="loan-row" onclick="toggleLoanCard(this)">
+                                                    <div class="loan-row" data-action="toggleLoanCard" data-arg='["|el|"]'>
                                                         <div class="loan-ref-block">
                                                             <div class="loan-type-icon"><i class="fa fa-file-lines"></i>
                                                             </div>
@@ -2515,10 +2516,10 @@
                                                                 </div>
                                                             </div>
                                                             <div class="detail-actions">
-                                                                <a class="btn-ghost"
-                                                                    href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
-                                                                    onclick="event.stopPropagation();">
-                                                                    <i class="fa fa-calendar-check"></i> View Repayment
+<a class="btn-ghost"
+                                                                href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
+                                                                data-action="stop-propagation">
+                                                                <i class="fa fa-calendar-check"></i> View Repayment
                                                                     Schedule
                                                                 </a>
                                                             </div>
@@ -2561,7 +2562,21 @@
                         </div>
 
                         {{-- Card expand/collapse + search filter JS --}}
-                        <script>
+                        <script nonce="{{ csp_nonce() }}">
+                            (function () {
+                                var A = window.CSP_actions;
+                                if (!A) return;
+                                A.register('m-term-change', function (e, el) { mUpdateTermOptions(); mCompute(); mClearError(el); });
+                                A.register('m-amount-input', function (e, el) { let v=parseFloat(el.value);if(v>25000)el.value=25000;mCheckLimit(el);mCompute();mClearError(el); });
+                                A.register('m-term-sync', function (e, el) { mSyncTerm();mCompute();mClearError(el); });
+                                A.register('m-income-input', function (e, el) { if(el.value.length>6)el.value=el.value.slice(0,6);mClearError(el); });
+                                A.register('m-purpose-change', function (e, el) { mHandlePurpose(el);mClearError(el); });
+                                A.register('m-adjust-change', function (e, el) { mHandleAdjustType(el);mCompute();mClearError(el); });
+                                A.register('m-agree-row-click', function (e, el) { document.getElementById('mAgree').click(); });
+                                A.register('m-agree-check', function (e, el) { mClearAgreeError(); });
+                                A.register('m-dashboard-back', function (e, el) { closeLoanModal();location.reload(); });
+                            })();
+
                             function toggleLoanCard(rowEl) {
                                 const card = rowEl.closest('.loan-card');
                                 if (!card) return;
@@ -2584,7 +2599,7 @@
         </div>
 
         <!-- LOAN APPLICATION MODAL -->
-        <div class="loan-modal-overlay" id="loanModalOverlay" onclick="maybeCloseLoanModal(event)">
+        <div class="loan-modal-overlay" id="loanModalOverlay" data-action="maybeCloseLoanModal" data-arg='["|event|"]'>
             <div class="loan-modal" id="loanModal">
                 <div class="modal-accent-bar"></div>
 
@@ -2679,7 +2694,7 @@
                             @endif
 
                             <form id="loan-form" action="{{ route('lendingProgram') }}" method="post"
-                                enctype="multipart/form-data" {{ !$canApplyLoan ? 'onsubmit=return false' : '' }}>
+                                enctype="multipart/form-data" {{ !$canApplyLoan ? 'data-prevent-submit' : '' }}>
                                 @csrf
 
                                 <div class="panel-sec-hd">Loan Information</div>
@@ -2702,7 +2717,7 @@
                                                 };
                                             @endphp
                                             <select class="p-select np" name="lending_type" id="lending_type"
-                                                onchange="mUpdateTermOptions(); mCompute(); mClearError(this);" {{ !$canApplyLoan ? 'disabled' : '' }} required>
+                                                data-action="m-term-change" {{ !$canApplyLoan ? 'disabled' : '' }} required>
                                                 <option value="">Select type</option>
                                                 @foreach($loanSettings as $dbType => $s)
                                                     <option value="{{ $dbType }}" {!! $mOptData($dbType) !!}>{{ $dbType }}</option>
@@ -2723,8 +2738,7 @@
                                             <span class="p-inp-ico" style="font-size:13px;font-weight:700;">₱</span>
                                             <input type="number" class="p-input" name="lending_amount" id="mLoanAmount"
                                                 placeholder="e.g. 15000" min="1" max="{{ $remainingLoanable }}"
-                                                oninput="let v=parseFloat(this.value);if(v>25000)this.value=25000;mCheckLimit(this);mCompute();mClearError(this);"
-                                                onkeydown="if(['e','E','+','-'].includes(event.key))event.preventDefault();"
+                                                data-action="m-amount-input" data-trigger="input" data-numeric-guard
                                                 {{ !$canApplyLoan || $hasFullyLoaned ? 'disabled' : '' }} required>
                                         </div>
                                         <div class="p-warn" id="loan-limit-warning">
@@ -2744,7 +2758,7 @@
                                         <div class="p-sel-wrap">
                                             <select class="p-select np" name="lending_type_term_nonbusiness"
                                                 id="lending_type_term_nonbusiness"
-                                                onchange="mSyncTerm();mCompute();mClearError(this);" {{ !$canApplyLoan ? 'disabled' : '' }}>
+                                                data-action="m-term-sync" {{ !$canApplyLoan ? 'disabled' : '' }}>
                                                 <option value="">Select term</option>
                                                 <option value="6 months">6 months</option>
                                             </select>
@@ -2753,7 +2767,7 @@
                                             <div class="p-sel-wrap">
                                                 <select class="p-select np" name="lending_type_term_business"
                                                     id="lending_type_term_business"
-                                                    onchange="mSyncTerm();mCompute();mClearError(this);">
+                                                    data-action="m-term-sync">
                                                     <option value="">Select term</option>
                                                     <option value="6 months">6 months</option>
                                                     <option value="12 months">12 months</option>
@@ -2779,8 +2793,7 @@
                                                 </svg></span>
                                             <input type="number" class="p-input" name="monthly_income"
                                                 id="mMonthlyIncome" placeholder="Monthly income"
-                                                oninput="if(this.value.length>6)this.value=this.value.slice(0,6);mClearError(this);"
-                                                onkeydown="if(['e','E','+','-'].includes(event.key))event.preventDefault();"
+                                                data-action="m-income-input" data-trigger="input" data-numeric-guard
                                                 {{ !$canApplyLoan ? 'disabled' : '' }} required>
                                         </div>
                                         <span class="p-hint" id="income-locked-hint" style="display:none;">
@@ -2799,7 +2812,7 @@
                                         <label>Purpose of Loan <span class="req">*</span></label>
                                         <div class="p-sel-wrap">
                                             <select class="p-select np" name="purpose_loan" id="purpose_loan_select"
-                                                onchange="mHandlePurpose(this);mClearError(this);" {{ !$canApplyLoan ? 'disabled' : '' }} required>
+                                                data-action="m-purpose-change" {{ !$canApplyLoan ? 'disabled' : '' }} required>
                                                 <option value="" disabled selected>Select purpose</option>
                                                 <option value="Medical Expenses">Medical Expenses</option>
                                                 <option value="Education">Education</option>
@@ -2825,7 +2838,7 @@
                                         <textarea class="p-textarea" name="purpose_loan_others"
                                             id="purpose_loan_textarea"
                                             placeholder="Describe the purpose of your loan..."
-                                            oninput="mClearError(this);" {{ !$canApplyLoan ? 'disabled' : '' }}></textarea>
+                                            data-action="mClearError" data-arg='["|el|"]' data-trigger="input" {{ !$canApplyLoan ? 'disabled' : '' }}></textarea>
                                         <span class="p-hint">Additional details help with faster approval.</span>
                                         <div class="p-field-error" id="err-purpose_loan_textarea">
                                             <i class="fa fa-circle-exclamation"></i> Please describe the purpose.
@@ -2843,7 +2856,7 @@
                                         <div class="p-sel-wrap">
                                             <select class="p-select np" name="net_proceeds_adjustment_type"
                                                 id="mAdjustType"
-                                                onchange="mHandleAdjustType(this);mCompute();mClearError(this);"
+                                                data-action="m-adjust-change"
                                                 {{ !$canApplyLoan ? 'disabled' : '' }}>
                                                 <option value="">No Adjustment</option>
                                                 <option value="add">Add (+)</option>
@@ -2875,7 +2888,7 @@
                                                 <div class="uc-filename" id="mname-vid-personal"></div>
                                                 <input type="file" name="personal_valid_id"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-vid-personal','mname-vid-personal')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-vid-personal","mname-vid-personal"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-poi-personal">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2890,7 +2903,7 @@
                                                 <div class="uc-filename" id="mname-poi-personal"></div>
                                                 <input type="file" name="personal_proof_of_income"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-poi-personal','mname-poi-personal')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-poi-personal","mname-poi-personal"]'>
                                             </div>
                                         </div>
                                     </div>
@@ -2911,7 +2924,7 @@
                                                 <div class="uc-filename" id="mname-vid-emergency"></div>
                                                 <input type="file" name="emergency_valid_id"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-vid-emergency','mname-vid-emergency')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-vid-emergency","mname-vid-emergency"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-poi-emergency">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2926,7 +2939,7 @@
                                                 <div class="uc-filename" id="mname-poi-emergency"></div>
                                                 <input type="file" name="emergency_proof_of_income"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-poi-emergency','mname-poi-emergency')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-poi-emergency","mname-poi-emergency"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-poe-emergency">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2941,7 +2954,7 @@
                                                 <div class="uc-filename" id="mname-poe-emergency"></div>
                                                 <input type="file" name="proof_of_emergency"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-poe-emergency','mname-poe-emergency')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-poe-emergency","mname-poe-emergency"]'>
                                             </div>
                                         </div>
                                     </div>
@@ -2962,7 +2975,7 @@
                                                 <div class="uc-filename" id="mname-vid-business"></div>
                                                 <input type="file" name="business_valid_id"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-vid-business','mname-vid-business')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-vid-business","mname-vid-business"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-poi-business">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2977,7 +2990,7 @@
                                                 <div class="uc-filename" id="mname-poi-business"></div>
                                                 <input type="file" name="business_proof_of_income"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-poi-business','mname-poi-business')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-poi-business","mname-poi-business"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-bp-business">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2991,7 +3004,7 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-bp-business"></div>
                                                 <input type="file" name="business_permit" accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-bp-business','mname-bp-business')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-bp-business","mname-bp-business"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-fs-business">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -3006,7 +3019,7 @@
                                                 <div class="uc-filename" id="mname-fs-business"></div>
                                                 <input type="file" name="financial_statement"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-fs-business','mname-fs-business')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-fs-business","mname-fs-business"]'>
                                             </div>
                                         </div>
                                     </div>
@@ -3026,7 +3039,7 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-sid-education"></div>
                                                 <input type="file" name="school_id" accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-sid-education','mname-sid-education')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-sid-education","mname-sid-education"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-cor-education">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -3040,7 +3053,7 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-cor-education"></div>
                                                 <input type="file" name="cor" accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-cor-education','mname-cor-education')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-cor-education","mname-cor-education"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-vid-education">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -3055,7 +3068,7 @@
                                                 <div class="uc-filename" id="mname-vid-education"></div>
                                                 <input type="file" name="education_valid_id"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onchange="mOnFileSelected(this,'mcard-vid-education','mname-vid-education')">
+                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-vid-education","mname-vid-education"]'>
                                             </div>
                                         </div>
                                     </div>
@@ -3124,8 +3137,8 @@
                                     Your data is encrypted
                                 </div>
                                 <div class="mf-btns">
-                                    <button class="m-btn m-btn-outline" onclick="closeLoanModal()">Cancel</button>
-                                    <button class="m-btn m-btn-primary" onclick="mGoStep2()" {{ !$canApplyLoan ? 'disabled' : '' }}>
+                                    <button class="m-btn m-btn-outline" data-action="closeLoanModal">Cancel</button>
+                                    <button class="m-btn m-btn-primary" data-action="mGoStep2" {{ !$canApplyLoan ? 'disabled' : '' }}>
                                         View Breakdown
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                             <polyline points="9 18 15 12 9 6" />
@@ -3288,13 +3301,13 @@
                                     Rates are indicative
                                 </div>
                                 <div class="mf-btns">
-                                    <button class="m-btn m-btn-outline" onclick="mGoStep(1,true)">
+                                    <button class="m-btn m-btn-outline" data-action="mGoStep" data-arg='[1,true]'>
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                             <polyline points="15 18 9 12 15 6" />
                                         </svg>
                                         Back
                                     </button>
-                                    <button class="m-btn m-btn-primary" onclick="mGoStep3()">
+                                    <button class="m-btn m-btn-primary" data-action="mGoStep3">
                                         Proceed to Review
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                             <polyline points="9 18 15 12 9 6" />
@@ -3358,10 +3371,10 @@
                                         class="sum-val-m green bigf" id="cf-total">—</span></div>
                             </div>
 
-                            <div class="cb-row-m" id="agreeRow" onclick="document.getElementById('mAgree').click();">
+                            <div class="cb-row-m" id="agreeRow" data-action="m-agree-row-click">
                                 <input type="checkbox" id="mAgree"
-                                    onclick="event.stopPropagation();mClearAgreeError();">
-                                <label for="mAgree" onclick="event.stopPropagation();">I confirm all information is
+                                    data-action="m-agree-check" data-stop>
+                                <label for="mAgree" data-action="stop-propagation">I confirm all information is
                                     accurate and I agree to the <strong>Terms and Conditions</strong> of KPMPCATS
                                     Cooperative.</label>
                             </div>
@@ -3377,13 +3390,13 @@
                                     Data is encrypted
                                 </div>
                                 <div class="mf-btns">
-                                    <button class="m-btn m-btn-outline" onclick="mGoStep(2,true)">
+                                    <button class="m-btn m-btn-outline" data-action="mGoStep" data-arg='[2,true]'>
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                             <polyline points="15 18 9 12 15 6" />
                                         </svg>
                                         Back
                                     </button>
-                                    <button class="m-btn m-btn-gold" onclick="mSubmit()">
+                                    <button class="m-btn m-btn-gold" data-action="mSubmit">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                             <polyline points="22 2 11 13" />
                                             <polygon points="22 2 15 22 11 13 2 9 22 2" />
@@ -3412,7 +3425,7 @@
                             </div>
                             <br>
                             <button class="m-btn m-btn-primary" style="margin:0 auto;"
-                                onclick="closeLoanModal();location.reload()">Back to Dashboard</button>
+                                data-action="m-dashboard-back">Back to Dashboard</button>
                         </div>
 
                     </div><!-- /modal-main-area -->
@@ -3442,7 +3455,7 @@
                             <div class="sm-row"><span class="sm-label">Date Filed</span><span
                                     class="sm-val">{{ session("DateFiled") }}</span></div>
                         </div>
-                        <button class="sm-btn" onclick="closeSuccessModal()">Got it, Continue</button>
+                        <button class="sm-btn" data-action="closeSuccessModal">Got it, Continue</button>
                     </div>
                 </div>
             </div>
@@ -3450,7 +3463,7 @@
 
     </div><!-- /container-fluid -->
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function applyFilters(listId, searchId, dateId, statusId) {
             const list = document.getElementById(listId);
             if (!list) return;
@@ -3482,7 +3495,7 @@
         }
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // ══════════════════════════════════════════════════════════
         //  MODAL OPEN / CLOSE
         // ══════════════════════════════════════════════════════════
@@ -4114,7 +4127,7 @@
         }
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const PAGE_SIZE = 10;
         const pgState = {}; // { listId: currentPage }
 

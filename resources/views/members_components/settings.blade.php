@@ -128,18 +128,6 @@
                                         <i class="fa fa-mobile-screen"></i>
                                     </div>
                                     <div class="opt-text">
-                                        <strong>Two-Factor Authentication</strong>
-                                        <span>SMS verification {{ $settings->two_factor_enabled ? 'enabled' : 'disabled' }}</span>
-                                    </div>
-                                    <div class="switch {{ $settings->two_factor_enabled ? 'on' : '' }}"
-                                         data-field="two_factor_enabled"></div>
-                                </div>
-
-                                <div class="opt-row">
-                                    <div class="opt-icon mint">
-                                        <i class="fa fa-mobile-screen"></i>
-                                    </div>
-                                    <div class="opt-text">
                                         <strong>Login alerts</strong>
                                         <span>Notify on new device sign-in</span>
                                     </div>
@@ -279,7 +267,7 @@
 
     <div class="toast" id="settingsToast"></div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener("DOMContentLoaded", function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 

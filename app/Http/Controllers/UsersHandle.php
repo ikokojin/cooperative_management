@@ -27,8 +27,15 @@ class UsersHandle extends Controller
 {
     public function applicationFormButton(Request $request, $id)
     {
-        // dd($request->all());
         try {
+            $targetUser = \App\Models\Users_tbl::find($id);
+            abort_unless(
+                (int) auth()->id() === (int) $id
+                || ($targetUser && in_array(strtolower((string) $targetUser->role), ['pending', 'inactive'], true))
+                || \App\Services\SoDGuard::actingAsStaff(),
+                403
+            );
+
             $request->validate([
                 // users_tbls
                 'fullname' => 'nullable|string|max:255',
@@ -211,7 +218,7 @@ class UsersHandle extends Controller
                 ->with('success', 'Application form submitted successfully!');
 
         } catch (\Exception $e) {
-            dd($e->getMessage(), $e->getLine(), $e->getFile());
+            throw $e;
         }
     }
 
@@ -221,6 +228,21 @@ class UsersHandle extends Controller
 
         if (! $user) {
             return redirect()->route('login')->withErrors(['login' => 'Please log in to continue.']);
+        }
+
+        if (method_exists($user, 'isMemberBased') && $user->isMemberBased()) {
+            if (strtolower((string) $user->status) === 'inactive' || strtolower((string) $user->role) === 'inactive') {
+                return redirect()->route('member.inactive');
+            }
+
+            if (strtolower((string) $user->status) === 'reactivation_pending') {
+                auth()->logout();
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+
+                return redirect()->route('login')
+                    ->withErrors(['login' => 'Your reactivation request is still under review.']);
+            }
         }
 
         $member = $user->otherinfo;
@@ -1025,7 +1047,6 @@ class UsersHandle extends Controller
                 'savings_updates' => true,
                 'email_digest' => false,
                 'announcements' => true,
-                'two_factor_enabled' => false,
                 'login_alerts' => true,
             ]
         );
@@ -1054,7 +1075,7 @@ class UsersHandle extends Controller
     public function UpdateSetting(Request $request)
     {
         $request->validate([
-            'field' => 'required|string|in:loan_reminders,savings_updates,email_digest,announcements,two_factor_enabled,login_alerts',
+            'field' => 'required|string|in:loan_reminders,savings_updates,email_digest,announcements,login_alerts',
             'value' => 'required|boolean',
         ]);
 
@@ -2751,12 +2772,124 @@ class UsersHandle extends Controller
         // the same account, i.e. base_role=member) go to MemberPortal. Only real
         // admin/staff accounts (base_role=null) go to the dashboard.
         if (method_exists($user, 'isMemberBased') && $user->isMemberBased()) {
+            if (strtolower((string) $user->role) === 'pending') {
+                auth()->logout();
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+
+                return redirect()->route('login')
+                    ->withErrors(['login' => 'Your account is still pending approval']);
+            }
+
+            if (strtolower((string) $user->status) === 'reactivation_pending') {
+                auth()->logout();
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+
+                return redirect()->route('login')
+                    ->withErrors(['login' => 'Your reactivation request is still under review.']);
+            }
+
+            if (strtolower((string) $user->status) === 'inactive' || strtolower((string) $user->role) === 'inactive') {
+                return redirect()->route('member.inactive');
+            }
+
             return redirect()->route('MemberPortal')
                 ->with('message', 'Login successfully!')
                 ->with('just_logged_in', true);
         }
 
         return redirect()->route('dashboard')->with('message', 'Login successfully!');
+    }
+
+    /**
+     * Dedicated page for inactive member accounts. Strictly read-only: it
+     * displays the member's account details and any share capital they still
+     * hold (paidUpForAccount), and offers a single Request Reactivation
+     * action. No financial record is ever created, changed or deleted here.
+     */
+    public function InactivePage()
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if (! method_exists($user, 'isMemberBased') || ! $user->isMemberBased()) {
+            return redirect()->route('dashboard');
+        }
+
+        $isInactive = strtolower((string) $user->status) === 'inactive'
+            || strtolower((string) $user->role) === 'inactive'
+            || strtolower((string) $user->status) === 'reactivation_pending';
+
+        if (! $isInactive) {
+            return redirect()->route('MemberPortal');
+        }
+
+        $otherInfo = $user->otherinfo;
+
+        $scAccount = share_capital_account_tbl::where('user_id', $user->id)->first();
+        $scBalance = ['shares' => 0.0, 'amount' => 0.0];
+        if ($scAccount) {
+            $scBalance = \App\Http\Controllers\ShareCapital::paidUpForAccount($scAccount->id);
+        }
+
+        return view('members_components.inactive', compact('user', 'otherInfo', 'scAccount', 'scBalance'));
+    }
+
+    /**
+     * Submits a reactivation request for the authenticated member.
+     *
+     * Backend-enforced single request: only an inactive account may move to
+     * reactivation_pending. A member whose request is already under review is
+     * rejected here regardless of what the UI shows. Always operates on
+     * Auth::id() — no member ID is accepted from the client. Only the status
+     * column changes; share capital, savings, loans and all financial records
+     * are untouched.
+     */
+    public function ReactivateAccount(Request $request)
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $status = strtolower((string) $user->status);
+
+        if ($status === 'reactivation_pending') {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->withErrors(['login' => 'Your reactivation request is still under review.']);
+        }
+
+        $isInactive = $status === 'inactive' || strtolower((string) $user->role) === 'inactive';
+
+        if (! $isInactive) {
+            return redirect()->route('MemberPortal');
+        }
+
+        $user->status = 'reactivation_pending';
+        $user->save();
+
+        AuditLog::log(
+            'Reactivation Requested',
+            "Reactivation request submitted for {$user->first_name} {$user->last_name} (ID: {$user->id}).",
+            'member',
+            $user->id
+        );
+
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')
+            ->withErrors(['login' => 'Your reactivation request is now under review.']);
     }
 
     public function login(Request $request)
@@ -2783,8 +2916,8 @@ class UsersHandle extends Controller
             'password' => $incomingFields['password'],
         ];
 
-        if (auth()->attempt($credentials)) {
-            $user = auth()->user();
+        if (auth()->validate($credentials)) {
+            $user = Users_tbl::find($user->id);
 
             // Member-based accounts (regular members AND Allied Workers promoted
             // on the same account — base_role=member) always flow through the
@@ -2800,10 +2933,25 @@ class UsersHandle extends Controller
                         ->withErrors(['login' => 'Your account has been deactivated. Contact the main administrator.'])
                         ->withInput($request->only('login'));
                 }
+                if ($this->beginTwoFactorChallenge($request, $user)) {
+                    return redirect()->route('2fa.challenge');
+                }
+
+                auth()->login($user);
                 $request->session()->regenerate();
                 $request->session()->flash('just_logged_in', true);
 
                 return redirect()->route('UserHandle');
+            }
+
+            if (strtolower((string) $user->role) === 'pending') {
+                auth()->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->back()
+                    ->withErrors(['login' => 'Your account is still pending approval'])
+                    ->withInput($request->only('login'));
             }
 
             $otherInfo = DB::table('otherinfo_tbls')
@@ -2830,6 +2978,29 @@ class UsersHandle extends Controller
                     ->withInput($request->only('login'));
             } else {
 
+                if (strtolower((string) $user->status) === 'reactivation_pending') {
+                    auth()->logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+
+                    return redirect()->back()
+                        ->withErrors(['login' => 'Your reactivation request is still under review.'])
+                        ->withInput($request->only('login'));
+                }
+
+                if (strtolower((string) $user->status) === 'inactive' || strtolower((string) $user->role) === 'inactive') {
+                    auth()->login($user);
+                    $request->session()->regenerate();
+                    $request->session()->flash('just_logged_in', true);
+
+                    return redirect()->route('member.inactive');
+                }
+
+                if ($this->beginTwoFactorChallenge($request, $user)) {
+                    return redirect()->route('2fa.challenge');
+                }
+
+                auth()->login($user);
                 $request->session()->regenerate();
                 $request->session()->flash('just_logged_in', true);
 
@@ -2878,6 +3049,43 @@ class UsersHandle extends Controller
         // }
     }
 
+    /**
+     * If the account is a privileged user (General Manager / Main Admin) with
+     * enabled 2FA, authenticate it, rotate the session id, and drop the user
+     * into the pending-2FA challenge state (session holds only the user id).
+     * The final verified session is only granted after the challenge passes.
+     *
+     * @return bool Whether a 2FA challenge was started (caller must redirect
+     *              the user to the challenge page when true).
+     */
+    private function beginTwoFactorChallenge(Request $request, Users_tbl $user): bool
+    {
+        if (! method_exists($user, 'requiresTwoFactor') || ! method_exists($user, 'twoFactorEnabled')) {
+            return false;
+        }
+
+        if (! $user->requiresTwoFactor() || ! $user->twoFactorEnabled()) {
+            return false;
+        }
+
+        auth()->login($user);
+
+        // Regenerate the session id before entering the pending state so the
+        // pre-verification session cannot be fixed to a known id.
+        $request->session()->regenerate();
+        $request->session()->forget('2fa.verified');
+        $request->session()->put('2fa.pending_user_id', $user->id);
+
+        AuditLog::log(
+            '2FA Challenge Initiated',
+            "Two-factor authentication challenge started for user #{$user->id}.",
+            'user',
+            $user->id
+        );
+
+        return true;
+    }
+
     public function checkEmail(Request $request)
     {
         $exists = \App\Models\Users_tbl::where('email', $request->email)->exists();
@@ -2897,7 +3105,7 @@ class UsersHandle extends Controller
                 'date_of_birth' => 'required|date',
                 'place_of_birth' => 'required',
                 'email' => ['required', 'email', "regex:/@gmail\.com$/i", Rule::unique('users_tbls', 'email')],
-                'password' => 'required|confirmed',
+                'password' => 'required|string|min:8|confirmed',
                 'membership_category' => 'required',
                 'civil_status' => 'required',
                 'number_son' => 'nullable|integer',
@@ -3040,7 +3248,7 @@ class UsersHandle extends Controller
             return redirect()->route('RegisterPage')->with('success', 'Create account successfully!');
 
         } catch (\Exception $e) {
-            dd($e->getMessage(), $e->getLine(), $e->getFile());
+            throw $e;
         }
 
     }

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="css_folder/loading.css">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     <link rel="stylesheet" href="font-awesome-icon/css/all.min.css">
 
@@ -437,10 +438,10 @@
                     </div>
 
                     <div class="sc-receipt-footer">
-                        <button class="sc-btn-download" onclick="scDownloadReceipt()">
+                        <button class="sc-btn-download" data-action="scDownloadReceipt">
                             <i class="fa-solid fa-download"></i> Download Receipt
                         </button>
-                        <button class="sc-btn-close-modal" onclick="scCloseModal()">Close</button>
+                        <button class="sc-btn-close-modal" data-action="scCloseModal">Close</button>
                     </div>
                 </div>
             </div>
@@ -470,7 +471,7 @@
                     <div class="sc-void-value" id="sc-void-reason-text"></div>
                 </div>
                 <div class="sc-void-footer">
-                    <button class="sc-btn-void-close" onclick="scCloseVoidModal()">Close</button>
+                    <button class="sc-btn-void-close" data-action="scCloseVoidModal">Close</button>
                 </div>
             </div>
         </div>
@@ -514,7 +515,7 @@
                                 <div class="modal-body"
                                     style="padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
 
-                                    <form action="{{ route('share_capital.store') }}" method="POST" id="modal-sc-form"
+                                    <form action="{{ route('share_capital.member.store') }}" method="POST" id="modal-sc-form"
                                         enctype="multipart/form-data">
                                         @csrf
 
@@ -625,7 +626,8 @@
                                                     </p>
                                                     <p style="margin: 6px 0 0; font-size: 11px;">
                                                         <a href="#"
-                                                            onclick="openQrLightbox('{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}'); return false;"
+                                                            class="js-open-qr-lightbox"
+                                                            data-qr-src="{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}"
                                                             style="color: #0056b3; font-weight: 600;">
                                                             <i class="fa fa-up-right-and-down-left-from-center"></i> View
                                                             full-size QR
@@ -1075,7 +1077,8 @@
                                                 @if(strtolower($row->status ?? '') === 'voided')
                                                     class="tx-voided-row" style="cursor:pointer;"
                                                     data-reason="{{ $row->void_reason }}"
-                                                    onclick="showScVoidReason(this)"
+                                                    data-action="showScVoidReason"
+                                                    data-arg='["|el|"]'
                                                 @endif
                                             >
                                                 <td>{{ \Carbon\Carbon::parse($row->transaction_date)->format('M d, Y') }}
@@ -1152,7 +1155,7 @@
                     <p style="margin: 0; font-size: 13px; font-weight: 700; color: #1a1a1a;">Error</p>
                     <p style="margin: 0; font-size: 12px; color: #888;">{{ session('error') }}</p>
                 </div>
-                <button onclick="this.parentElement.remove()"
+                <button data-action="remove-parent"
                     style="background: none; border: none; color: #bbb; font-size: 18px; cursor: pointer; margin-left: auto; line-height: 1;">×</button>
             </div>
         @endif
@@ -1172,7 +1175,7 @@
                     <p style="margin: 0; font-size: 13px; font-weight: 700; color: #1a1a1a;">Notice</p>
                     <p style="margin: 0; font-size: 12px; color: #888;">{{ session('warning') }}</p>
                 </div>
-                <button onclick="this.parentElement.remove()"
+                <button data-action="remove-parent"
                     style="background: none; border: none; color: #bbb; font-size: 18px; cursor: pointer; margin-left: auto; line-height: 1;">×</button>
             </div>
         @endif
@@ -1182,7 +1185,7 @@
     {{-- QR Lightbox --}}
     <div id="qr-lightbox-overlay"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100000; align-items:center; justify-content:center;">
-        <button type="button" onclick="closeQrLightbox()"
+        <button type="button" data-action="closeQrLightbox"
             style="position:absolute; top:20px; right:24px; background:#fff; border:none; width:40px; height:40px; border-radius:50%; font-size:20px; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center;">
             <i class="fa fa-times"></i>
         </button>
@@ -1193,7 +1196,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function openQrLightbox(src) {
             document.getElementById('qr-lightbox-img').src = src;
             document.getElementById('qr-lightbox-overlay').style.display = 'flex';
@@ -1206,9 +1209,17 @@
         document.getElementById('qr-lightbox-overlay')?.addEventListener('click', function (e) {
             if (e.target === this) closeQrLightbox();
         });
+
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('.js-open-qr-lightbox');
+            if (link) {
+                e.preventDefault();
+                openQrLightbox(link.dataset.qrSrc);
+            }
+        });
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         /* ══════════════════════════════════════
             MANAGE SHARE CAPITAL MODAL LOGIC
         ══════════════════════════════════════ */
@@ -1383,45 +1394,6 @@
             });
 
         })();
-
-        function submitModalGcash() {
-            const type = document.getElementById('modal-type').value;
-            const shares = parseInt(document.getElementById('modal-shares').value, 10);
-            const cost = shares * 200;
-            const CURRENT_BALANCE = {{ $currentBalance ?? 0 }};
-            const inlineError = document.getElementById('modal-inline-error');
-            const inlineErrorText = document.getElementById('modal-inline-error-text');
-
-            function showErr(msg) {
-                inlineErrorText.textContent = msg;
-                inlineError.classList.add('show');
-                inlineError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-
-            if (!type) {
-                showErr('Please select a transaction type first.');
-                return;
-            }
-
-            if (type === 'Withdrawal') {
-                if (CURRENT_BALANCE <= 0) {
-                    showErr('You cannot withdraw because your current balance is ₱0.');
-                    return;
-                }
-                if (cost > CURRENT_BALANCE) {
-                    showErr(
-                        'Withdrawal amount (₱' + cost.toLocaleString() +
-                        ') exceeds your current balance (₱' + CURRENT_BALANCE.toLocaleString() + ').'
-                    );
-                    return;
-                }
-            }
-
-            document.getElementById('modal-gcash-shares').value = shares;
-            document.getElementById('modal-gcash-note').value = document.getElementById('modal-note').value;
-            document.getElementById('modal-gcash-type').value = type;
-            document.getElementById('modal-gcash-form').submit();
-        }
 
         /* ══════════════════════════════════════
             RECEIPT MODAL

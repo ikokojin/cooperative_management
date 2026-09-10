@@ -163,7 +163,7 @@ class ResetCoopFresh extends Command
 
         // ---- 7. Verify roles ----------------------------------------------
         $roles = Role::pluck('slug')->map(fn ($s) => strtolower((string) $s))->all();
-        $expectedRoles = ['admin', 'officer', 'general-manager'];
+        $expectedRoles = ['general-manager'];
         foreach ($expectedRoles as $slug) {
             if (! in_array($slug, $roles, true)) {
                 $this->error("Required role '{$slug}' was not created by migrations.");

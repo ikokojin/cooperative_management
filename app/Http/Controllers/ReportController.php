@@ -13,8 +13,10 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
-        $toDate = $request->get('to_date', now()->endOfMonth()->format('Y-m-d'));
+        $defaultFrom = now()->startOfMonth()->format('Y-m-d');
+        $defaultTo = now()->endOfMonth()->format('Y-m-d');
+        $fromDate = $this->validDateParam($request, 'from_date', $defaultFrom);
+        $toDate = $this->validDateParam($request, 'to_date', $defaultTo);
         $reportType = $request->get('report_type', 'all');
         $chartType = $request->get('chart', 'all');
 
@@ -792,8 +794,8 @@ class ReportController extends Controller
 
     public function journalDetailed(Request $request)
     {
-        $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
-        $toDate = $request->get('to_date', now()->endOfMonth()->format('Y-m-d'));
+        $fromDate = $this->validDateParam($request, 'from_date', now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $this->validDateParam($request, 'to_date', now()->endOfMonth()->format('Y-m-d'));
 
         $entries = $this->getJournalEntries($fromDate, $toDate);
 
@@ -807,8 +809,8 @@ class ReportController extends Controller
 
     public function journalSummary(Request $request)
     {
-        $fromDate = $request->get('from_date', now()->startOfMonth()->format('Y-m-d'));
-        $toDate = $request->get('to_date', now()->endOfMonth()->format('Y-m-d'));
+        $fromDate = $this->validDateParam($request, 'from_date', now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $this->validDateParam($request, 'to_date', now()->endOfMonth()->format('Y-m-d'));
 
         $entries = $this->getJournalEntries($fromDate, $toDate);
 
@@ -847,8 +849,8 @@ class ReportController extends Controller
         ];
 
         if ($period === 'custom') {
-            $fromDate = $request->get('from_date', $now->copy()->startOfYear()->format('Y-m-d'));
-            $toDate = $request->get('to_date', $now->copy()->endOfYear()->format('Y-m-d'));
+            $fromDate = $this->validDateParam($request, 'from_date', $now->copy()->startOfYear()->format('Y-m-d'));
+            $toDate = $this->validDateParam($request, 'to_date', $now->copy()->endOfYear()->format('Y-m-d'));
 
             if ($fromDate > $toDate) {
                 $tmp = $fromDate;

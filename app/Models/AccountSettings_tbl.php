@@ -14,7 +14,6 @@ class AccountSettings_tbl extends Model
         'savings_updates',
         'email_digest',
         'announcements',
-        'two_factor_enabled',
         'login_alerts',
     ];
 
@@ -23,7 +22,6 @@ class AccountSettings_tbl extends Model
         'savings_updates' => 'boolean',
         'email_digest' => 'boolean',
         'announcements' => 'boolean',
-        'two_factor_enabled' => 'boolean',
         'login_alerts' => 'boolean',
     ];
 }

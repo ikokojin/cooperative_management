@@ -146,7 +146,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('DOMContentLoaded', function () {
             const tabs = document.querySelectorAll('.tab-group .tab');
             const groups = document.querySelectorAll('.notif-group');

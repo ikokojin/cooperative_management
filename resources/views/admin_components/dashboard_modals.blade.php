@@ -12,7 +12,7 @@
                         <p class="text-xs text-gray-500">{{ $pendingLoansCount }} application(s) awaiting review</p>
                     </div>
                 </div>
-                <button onclick="closeModal('pendingLoansModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["pendingLoansModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -40,7 +40,7 @@
         <div class="p-6 border-t border-gray-100 flex justify-between items-center">
             <span class="text-xs text-gray-400">Showing up to 10 latest applications</span>
             <div class="flex gap-3">
-                <button onclick="closeModal('pendingLoansModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["pendingLoansModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
                 <a href="{{ route('lendings', ['filter' => 'pending']) }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                     Go to Full Management Page
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -64,7 +64,7 @@
                         <p class="text-xs text-gray-500">{{ $pendingResignationsCount }} request(s) awaiting admin review</p>
                     </div>
                 </div>
-                <button onclick="closeModal('resignationsModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["resignationsModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -92,7 +92,7 @@
         <div class="p-6 border-t border-gray-100 flex justify-between items-center">
             <span class="text-xs text-gray-400">Showing up to 10 latest requests</span>
             <div class="flex gap-3">
-                <button onclick="closeModal('resignationsModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["resignationsModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
                 <a href="{{ route('dashboard.members') }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                     Go to Full Management Page
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -116,7 +116,7 @@
                         <p class="text-xs text-gray-500">{{ $upcomingSeminarsCount }} upcoming seminar(s) scheduled</p>
                     </div>
                 </div>
-                <button onclick="closeModal('seminarsModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["seminarsModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -145,7 +145,7 @@
         <div class="p-6 border-t border-gray-100 flex justify-between items-center">
             <span class="text-xs text-gray-400">Showing next 5 upcoming seminars</span>
             <div class="flex gap-3">
-                <button onclick="closeModal('seminarsModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["seminarsModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
                 <a href="{{ route('seminars.index') }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                     Go to Full Management Page
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -155,7 +155,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     function openPendingLoansModal() { openModal('pendingLoansModal'); }
     function openResignationsModal() { openModal('resignationsModal'); }
     function openSeminarsModal() { openModal('seminarsModal'); }
@@ -175,7 +175,7 @@
                         <p class="text-xs text-gray-500" id="loanTypeModalSubtitle"></p>
                     </div>
                 </div>
-                <button onclick="closeModal('loanTypeModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["loanTypeModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -202,12 +202,12 @@
         <div class="p-6 border-t border-gray-100 flex justify-between items-center">
             <span class="text-xs text-gray-400" id="loanTypePagerInfo"></span>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="changeLoanTypePage(-1)"
+                <button type="button" data-action="changeLoanTypePage" data-arg='[-1]'
                     class="w-9 h-9 flex items-center justify-center text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-all">&lt;</button>
                 <span id="loanTypePagerPage" class="text-sm text-gray-600"></span>
-                <button type="button" onclick="changeLoanTypePage(1)"
+                <button type="button" data-action="changeLoanTypePage" data-arg='[1]'
                     class="w-9 h-9 flex items-center justify-center text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-all">&gt;</button>
-                <button onclick="closeModal('loanTypeModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["loanTypeModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
                 <a href="{{ route('lendings') }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                     Go to Loans Page
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -217,7 +217,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     window.loanTypeData = @json($loansByTypeDetails ?? []);
     let currentLoanType = null;
     let currentLoanTypePage = 1;
@@ -288,4 +288,9 @@
         currentLoanTypePage = next;
         renderLoanTypeTable();
     };
+
+    document.addEventListener('click', function(e) {
+        const row = e.target.closest('.js-open-loan-type');
+        if (row && row.dataset.loanType) openLoanTypeModal(row.dataset.loanType);
+    });
 </script>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Report - {{ $date }}</title>
+    <script src="{{ asset('js/csp-events.js') }}"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -499,8 +500,8 @@
     </div>
 
     <div class="no-print text-center mt-3">
-        <button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button>
-        <button class="btn btn-secondary" onclick="window.close()">Close</button>
+        <button class="btn btn-primary" data-action="print">Print / Save as PDF</button>
+        <button class="btn btn-secondary" data-action="close">Close</button>
     </div>
 
     <div class="footer">

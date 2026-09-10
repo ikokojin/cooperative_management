@@ -10,9 +10,9 @@ class Membergovern_ids_tbl extends Model
 
     protected $fillable = [
         'user_id',
-        'sss_no',
-        'philhealth_no',
-        'pagibig_no',
-        'tin_no',
+        'sss_id',
+        'philhealth_id',
+        'pagibig_id',
+        'tin_id',
     ];
 }

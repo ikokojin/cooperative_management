@@ -15,7 +15,7 @@ class OtpController extends Controller
         $request->validate(['email' => 'required|email']);
 
         $email = $request->email;
-        $otp = rand(100000, 999999);
+        $otp = random_int(100000, 999999);
 
         Session::put('email_otp', $otp);
         Session::put('email_otp_email', $email);

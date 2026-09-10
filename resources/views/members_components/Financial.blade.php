@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="css_folder/financial.css">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     <link rel="stylesheet" href="font-awesome-icon/css/all.min.css">
 
@@ -757,10 +758,10 @@
                     </div>
 
                     <div class="sc-receipt-footer">
-                        <button class="sc-btn-download" onclick="scDownloadReceipt()">
+                        <button class="sc-btn-download" data-action="scDownloadReceipt">
                             <i class="fa-solid fa-download"></i> Download Receipt
                         </button>
-                        <button class="sc-btn-close-modal" onclick="scCloseModal()">Close</button>
+                        <button class="sc-btn-close-modal" data-action="scCloseModal">Close</button>
                     </div>
                 </div>
             </div>
@@ -814,9 +815,9 @@
 
                                 <div class="modal-body"
                                     style="padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+<form action="{{ route('share_capital.member.store') }}" method="POST" id="unified-tx-form"
 
-                                    <form action="{{ route('share_capital.store') }}" method="POST" id="unified-tx-form"
-                                        enctype="multipart/form-data" data-sc-route="{{ route('share_capital.store') }}"
+                                        enctype="multipart/form-data" data-sc-route="{{ route('share_capital.member.store') }}"
                                         data-sv-deposit-route="{{ route('savings.deposit') }}"
                                         data-sv-withdraw-route="{{ route('savings.withdraw') }}">
                                         @csrf
@@ -927,7 +928,7 @@
                                                     </p>
                                                     <p style="margin: 6px 0 0; font-size: 11px;">
                                                         <a href="#" id="tx-qr-view"
-                                                            onclick="openQrLightbox(this.dataset.src); return false;"
+                                                            data-action="open-sc-qr"
                                                             style="color: #0056b3; font-weight: 600;">
                                                             <i class="fa fa-up-right-and-down-left-from-center"></i> View
                                                             full-size QR
@@ -1405,7 +1406,7 @@
                                                         data-type="{{ $row->type }}" data-status="{{ $statusKey }}"
                                                         data-void="{{ strtolower($row->status ?? '') === 'voided' ? '1' : '0' }}"
                                                         data-reason="{{ $row->void_reason }}"
-                                                        data-trigger="sc"
+                                                        data-row-source="sc"
                                                         class="{{ strtolower($row->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
                                                         data-member="{{ Auth::user()->name ?? 'Member' }}"
                                                         data-amount="{{ number_format((float) $row->total_amount, 2) }}"
@@ -1414,7 +1415,7 @@
                                                         data-ref="{{ $row->reference_no ?? '—' }}"
                                                         data-txdate="{{ \Carbon\Carbon::parse($row->transaction_date)->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
                                                         style="cursor:pointer;"
-                                                        onclick="handleTxnRowClick(event, this, 'sc')">
+                                                        data-action="handleTxnRowClick" data-arg='["|event|","|el|","sc"]'>
                                                         <td>{{ \Carbon\Carbon::parse($row->transaction_date)->format('M d, Y') }}
                                                         </td>
                                                         <td>{{ $row->type }}</td>
@@ -1669,10 +1670,10 @@
                                                         placeholder="Search by reference no.">
                                                 </div>
                                                 <input type="date" class="sm-filter-select" name="date" value="{{ $date }}"
-                                                    onchange="document.getElementById('sm-tx-filter-form').submit()">
+                                                    data-action="sm-submit-tx-filter">
 
                                                 <select name="status" class="sm-filter-select"
-                                                    onchange="this.form.submit()">
+                                                    data-submit-on-change>
                                                     <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All Status
                                                     </option>
                                                     @foreach($availableStatuses as $s)
@@ -1718,7 +1719,7 @@
                                                                         $rowTypeLabel = 'Withdrawal';
                                                                     }
                                                                 @endphp
-                                                                 <tr data-trigger="sv"
+                                                                 <tr data-row-source="sv"
                                                                      data-void="{{ strtolower($tx->status ?? '') === 'voided' ? '1' : '0' }}"
                                                                      data-reason="{{ $tx->void_reason }}"
                                                                      class="{{ strtolower($tx->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
@@ -1730,7 +1731,7 @@
                                                                      data-txdate="{{ \Carbon\Carbon::parse($tx->transaction_date)->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
                                                                      data-status="{{ $rowDisplayStatus }}"
                                                                      style="cursor:pointer;"
-                                                                     onclick="handleTxnRowClick(event, this, 'sv')">
+                                                                     data-action="handleTxnRowClick" data-arg='["|event|","|el|","sv"]'>
                                                                     <td class="text-start">
                                                                         @if($tx->type === 'deposit' && str_starts_with($tx->reference_no ?? '', 'DISB'))
                                                                             <div class="deposit">Loan Disbursement</div>
@@ -1882,7 +1883,7 @@
                     <p style="margin: 0; font-size: 13px; font-weight: 700; color: #1a1a1a;">Error</p>
                     <p style="margin: 0; font-size: 12px; color: #888;">{{ session('error') }}</p>
                 </div>
-                <button onclick="this.parentElement.remove()"
+                <button data-action="remove-parent"
                     style="background: none; border: none; color: #bbb; font-size: 18px; cursor: pointer; margin-left: auto; line-height: 1;">×</button>
             </div>
         @endif
@@ -1902,7 +1903,7 @@
                     <p style="margin: 0; font-size: 13px; font-weight: 700; color: #1a1a1a;">Notice</p>
                     <p style="margin: 0; font-size: 12px; color: #888;">{{ session('warning') }}</p>
                 </div>
-                <button onclick="this.parentElement.remove()"
+                <button data-action="remove-parent"
                     style="background: none; border: none; color: #bbb; font-size: 18px; cursor: pointer; margin-left: auto; line-height: 1;">×</button>
             </div>
         @endif
@@ -1964,10 +1965,10 @@
                     </div>
 
                     <div class="sv-receipt-footer">
-                        <button class="sv-btn-download" onclick="svDownloadReceipt()">
+                        <button class="sv-btn-download" data-action="svDownloadReceipt">
                             <i class="fa-solid fa-download"></i> Download Receipt
                         </button>
-                        <button class="sv-btn-close-modal" onclick="svCloseModal()">Close</button>
+                        <button class="sv-btn-close-modal" data-action="svCloseModal">Close</button>
                     </div>
                 </div>
             </div>
@@ -2032,10 +2033,10 @@
                     </div>
 
                     <div class="wv-receipt-footer">
-                        <button class="wv-btn-download" onclick="wvDownloadReceipt()">
+                        <button class="wv-btn-download" data-action="wvDownloadReceipt">
                             <i class="fa-solid fa-download"></i> Download Receipt
                         </button>
-                        <button class="wv-btn-close-modal" onclick="wvCloseModal()">Close</button>
+                        <button class="wv-btn-close-modal" data-action="wvCloseModal">Close</button>
                     </div>
                 </div>
             </div>
@@ -2104,10 +2105,10 @@
                 </div>
 
                 <div class="sc-receipt-footer">
-                    <button class="sc-btn-download" onclick="scRowDownloadReceipt()">
+                    <button class="sc-btn-download" data-action="scRowDownloadReceipt">
                         <i class="fa-solid fa-download"></i> Download Receipt
                     </button>
-                    <button class="sc-btn-close-modal" onclick="closeRowReceipt('sc')">Close</button>
+                    <button class="sc-btn-close-modal" data-action="closeRowReceipt" data-arg='["sc"]'>Close</button>
                 </div>
             </div>
         </div>
@@ -2162,10 +2163,10 @@
                 </div>
 
                 <div class="sv-receipt-footer">
-                    <button class="sv-btn-download" onclick="svRowDownloadReceipt()">
+                    <button class="sv-btn-download" data-action="svRowDownloadReceipt">
                         <i class="fa-solid fa-download"></i> Download Receipt
                     </button>
-                    <button class="sv-btn-close-modal" onclick="closeRowReceipt('sv')">Close</button>
+                    <button class="sv-btn-close-modal" data-action="closeRowReceipt" data-arg='["sv"]'>Close</button>
                 </div>
             </div>
         </div>
@@ -2219,7 +2220,7 @@
                 <div class="fin-void-value" id="fin-void-reason-text">—</div>
             </div>
             <div class="fin-void-footer">
-                <button class="fin-btn-void-close" onclick="finCloseVoidModal()">Close</button>
+                <button class="fin-btn-void-close" data-action="finCloseVoidModal">Close</button>
             </div>
         </div>
     </div>
@@ -2230,7 +2231,7 @@
     {{-- QR Lightbox (shared by both tabs) --}}
     <div id="qr-lightbox-overlay"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100000; align-items:center; justify-content:center;">
-        <button type="button" onclick="closeQrLightbox()"
+        <button type="button" data-action="closeQrLightbox"
             style="position:absolute; top:20px; right:24px; background:#fff; border:none; width:40px; height:40px; border-radius:50%; font-size:20px; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center;">
             <i class="fa fa-times"></i>
         </button>
@@ -2240,7 +2241,14 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+            A.register('open-sc-qr', function (e, el) { openQrLightbox(el.dataset.src); return false; });
+            A.register('sm-submit-tx-filter', function (e, el) { document.getElementById('sm-tx-filter-form').submit(); });
+        })();
+
         AOS.init();
 
         function openQrLightbox(src) {
@@ -2262,7 +2270,7 @@
     balance figures needed since the Financial controller computes both
     Share Capital and Savings data on every request)
     ═══════════════════════════════════════ --}}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         (function () {
             const form = document.getElementById('unified-tx-form');
             if (!form) return;
@@ -2681,7 +2689,7 @@
 
     {{-- RECEIPT MODAL script (Share Capital) --}}
     @if($activeTab === 'share_capital')
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             function scCloseModal() {
                 const overlay = document.getElementById('sc-receipt-overlay');
                 if (overlay) overlay.remove();
@@ -2884,7 +2892,7 @@
     SAVINGS TAB — scripts
     ═══════════════════════════════════════ --}}
     @if($activeTab === 'savings')
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             const smRefInput = document.querySelector('.sm-search-box input[name="ref"]');
             const smFilterForm = document.getElementById('sm-tx-filter-form');
             let smSearchDebounce;
@@ -2910,7 +2918,7 @@
             }
         </script>
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             function copyRef(elementId) {
                 const text = document.getElementById(elementId).textContent.trim();
                 navigator.clipboard.writeText(text).then(() => {
@@ -3066,7 +3074,7 @@
     ROW-RECEIPT SCRIPTS (both tabs) — click a table row to view
     ═══════════════════════════════════════════════════════ --}}
     @if($activeTab === 'share_capital' || $activeTab === 'savings')
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             function scRowReceiptRow(label, value) {
                 return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
                     <span style="color:#888;">${label}</span>

@@ -65,24 +65,24 @@
     <div class="flex gap-1 mb-6 p-1 bg-gray-100 rounded-xl w-fit">
         <button class="tab-btn px-5 py-2 text-sm font-medium rounded-lg transition-all"
                 data-tab="savings"
-                onclick="switchFinanceTab('savings', this)">
+                data-action="switchFinanceTab" data-arg='["savings","|el|"]'>
             Savings
         </button>
         <button class="tab-btn px-5 py-2 text-sm font-medium rounded-lg transition-all"
                 data-tab="share-capitals"
-                onclick="switchFinanceTab('share-capitals', this)">
+                data-action="switchFinanceTab" data-arg='["share-capitals","|el|"]'>
             Share Capital
         </button>
         @if(\App\Services\SoDGuard::isGeneralManager())
         <button class="tab-btn px-5 py-2 text-sm font-medium rounded-lg transition-all"
                 data-tab="dividends"
-                onclick="switchFinanceTab('dividends', this)">
+                data-action="switchFinanceTab" data-arg='["dividends","|el|"]'>
             Disbursal Management
         </button>
         @endif
         <button class="tab-btn px-5 py-2 text-sm font-medium rounded-lg transition-all"
                 data-tab="patronage-records"
-                onclick="switchFinanceTab('patronage-records', this)">
+                data-action="switchFinanceTab" data-arg='["patronage-records","|el|"]'>
             Patronage Refund
         </button>
     </div>
@@ -97,7 +97,7 @@
             <div class="flex items-center gap-3">
                 <form method="GET" action="{{ route('financial.activity') }}" class="flex items-center gap-2">
                     <input type="hidden" name="tab" value="dividends">
-                    <select name="year" onchange="this.form.submit()" class="select w-32">
+                    <select name="year" data-submit-on-change class="select w-32">
                         @for($y = $currentYear; $y >= $currentYear - 10; $y--)
                             <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
@@ -133,7 +133,7 @@
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">₱</span>
                             <input type="number" name="net_surplus" id="netSurplusInput" step="0.01" min="1"
                                 class="input pl-10 text-lg font-bold text-gray-900" placeholder="0.00"
-                                oninput="updateBreakdownPreview()" required>
+                                data-action="updateBreakdownPreview" data-trigger="input" required>
                         </div>
                         <p class="text-xs text-gray-400 mt-1">The net surplus for fiscal year {{ $year }}</p>
                     </div>
@@ -316,10 +316,18 @@
                         </div>
                     </div>
                     <div id="disburse-btn-container">
-                        <button onclick="disburseAllDividends()" id="disburse-all-btn" class="btn btn-primary btn-lg">
-                            <i data-lucide="send" class="w-4 h-4"></i>
-                            Disburse All
-                        </button>
+                        @if($pendingCount > 0)
+                            <button data-action="approveAllDividends" id="approve-all-btn" class="btn btn-warning btn-lg">
+                                <i data-lucide="badge-check" class="w-4 h-4"></i>
+                                Approve All
+                            </button>
+                        @endif
+                        @if($approvedCount > 0)
+                            <button data-action="disburseAllDividends" id="disburse-all-btn" class="btn btn-primary btn-lg">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                                Disburse All
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -353,18 +361,24 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2" id="patronage-action-btns">
-                        <button onclick="generatePatronageRefunds()" id="gen-patronage-btn" class="btn btn-warning btn-sm">
+                        <button data-action="generatePatronageRefunds" id="gen-patronage-btn" class="btn btn-warning btn-sm">
                             <i data-lucide="wand-2" class="w-4 h-4"></i>
                             Generate Patronage Refunds
                         </button>
+                        @if($patronagePendingCount > 0)
+                            <button data-action="approveAllPatronage" id="approve-all-patronage-btn" class="btn btn-warning btn-lg">
+                                <i data-lucide="badge-check" class="w-4 h-4"></i>
+                                Approve All
+                            </button>
+                        @endif
                         @if($patronageApprovedCount > 0)
-                            <button onclick="disburseAllPatronage()" id="disburse-patronage-btn" class="btn btn-primary btn-sm">
+                            <button data-action="disburseAllPatronage" id="disburse-patronage-btn" class="btn btn-primary btn-lg">
                                 <i data-lucide="send" class="w-4 h-4"></i>
-                                Disburse Patronage Refunds
+                                Disburse All
                             </button>
                         @endif
                         @if($approvedCount > 0 && $patronageApprovedCount > 0)
-                            <button onclick="disburseBoth()" id="disburse-both-btn" class="btn btn-success btn-sm">
+                            <button data-action="disburseBoth" id="disburse-both-btn" class="btn btn-success btn-sm">
                                 <i data-lucide="zap" class="w-4 h-4"></i>
                                 Disburse Both
                             </button>
@@ -398,7 +412,7 @@
                                 <p class="text-xs text-gray-500">Release all approved dividends for {{ $year }}</p>
                             </div>
                         </div>
-                        <button onclick="closeDisburseModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button data-action="closeDisburseModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                             <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                         </button>
                     </div>
@@ -434,7 +448,7 @@
                     </div>
 
                     <div class="flex justify-end gap-3">
-                        <button type="button" onclick="closeDisburseModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                        <button type="button" data-action="closeDisburseModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
                             Cancel
                         </button>
                         <button type="submit" class="px-5 py-2.5 bg-success-600 text-white font-medium rounded-lg hover:bg-success-700 transition-colors flex items-center gap-2">
@@ -457,7 +471,7 @@
             <div class="flex items-center gap-3">
                 <form method="GET" action="{{ route('financial.activity') }}" class="flex items-center gap-2">
                     <input type="hidden" name="tab" value="patronage-records">
-                    <select name="year" onchange="this.form.submit()" class="select w-32">
+                    <select name="year" data-submit-on-change class="select w-32">
                         @for($y = $currentYear; $y >= $currentYear - 10; $y--)
                             <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
@@ -508,7 +522,7 @@
                             <p class="text-xs text-gray-500" id="breakdown-subtitle">Patronage Breakdown</p>
                         </div>
                     </div>
-                    <button onclick="closePatronageBreakdownModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closePatronageBreakdownModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -522,7 +536,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // Tab switching
         function switchFinanceTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -590,6 +604,11 @@
                 container.innerHTML = '<div class="card p-6 text-center text-red-500"><p>Failed to load dividends table.</p></div>';
             });
         }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-dividends-page');
+            if (btn && btn.dataset.pageUrl) loadDividendsPage(btn.dataset.pageUrl);
+        });
 
         // Breakdown preview on net surplus input
         function updateBreakdownPreview() {
@@ -670,6 +689,45 @@
             .catch(error => {
                 console.error('Error:', error);
                 showToast('Error', 'An error occurred', 'error');
+            });
+        }
+
+        // Approve all pending dividends via AJAX
+        function approveAllDividends() {
+            if (!confirm('Approve all pending dividends for {{ $year }}?')) return;
+
+            const btn = document.getElementById('approve-all-btn');
+            if (btn) btn.disabled = true;
+
+            fetch('/admin/dividends/approve-all?year={{ $year }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]')?.value || '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Success', data.message);
+                    if (data.approvedCount !== undefined) {
+                        var countText = document.getElementById('disburse-count-text');
+                        if (countText) {
+                            countText.textContent = data.approvedCount + ' approved dividend(s) ready for disbursement';
+                        }
+                    }
+                    const approveBtn = document.getElementById('approve-all-btn');
+                    if (approveBtn) approveBtn.style.display = 'none';
+                    loadDividendsTable();
+                } else {
+                    showToast('Error', data.message || 'Approval failed', 'error');
+                    if (btn) btn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred', 'error');
+                if (btn) btn.disabled = false;
             });
         }
 
@@ -844,6 +902,11 @@
             });
         }
 
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-patronage-records-page');
+            if (btn && btn.dataset.pageUrl) loadPatronageRecordsPage(btn.dataset.pageUrl);
+        });
+
         function openAddPatronageRecordModal() {
             document.getElementById('patronageModalTitle').textContent = 'Add Patronage Record';
             document.getElementById('patronageRecordId').value = '';
@@ -876,6 +939,17 @@
             document.getElementById('patronageRecordModal').style.display = 'none';
             document.body.style.overflow = 'auto';
         }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-edit-patronage-record');
+            if (!btn) return;
+            editPatronageRecord(
+                Number(btn.dataset.recordId),
+                btn.dataset.recordSource,
+                btn.dataset.recordDescription,
+                Number(btn.dataset.recordAmount)
+            );
+        });
 
         document.getElementById('patronage-records-container').addEventListener('submit', function(e) {
             const form = e.target;
@@ -978,6 +1052,11 @@
                 container.innerHTML = '<div class="card p-6 text-center text-red-500"><p>Failed to load patronage refund table.</p></div>';
             });
         }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-patronage-page');
+            if (btn && btn.dataset.pageUrl) loadPatronagePage(btn.dataset.pageUrl);
+        });
 
         function generatePatronageRefunds() {
             if (!confirm('Generate patronage refund allocations for {{ $year }}? This will recalculate based on current patronage data.')) return;
@@ -1087,6 +1166,14 @@
                 if (data.success) {
                     showToast('Success', data.message);
                     loadPatronageTable();
+                    var actionText = document.getElementById('patronage-action-text');
+                    if (actionText) actionText.textContent = 'All patronage refunds approved and ready for disbursement';
+                    var btns = document.getElementById('patronage-action-btns');
+                    if (btns) {
+                        btns.innerHTML = '<button data-action="generatePatronageRefunds" id="gen-patronage-btn" class="btn btn-warning btn-sm"><i data-lucide="wand-2" class="w-4 h-4"></i> Generate Patronage Refunds</button>'
+                            + '<button data-action="disburseAllPatronage" id="disburse-patronage-btn" class="btn btn-primary btn-lg"><i data-lucide="send" class="w-4 h-4"></i> Disburse All</button>';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
                 } else {
                     showToast('Error', data.message || 'Approval failed', 'error');
                 }
@@ -1135,7 +1222,7 @@
                     showToast('Error', data.message || 'Disbursement failed', 'error');
                     if (btn) {
                         btn.disabled = false;
-                        btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Disburse Patronage Refunds';
+                        btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Disburse All';
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     }
                 }
@@ -1145,7 +1232,7 @@
                 showToast('Error', 'An error occurred during disbursement', 'error');
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Disburse Patronage Refunds';
+                    btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Disburse All';
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }
             });

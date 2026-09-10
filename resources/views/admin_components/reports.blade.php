@@ -133,7 +133,7 @@
             <p class="text-sm text-gray-500">Generate and export financial reports</p>
         </div>
         @isset($cooperativeStats)
-        <button type="button" onclick="openModal('inputTransactionModal')" class="btn btn-warning no-print">
+        <button type="button" data-action="openModal" data-arg='["inputTransactionModal"]' class="btn btn-warning no-print">
             <i data-lucide="plus-circle" class="w-4 h-4"></i>
             Input New Transaction
         </button>
@@ -194,7 +194,7 @@
 
         <!-- Summary Statistics -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="stat-card cursor-pointer hover:shadow-lg hover:border-danger-200 transition-all group" onclick="openWithdrawalsModal()">
+            <div class="stat-card cursor-pointer hover:shadow-lg hover:border-danger-200 transition-all group" data-action="openWithdrawalsModal">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Withdrawals</p>
@@ -210,7 +210,7 @@
                 </div>
             </div>
 
-            <div class="stat-card cursor-pointer hover:shadow-lg hover:border-warning-200 transition-all group" onclick="openLoansModal()">
+            <div class="stat-card cursor-pointer hover:shadow-lg hover:border-warning-200 transition-all group" data-action="openLoansModal">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Loans Issued</p>
@@ -226,7 +226,7 @@
                 </div>
             </div>
 
-            <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" onclick="openNetIncomeModal()">
+            <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" data-action="openNetIncomeModal">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Net Income</p>
@@ -884,7 +884,7 @@
                             name="period"
                             id="statement-period"
                             class="input"
-                            onchange="this.form.submit()"
+                            data-submit-on-change
                         >
                             <option value="this_month"
                                 {{ request('period', 'this_year') === 'this_month' ? 'selected' : '' }}>
@@ -1101,7 +1101,7 @@
                             <p class="text-xs text-gray-500">All deposit transactions</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('depositsModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closeModal" data-arg='["depositsModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -1146,7 +1146,7 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                <button onclick="closeModal('depositsModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["depositsModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
                 <a href="{{ route('financial.activity', ['tab' => 'savings']) }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                     <i data-lucide="external-link" class="w-4 h-4"></i>
                     Go to Savings
@@ -1169,7 +1169,7 @@
                             <p class="text-xs text-gray-500">All withdrawal transactions</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('withdrawalsModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closeModal" data-arg='["withdrawalsModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -1214,7 +1214,7 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                <button onclick="closeModal('withdrawalsModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["withdrawalsModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
                 <a href="{{ route('financial.activity', ['tab' => 'savings']) }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                     <i data-lucide="external-link" class="w-4 h-4"></i>
                     Go to Savings
@@ -1237,7 +1237,7 @@
                             <p class="text-xs text-gray-500">All loan disbursements</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('loansModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closeModal" data-arg='["loansModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -1282,7 +1282,7 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                <button onclick="closeModal('loansModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["loansModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
                 <a href="{{ route('lendings') }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                     <i data-lucide="external-link" class="w-4 h-4"></i>
                     Go to Lending
@@ -1305,7 +1305,7 @@
                             <p class="text-xs text-gray-500">Financial summary</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('netIncomeModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closeModal" data-arg='["netIncomeModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -1353,7 +1353,7 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                <button onclick="closeModal('netIncomeModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="closeModal" data-arg='["netIncomeModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
             </div>
         </div>
     </div>
@@ -1372,7 +1372,7 @@
                         <p class="text-sm text-gray-500">Log expenses and investments for the cooperative</p>
                     </div>
                 </div>
-                <button onclick="closeModal('inputTransactionModal')" class="text-gray-400 hover:text-gray-600">
+                <button data-action="closeModal" data-arg='["inputTransactionModal"]' class="text-gray-400 hover:text-gray-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -1382,7 +1382,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <select name="category" id="categorySelect" class="select" required onchange="toggleCategoryOther(this)">
+                            <select name="category" id="categorySelect" class="select" required data-action="toggleCategoryOther" data-arg='["|el|"]'>
                                 <option value="">Select category</option>
                                 <option value="Vehicle Purchase">Vehicle Purchase</option>
                                 <option value="Bank Investment">Bank Investment</option>
@@ -1420,7 +1420,7 @@
                         </div>
                     </div>
                     <div class="flex justify-end gap-3">
-                        <button type="button" onclick="closeModal('inputTransactionModal')" class="px-4 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+                        <button type="button" data-action="closeModal" data-arg='["inputTransactionModal"]' class="px-4 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
                         <button type="submit" class="btn btn-primary">
                             <i data-lucide="save" class="w-4 h-4"></i>
                             Record Transaction
@@ -1432,7 +1432,7 @@
     </div>
     @endisset
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function openDepositsModal() {
             if (typeof lucide !== 'undefined') { lucide.createIcons(); }
             openModal('depositsModal');
@@ -1496,7 +1496,7 @@
     </script>
 
     @if (!isset($date) && !($statementView ?? false))
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const chartType = '{{ $chartType }}';
         const months = @json($months);
         const savingsData = @json($savingsTrend);

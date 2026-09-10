@@ -28,6 +28,7 @@ class DividendController extends Controller
         $dividends = collect();
         $approvedCount = 0;
         $disbursedCount = 0;
+        $pendingCount = 0;
         $totalSumShareCapital = 0;
         $totalSumRecommended = 0;
         $totalSumApproved = 0;
@@ -36,6 +37,7 @@ class DividendController extends Controller
         $patronageDistributions = collect();
         $patronageApprovedCount = 0;
         $patronageDisbursedCount = 0;
+        $patronagePendingCount = 0;
         $totalSumPatronage = 0;
         $totalSumPatronageApproved = 0;
 
@@ -48,6 +50,7 @@ class DividendController extends Controller
 
             $approvedCount = Dividend::where('year', $year)->where('status', 'approved')->count();
             $disbursedCount = Dividend::where('year', $year)->where('status', 'disbursed')->count();
+            $pendingCount = Dividend::where('year', $year)->where('status', 'pending')->count();
             $totalSumShareCapital = Dividend::where('year', $year)->sum('share_capital_amount');
             $totalSumRecommended = Dividend::where('year', $year)->sum('recommended_amount');
             $totalSumApproved = Dividend::where('year', $year)->sum('approved_amount');
@@ -61,6 +64,7 @@ class DividendController extends Controller
 
             $patronageApprovedCount = PatronageRefundDistribution::where('year', $year)->where('status', 'approved')->count();
             $patronageDisbursedCount = PatronageRefundDistribution::where('year', $year)->where('status', 'disbursed')->count();
+            $patronagePendingCount = PatronageRefundDistribution::where('year', $year)->where('status', 'pending')->count();
             $totalSumPatronage = PatronageRefundDistribution::where('year', $year)->sum('total_patronage');
             $totalSumPatronageApproved = PatronageRefundDistribution::where('year', $year)->where('status', 'approved')->sum('amount');
         }
@@ -92,6 +96,7 @@ class DividendController extends Controller
             'currentYear',
             'approvedCount',
             'disbursedCount',
+            'pendingCount',
             'totalSumShareCapital',
             'totalSumRecommended',
             'totalSumApproved',
@@ -99,6 +104,7 @@ class DividendController extends Controller
             'patronageDistributions',
             'patronageApprovedCount',
             'patronageDisbursedCount',
+            'patronagePendingCount',
             'totalSumPatronage',
             'totalSumPatronageApproved',
             'patronageFundPercentage',
@@ -495,6 +501,7 @@ class DividendController extends Controller
         return response()->json([
             'success' => true,
             'message' => $pendingDividends->count().' dividend(s) approved.',
+            'approvedCount' => Dividend::where('year', $year)->where('status', 'approved')->count(),
         ]);
     }
 

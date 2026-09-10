@@ -43,7 +43,7 @@
                                     value="{{ $dividend->approved_amount }}"
                                     class="w-28 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                                     id="amount-input-{{ $dividend->id }}"
-                                    onchange="updateDividendAmount({{ $dividend->id }}, this.value)">
+                                    data-action="updateDividendAmount" data-arg='[{{ $dividend->id }},"|value|"]'>
                             </div>
                         @else
                             <span class="text-sm font-semibold text-gray-900">₱{{ number_format($dividend->approved_amount, 2) }}</span>
@@ -61,14 +61,14 @@
                     <td>
                         <div class="flex items-center gap-1">
                             @if($dividend->status === 'pending')
-                                <button onclick="approveDividend({{ $dividend->id }})"
+                                <button data-action="approveDividend" data-arg='[{{ $dividend->id }}]'
                                     class="btn btn-sm btn-warning"
                                     title="Approve">
                                     <i data-lucide="check" class="w-4 h-4"></i>
                                     Approve
                                 </button>
                             @elseif($dividend->status === 'approved')
-                                <button onclick="disburseDividend({{ $dividend->id }})"
+                                <button data-action="disburseDividend" data-arg='[{{ $dividend->id }}]'
                                     class="btn btn-sm btn-success"
                                     title="Disburse">
                                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -126,7 +126,7 @@
                         <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
                 @else
-                    <button onclick="loadDividendsPage('{{ $dividends->previousPageUrl() }}')" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    <button class="js-dividends-page p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $dividends->previousPageUrl() }}">
                         <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
                 @endif
@@ -135,12 +135,12 @@
                     @if($page == $dividends->currentPage())
                         <span class="px-4 py-2 rounded-lg bg-primary-600 text-white font-medium">{{ $page }}</span>
                     @else
-                        <button onclick="loadDividendsPage('{{ $url }}')" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">{{ $page }}</button>
+                        <button class="js-dividends-page px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $url }}">{{ $page }}</button>
                     @endif
                 @endforeach
 
                 @if($dividends->hasMorePages())
-                    <button onclick="loadDividendsPage('{{ $dividends->nextPageUrl() }}')" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    <button class="js-dividends-page p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $dividends->nextPageUrl() }}">
                         <i data-lucide="chevron-right" class="w-4 h-4"></i>
                     </button>
                 @else

@@ -41,7 +41,7 @@
     @endif
 
     <div class="flex items-center gap-3 mb-6">
-        <button onclick="openModal('addOfficerModal')" class="btn btn-primary">
+        <button data-action="openModal" data-arg='["addOfficerModal"]' class="btn btn-primary">
             <i data-lucide="user-plus" class="w-4 h-4"></i>
             Add Officer
         </button>
@@ -84,10 +84,14 @@
                             </div>
                         </div>
                         <div class="flex gap-1">
-                            <button class="p-1.5 hover:bg-white rounded-lg transition-colors" title="Edit" onclick="editOfficer({{ $officer->id }}, '{{ $officer->user_id }}', '{{ addslashes($officer->position) }}', '{{ $officer->term_start?->format('Y-m-d') }}')">
+                            <button class="js-edit-officer p-1.5 hover:bg-white rounded-lg transition-colors" title="Edit"
+                                data-officer-id="{{ $officer->id }}"
+                                data-officer-user-id="{{ $officer->user_id }}"
+                                data-officer-position="{{ $officer->position }}"
+                                data-officer-term-start="{{ $officer->term_start?->format('Y-m-d') }}">
                                 <i data-lucide="pencil" class="w-4 h-4 text-gray-500"></i>
                             </button>
-                            <button class="p-1.5 hover:bg-white rounded-lg transition-colors" title="Remove" onclick="deleteOfficer({{ $officer->id }})">
+                            <button class="p-1.5 hover:bg-white rounded-lg transition-colors" title="Remove" data-action="deleteOfficer" data-arg='[{{ $officer->id }}]'>
                                 <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
                             </button>
                         </div>
@@ -130,7 +134,7 @@
                             <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Assign a new officer position</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('addOfficerModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["addOfficerModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -164,7 +168,7 @@
                     <input type="date" name="term_start" class="input" style="width: 100%;">
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeModal('addOfficerModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+                    <button type="button" data-action="closeModal" data-arg='["addOfficerModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                         <i data-lucide="save" class="w-4 h-4"></i>
                         Save Officer
@@ -175,7 +179,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const csrfToken = document.querySelector('input[name="_token"]').value;
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -195,6 +199,17 @@
             document.getElementById('officerModalTitle').textContent = 'Edit Officer';
             openModal('addOfficerModal');
         }
+
+        document.querySelectorAll('.js-edit-officer').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                editOfficer(
+                    Number(this.dataset.officerId),
+                    this.dataset.officerUserId,
+                    this.dataset.officerPosition,
+                    this.dataset.officerTermStart || ''
+                );
+            });
+        });
 
         document.getElementById('addOfficerForm').addEventListener('submit', function(e) {
             e.preventDefault();

@@ -15,7 +15,7 @@
                         <p class="text-xs text-gray-500">{{ $sirSettings->frequency_label }} · {{ $sirSettings->annual_rate }}% p.a. · Min balance: ₱{{ number_format($sirSettings->min_balance_for_interest, 2) }}</p>
                     </div>
                 </div>
-                <button onclick="closeModal('interestEligibilityModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["interestEligibilityModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -102,7 +102,7 @@
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button onclick="closeModal('interestEligibilityModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+            <button data-action="closeModal" data-arg='["interestEligibilityModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
         </div>
     </div>
 </div>
@@ -121,7 +121,7 @@
                         <p class="text-xs text-gray-500" id="savingsBalanceSubtitle"></p>
                     </div>
                 </div>
-                <button onclick="closeModal('savingsBalanceModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["savingsBalanceModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -138,7 +138,7 @@
             </table>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end">
-            <button onclick="closeModal('savingsBalanceModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Close</button>
+            <button data-action="closeModal" data-arg='["savingsBalanceModal"]' class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Close</button>
         </div>
     </div>
 </div>
@@ -158,7 +158,7 @@
                         <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Add or withdraw funds</p>
                     </div>
                 </div>
-                <button onclick="closeAddContributionModal()" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button data-action="closeAddContributionModal" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                 </button>
             </div>
@@ -169,7 +169,7 @@
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Member</label>
-                    <select name="member_id" id="memberSelect" class="select" style="width: 100%;" onchange="updateMemberBalance()">
+                    <select name="member_id" id="memberSelect" class="select" style="width: 100%;" data-action="updateMemberBalance">
                         <option value="">Select member</option>
                         @foreach($allMembers as $member)
                         <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
@@ -186,7 +186,7 @@
                 <!-- Type -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                    <select name="type" id="savingsType" class="select" style="width: 100%;" onchange="toggleSavingsPaymentFields()">
+                    <select name="type" id="savingsType" class="select" style="width: 100%;" data-action="toggleSavingsPaymentFields">
                         <option value="">Select type...</option>
                         <option value="deposit">Deposit</option>
                         <option value="withdrawal">Withdrawal</option>
@@ -202,10 +202,10 @@
                     </div>
                     <!-- Quick Amounts -->
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
-                        <button type="button" onclick="document.getElementById('savingsAmount').value = 500" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱500</button>
-                        <button type="button" onclick="document.getElementById('savingsAmount').value = 1000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱1,000</button>
-                        <button type="button" onclick="document.getElementById('savingsAmount').value = 2000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱2,000</button>
-                        <button type="button" onclick="document.getElementById('savingsAmount').value = 5000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱5,000</button>
+                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="500" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱500</button>
+                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="1000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱1,000</button>
+                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="2000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱2,000</button>
+                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="5000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱5,000</button>
                     </div>
                 </div>
 
@@ -238,11 +238,11 @@
             </form>
 
             <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 8px;">
-                <button onclick="submitAdminSavings()" 
+                <button data-action="submitAdminSavings"
                     style="width: 100%; padding: 0.7rem; background: #1E2A4A; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Confirm Transaction
                 </button>
-                <button onclick="closeAddContributionModal()" 
+                <button data-action="closeAddContributionModal"
                     style="width: 100%; padding: 0.65rem; background: #fff; color: #666; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; cursor: pointer;">
                     Cancel
                 </button>
@@ -265,7 +265,7 @@
                         <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Transfer savings to share capital</p>
                     </div>
                 </div>
-                <button onclick="closeConvertToSCModal()" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button data-action="closeConvertToSCModal" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                 </button>
             </div>
@@ -276,7 +276,7 @@
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Member</label>
-                    <select name="member_id" id="convertMemberSelect" class="select" style="width: 100%;" onchange="updateConvertBalances()">
+                    <select name="member_id" id="convertMemberSelect" class="select" style="width: 100%;" data-action="updateConvertBalances">
                         <option value="">Select member</option>
                         @foreach($allMembers as $member)
                         <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
@@ -306,10 +306,10 @@
                         <input type="number" name="amount" id="convertAmount" class="input pl-10" placeholder="0.00" style="width: 100%; padding-left: 2.5rem;">
                     </div>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
-                        <button type="button" onclick="setConvertAmount(500)" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱500</button>
-                        <button type="button" onclick="setConvertAmount(200)" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱200</button>
-                        <button type="button" onclick="setConvertAmount(2000)" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱2,000</button>
-                        <button type="button" onclick="setConvertAmount(5000)" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱5,000</button>
+                        <button type="button" data-action="setConvertAmount" data-arg='[500]' style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱500</button>
+                        <button type="button" data-action="setConvertAmount" data-arg='[200]' style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱200</button>
+                        <button type="button" data-action="setConvertAmount" data-arg='[2000]' style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱2,000</button>
+                        <button type="button" data-action="setConvertAmount" data-arg='[5000]' style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱5,000</button>
                     </div>
                 </div>
 
@@ -330,11 +330,11 @@
             </form>
 
             <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 8px;">
-                <button onclick="submitConvertToSC()"
+                <button data-action="submitConvertToSC"
                     style="width: 100%; padding: 0.7rem; background: #1E2A4A; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i> Convert to Share Capital
                 </button>
-                <button onclick="closeConvertToSCModal()"
+                <button data-action="closeConvertToSCModal"
                     style="width: 100%; padding: 0.65rem; background: #fff; color: #666; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; cursor: pointer;">
                     Cancel
                 </button>
@@ -357,7 +357,7 @@
                         <p class="text-xs text-gray-500">Process the GCash disbursement to the member</p>
                     </div>
                 </div>
-                <button onclick="closeSavingsDisburseModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeSavingsDisburseModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -390,14 +390,14 @@
                     <label class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors" id="disburseReceiptLabel">
                         <i data-lucide="upload" class="w-5 h-5 text-gray-400"></i>
                         <span id="disburseReceiptText" class="text-sm text-gray-500">Upload receipt image</span>
-                        <input type="file" id="disburseReceipt" accept="image/jpg,image/jpeg,image/png" class="hidden" onchange="handleDisburseReceipt(this)">
+                        <input type="file" id="disburseReceipt" accept="image/jpg,image/jpeg,image/png" class="hidden" data-action="handleDisburseReceipt" data-arg='["|el|"]'>
                     </label>
                 </div>
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button onclick="closeSavingsDisburseModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
-            <button id="disburseSubmitBtn" onclick="submitSavingsDisbursement()" disabled
+            <button data-action="closeSavingsDisburseModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+            <button id="disburseSubmitBtn" data-action="submitSavingsDisbursement" disabled
                 class="px-5 py-2.5 bg-success-600 text-white font-medium rounded-lg hover:bg-success-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
                 Mark as Disbursed
@@ -420,7 +420,7 @@
                         <p class="text-xs text-gray-500">Review and act on this deposit request</p>
                     </div>
                 </div>
-                <button onclick="closeDepositDetailModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeDepositDetailModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -461,12 +461,12 @@
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button id="depositDetailVoidBtn" onclick="openVoidConfirmModal()"
+            <button id="depositDetailVoidBtn" data-action="openVoidConfirmModal"
                 class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors flex items-center gap-2">
                 <i data-lucide="x-circle" class="w-4 h-4"></i>
                 Void Deposit
             </button>
-            <button id="depositDetailCompleteBtn" onclick="submitSavingsDepositCompletion()"
+            <button id="depositDetailCompleteBtn" data-action="submitSavingsDepositCompletion"
                 class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
                 Mark as Complete
@@ -489,7 +489,7 @@
                         <p class="text-xs text-gray-500">Are you sure you want to void this deposit?</p>
                     </div>
                 </div>
-                <button onclick="closeVoidConfirmModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeVoidConfirmModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -522,8 +522,8 @@
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button onclick="goBackToDetailModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go Back</button>
-            <button id="voidConfirmSubmitBtn" onclick="submitSavingsDepositVoid()" disabled
+            <button data-action="goBackToDetailModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go Back</button>
+            <button id="voidConfirmSubmitBtn" data-action="submitSavingsDepositVoid" disabled
                 class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <i data-lucide="x-circle" class="w-4 h-4"></i>
                 Confirm Void
@@ -532,7 +532,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     var savingsAccountsData = @json($savingsAccounts, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP);
 
     function openSavingsBalanceModal() {
@@ -669,6 +669,33 @@
     function closeDepositDetailModal() {
         closeModal('depositDetailModal');
     }
+
+    document.addEventListener('click', function(e) {
+        var row = e.target.closest('.js-deposit-detail');
+        if (row) {
+            openDepositDetailModal(
+                row.dataset.depositId,
+                row.dataset.depositMember,
+                row.dataset.depositBalance,
+                row.dataset.depositAmount,
+                row.dataset.depositContact,
+                row.dataset.depositMethod,
+                row.dataset.depositProof,
+                row.dataset.depositRef
+            );
+            return;
+        }
+        var disburseBtn = e.target.closest('.js-disburse-withdrawal');
+        if (disburseBtn) {
+            openWithdrawalDisburseModal(
+                disburseBtn.dataset.withdrawalId,
+                disburseBtn.dataset.withdrawalMember,
+                disburseBtn.dataset.withdrawalBalance,
+                disburseBtn.dataset.withdrawalAmount,
+                disburseBtn.dataset.withdrawalContact
+            );
+        }
+    });
 
     function openVoidConfirmModal() {
         var id = document.getElementById('depositDetailTxId').value;
@@ -815,7 +842,7 @@
                                 <p style="font-size:0.75rem;color:#6b7280;">Account balance breakdown</p>
                             </div>
                         </div>
-                        <button onclick="this.closest('#balanceBreakdownDynamic').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
+                        <button data-action="remove-closest" data-sel="#balanceBreakdownDynamic" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
                     </div>
                     <div style="padding:1.5rem;max-height:60vh;overflow-y:auto;">
                         <div style="background:#edf0f5;border-radius:0.5rem;padding:1rem;border:1px solid #d0d6e4;text-align:center;margin-bottom:1.5rem;">
@@ -901,7 +928,7 @@
                             <p style="font-size:0.75rem;color:#6b7280;">Savings by month (Last 6 months)</p>
                         </div>
                     </div>
-                    <button onclick="this.closest('#monthlyBreakdownDynamic').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
+                    <button data-action="remove-closest" data-sel="#monthlyBreakdownDynamic" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
                 </div>
                 <div style="padding:1.5rem;max-height:60vh;overflow-y:auto;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
@@ -966,7 +993,7 @@
                             <p style="font-size:0.75rem;color:#6b7280;">Most recent transaction details</p>
                         </div>
                     </div>
-                    <button onclick="this.closest('#lastContributionDynamic').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
+                    <button data-action="remove-closest" data-sel="#lastContributionDynamic" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
                 </div>
                 <div style="padding:1.5rem;max-height:60vh;overflow-y:auto;">
                     ${lastContribution ? `
@@ -1065,7 +1092,7 @@
                             <p style="font-size:0.75rem;color:#6b7280;">Withdrawals by month (Last 6 months)</p>
                         </div>
                     </div>
-                    <button onclick="this.closest('#withdrawalBreakdownDynamic').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
+                    <button data-action="remove-closest" data-sel="#withdrawalBreakdownDynamic" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
                 </div>
                 <div style="padding:1.5rem;max-height:60vh;overflow-y:auto;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
@@ -1175,6 +1202,7 @@
                         from { opacity: 0; transform: translateY(28px) scale(0.97); }
                         to { opacity: 1; transform: translateY(0) scale(1); }
                     }
+                    .sv-ghost-btn:hover { background:#f5f5f5; color:#333; }
                 </style>
                 <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">
                     <div style="width:60px;height:60px;background:#c0392b;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
@@ -1204,7 +1232,7 @@
                     <div style="font-size:1rem; font-weight:700; color:#c0392b; background:#fdecec; border:1px solid #f5c6c6; border-radius:10px; padding:0.75rem 1rem;">${label}</div>
                 </div>
                 <div style="padding:0 1.5rem 1.5rem;">
-                    <button onclick="document.getElementById('voidReasonModal').remove()" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;" onmouseover="this.style.background='#f5f5f5';this.style.color='#333';" onmouseout="this.style.background='transparent';this.style.color='#888';">Close</button>
+                    <button data-action="remove-element" data-target="voidReasonModal" class="sv-ghost-btn" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
                 </div>
             </div>
         `;
@@ -1262,6 +1290,8 @@
                         from { opacity: 0; transform: translateY(28px) scale(0.97); }
                         to { opacity: 1; transform: translateY(0) scale(1); }
                     }
+                    .sv-ghost-btn:hover { background:#f5f5f5; color:#333; }
+                    .sv-receipt-dl:hover { opacity:0.88; }
                 </style>
                 <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">
                     <div style="width:60px;height:60px;background:${SV_NAVY};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
@@ -1283,11 +1313,11 @@
                     ${svReceiptRow('Status', svStatusBadge())}
                 </div>
                 <div style="padding:0 1.5rem 1.5rem; display:flex; flex-direction:column; gap:0.6rem;">
-                    <button onclick="downloadSavingsReceipt()" id="receiptDownloadBtn" style="width:100%; padding:0.8rem; background:${SV_NAVY}; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;" onmouseover="this.style.opacity='0.88';" onmouseout="this.style.opacity='1';">
+                    <button data-action="downloadSavingsReceipt" id="receiptDownloadBtn" class="sv-receipt-dl" style="width:100%; padding:0.8rem; background:${SV_NAVY}; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         Download Receipt
                     </button>
-                    <button onclick="document.getElementById('receiptModal').remove()" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;" onmouseover="this.style.background='#f5f5f5';this.style.color='#333';" onmouseout="this.style.background='transparent';this.style.color='#888';">Close</button>
+                    <button data-action="remove-element" data-target="receiptModal" class="sv-ghost-btn" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
                 </div>
             </div>
         `;

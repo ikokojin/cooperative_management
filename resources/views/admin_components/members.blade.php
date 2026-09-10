@@ -41,7 +41,7 @@
             <p class="text-sm text-gray-500">Manage your cooperative members and staff</p>
         </div>
         <div class="flex items-center gap-3">
-            <button onclick="openModal('addMemberModal')" class="btn btn-primary">
+            <button data-action="openModal" data-arg='["addMemberModal"]' class="btn btn-primary">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 Add Member
             </button>
@@ -85,7 +85,7 @@
 
 <!-- Category Cards -->
     <div class="grid grid-cols-2 gap-6 mb-6">
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" onclick="var m=document.getElementById('memberCategoryModal');m.classList.remove('hidden');m.style.display='flex'">
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" data-action="open-member-category-modal">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Members</p>
@@ -101,7 +101,7 @@
             </div>
         </div>
 
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-blue-200 transition-all group" onclick="openAdminCategoryModal()">
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-blue-200 transition-all group" data-action="openAdminCategoryModal">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Admins</p>
@@ -132,7 +132,6 @@
                         <th>Category</th>
                         <th>Role</th>
                         <th>Status</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,7 +141,7 @@
                         $roleName = $isStaff ? ($roles->firstWhere('slug', $member->role)?->name ?? ucfirst($member->role)) : null;
                         $adminArr = $adminList->firstWhere('id', $member->id);
                     @endphp
-                    <tr class="cursor-pointer hover:bg-gray-50 transition-colors" onclick="openMemberDetailModal({{ $member->id }})">
+                    <tr class="cursor-pointer hover:bg-gray-50 transition-colors" data-action="{{ strtolower($member->role ?? '') === 'pending' ? 'openMemberReviewModal' : 'openMemberDetailModal' }}" data-arg='[{{ $member->id }}]'>
                         <td class="text-sm font-medium text-gray-900">{{ $isStaff ? 'ADM-' : 'MEM-' }}{{ str_pad($member->id, 4, '0', STR_PAD_LEFT) }}</td>
                         <td>
                             <div class="flex items-center gap-3">
@@ -173,7 +172,9 @@
                             @endif
                         </td>
                         <td>
-                            @if($member->status === 'resignation_pending')
+                            @if($member->status === 'reactivation_pending')
+                                <span class="badge badge-warning">Reactivation Pending</span>
+                            @elseif($member->status === 'resignation_pending')
                                 <span class="badge badge-warning">Resignation Pending</span>
                             @elseif($member->status === 'resigned')
                                 <span class="badge badge-gray">Resigned</span>
@@ -189,39 +190,10 @@
                                 <span class="badge badge-gray">{{ ucfirst($member->role) }}</span>
                             @endif
                         </td>
-                        <td>
-                            <div class="flex items-center gap-2">
-                                @if($member->role === 'pending' || $member->role === 'Pending')
-                                    <a href="{{ route('approve.user', $member->id) }}" class="btn btn-success btn-xs px-2 py-1" onclick="event.stopPropagation()">
-                                        <i data-lucide="check" class="w-3 h-3"></i>
-                                        Approve
-                                    </a>
-                                    <form action="{{ route('decline.user', $member->id) }}" method="POST" onclick="event.stopPropagation()">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-xs px-2 py-1" onclick="return confirm('Are you sure you want to decline this request?')">
-                                            <i data-lucide="x" class="w-3 h-3"></i>
-                                            Decline
-                                        </button>
-                                    </form>
-                                @elseif($isStaff && auth()->user()?->isMainAdmin())
-                                    <button onclick="event.stopPropagation();openEditAdminModal({{ $member->id }})"
-                                        class="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
-                                        Edit
-                                    </button>
-                                    @if(!($adminArr['is_main'] ?? false))
-                                    <button onclick="event.stopPropagation();confirmDeleteAdmin({{ $member->id }}, '{{ $member->first_name }} {{ $member->last_name }}')"
-                                        class="px-3 py-1.5 text-xs font-medium text-danger-600 bg-danger-50 rounded-lg hover:bg-danger-100 transition-colors">
-                                        Deactivate
-                                    </button>
-                                    @endif
-                                @endif
-                            </div>
-                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-12">
+                        <td colspan="6" class="text-center py-12">
                             <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                                 <i data-lucide="users" class="w-8 h-8 text-gray-300"></i>
                             </div>
@@ -288,7 +260,7 @@
                             <p class="text-xs text-gray-500">Update role, permissions, and account details</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('editAdminModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closeModal" data-arg='["editAdminModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -327,7 +299,7 @@
                         </div>
                     </div>
                 <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                    <button type="button" onclick="closeModal('editAdminModal')" class="btn btn-outline">Cancel</button>
+                    <button type="button" data-action="closeModal" data-arg='["editAdminModal"]' class="btn btn-outline">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <i data-lucide="save" class="w-4 h-4"></i>
                         Save Changes
@@ -337,10 +309,10 @@
         </div>
     </div>
     <script type="application/json" id="admin-list-data">
-        {!! json_encode($adminList) !!}
+        {!! json_encode($adminList, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
     </script>
     <script type="application/json" id="roles-data">
-        {!! json_encode($roles->map(fn($r) => ['slug' => $r->slug, 'name' => $r->name, 'sidebar_permissions' => $r->sidebar_permissions])) !!}
+        {!! json_encode($roles->map(fn($r) => ['slug' => $r->slug, 'name' => $r->name, 'sidebar_permissions' => $r->sidebar_permissions]), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
     </script>
     @endif
 
@@ -393,7 +365,7 @@
                                     </form>
                                     <form method="POST" action="{{ route('resignation.reject', $rr->id) }}">
                                         @csrf
-                                        <button type="submit" class="btn btn-danger btn-xs px-2 py-1" onclick="return confirm('Reject this resignation request?')">
+                                        <button type="submit" class="btn btn-danger btn-xs px-2 py-1" data-action="stop-propagation" data-confirm="Reject this resignation request?">
                                             <i data-lucide="x" class="w-3 h-3"></i>
                                             Reject
                                         </button>
@@ -465,6 +437,82 @@
                                         </button>
                                     </form>
                                     @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Reactivation Requests -->
+    @php $reactivationRequests = $reactivationRequests ?? collect(); @endphp
+    @if($reactivationRequests->count() > 0)
+    <div class="mt-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i data-lucide="refresh-cw" class="w-5 h-5 text-amber-500"></i>
+            Reactivation Requests
+            <span class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">{{ $reactivationRequests->count() }}</span>
+        </h2>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Requested</th>
+                            <th>Share Capital</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($reactivationRequests as $reqUser)
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center">
+                                        <span class="text-white font-bold text-sm">{{ strtoupper(substr($reqUser->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($reqUser->last_name ?? '', 0, 1)) }}</span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">{{ $reqUser->first_name ?? '' }} {{ $reqUser->last_name ?? '' }}</span>
+                                </div>
+                            </td>
+                            <td class="text-sm text-gray-600">
+                                @if($reqUser->updated_at)
+                                    {{ $reqUser->updated_at->format('M d, Y g:i A') }}
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
+                            <td class="text-sm text-gray-600">
+                                @php
+                                    $reqScRow = \App\Models\share_capital_account_tbl::where('user_id', $reqUser->id)->first();
+                                    $reqScStats = $reqScRow ? \App\Http\Controllers\ShareCapital::paidUpForAccount($reqScRow->id) : null;
+                                @endphp
+                                @if($reqScStats && $reqScStats['amount'] > 0)
+                                    ₱{{ number_format($reqScStats['amount'], 2) }} ({{ $reqScStats['shares'] }} shares)
+                                @else
+                                    <span class="text-gray-400">No remaining share capital</span>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <form method="POST" action="{{ route('member.reactivation.approve', $reqUser->id) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success btn-xs px-2 py-1">
+                                            <i data-lucide="check" class="w-3 h-3"></i>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('member.reactivation.reject', $reqUser->id) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-danger btn-xs px-2 py-1" data-action="stop-propagation" data-confirm="Reject this reactivation request?">
+                                            <i data-lucide="x" class="w-3 h-3"></i>
+                                            Reject
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -548,7 +596,7 @@
                             <p class="text-xs text-gray-500">Category breakdown</p>
                         </div>
                     </div>
-                    <button onclick="document.getElementById('memberCategoryModal').style.display='none';" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="hide-modal" data-target="memberCategoryModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -584,7 +632,7 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end">
-                <button onclick="document.getElementById('memberCategoryModal').style.display='none';" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="hide-modal" data-target="memberCategoryModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
             </div>
         </div>
     </div>
@@ -605,7 +653,7 @@
                             <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a new cooperative member</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('addMemberModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["addMemberModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -661,7 +709,6 @@
                                 <option value="Driver">Driver</option>
                                 <option value="Dispatcher">Dispatcher</option>
                                 <option value="Driver-Operator">Driver-Operator</option>
-                                <option value="Allied Workers">Allied Workers</option>
                                 <option value="Transport Entrepreneur">Transport Entrepreneur</option>
                                 <option value="Investor Associate">Investor Associate</option>
                             </select>
@@ -696,7 +743,202 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Citizenship</label>
-                            <input type="text" name="citizenship" class="input" value="Filipino">
+                            <select name="citizenship" class="input">
+                                <option value="">Select...</option>
+                                <option value="Filipino" selected>Filipino</option>
+                                <option value="Afghan">Afghan</option>
+                                <option value="Albanian">Albanian</option>
+                                <option value="Algerian">Algerian</option>
+                                <option value="American">American</option>
+                                <option value="Andorran">Andorran</option>
+                                <option value="Angolan">Angolan</option>
+                                <option value="Antiguan">Antiguan</option>
+                                <option value="Argentine">Argentine</option>
+                                <option value="Armenian">Armenian</option>
+                                <option value="Australian">Australian</option>
+                                <option value="Austrian">Austrian</option>
+                                <option value="Azerbaijani">Azerbaijani</option>
+                                <option value="Bahamian">Bahamian</option>
+                                <option value="Bahraini">Bahraini</option>
+                                <option value="Bangladeshi">Bangladeshi</option>
+                                <option value="Barbadian">Barbadian</option>
+                                <option value="Belarusian">Belarusian</option>
+                                <option value="Belgian">Belgian</option>
+                                <option value="Belizean">Belizean</option>
+                                <option value="Beninese">Beninese</option>
+                                <option value="Bhutanese">Bhutanese</option>
+                                <option value="Bolivian">Bolivian</option>
+                                <option value="Bosnian">Bosnian</option>
+                                <option value="Botswanan">Botswanan</option>
+                                <option value="Brazilian">Brazilian</option>
+                                <option value="Bruneian">Bruneian</option>
+                                <option value="Bulgarian">Bulgarian</option>
+                                <option value="Burkinabé">Burkinabé</option>
+                                <option value="Burundian">Burundian</option>
+                                <option value="Cambodian">Cambodian</option>
+                                <option value="Cameroonian">Cameroonian</option>
+                                <option value="Canadian">Canadian</option>
+                                <option value="Cape Verdean">Cape Verdean</option>
+                                <option value="Central African">Central African</option>
+                                <option value="Chadian">Chadian</option>
+                                <option value="Chilean">Chilean</option>
+                                <option value="Chinese">Chinese</option>
+                                <option value="Colombian">Colombian</option>
+                                <option value="Comorian">Comorian</option>
+                                <option value="Congolese">Congolese</option>
+                                <option value="Costa Rican">Costa Rican</option>
+                                <option value="Croatian">Croatian</option>
+                                <option value="Cuban">Cuban</option>
+                                <option value="Cypriot">Cypriot</option>
+                                <option value="Czech">Czech</option>
+                                <option value="Danish">Danish</option>
+                                <option value="Djiboutian">Djiboutian</option>
+                                <option value="Dominican">Dominican</option>
+                                <option value="Dutch">Dutch</option>
+                                <option value="East Timorese">East Timorese</option>
+                                <option value="Ecuadorian">Ecuadorian</option>
+                                <option value="Egyptian">Egyptian</option>
+                                <option value="Emirati">Emirati</option>
+                                <option value="Equatorial Guinean">Equatorial Guinean</option>
+                                <option value="Eritrean">Eritrean</option>
+                                <option value="Estonian">Estonian</option>
+                                <option value="Eswatini">Eswatini</option>
+                                <option value="Ethiopian">Ethiopian</option>
+                                <option value="Fijian">Fijian</option>
+                                <option value="Finnish">Finnish</option>
+                                <option value="French">French</option>
+                                <option value="Gabonese">Gabonese</option>
+                                <option value="Gambian">Gambian</option>
+                                <option value="Georgian">Georgian</option>
+                                <option value="German">German</option>
+                                <option value="Ghanaian">Ghanaian</option>
+                                <option value="Greek">Greek</option>
+                                <option value="Grenadian">Grenadian</option>
+                                <option value="Guatemalan">Guatemalan</option>
+                                <option value="Guinean">Guinean</option>
+                                <option value="Guinea-Bissauan">Guinea-Bissauan</option>
+                                <option value="Guyanese">Guyanese</option>
+                                <option value="Haitian">Haitian</option>
+                                <option value="Honduran">Honduran</option>
+                                <option value="Hungarian">Hungarian</option>
+                                <option value="I-Kiribati">I-Kiribati</option>
+                                <option value="Icelandic">Icelandic</option>
+                                <option value="Indian">Indian</option>
+                                <option value="Indonesian">Indonesian</option>
+                                <option value="Iranian">Iranian</option>
+                                <option value="Iraqi">Iraqi</option>
+                                <option value="Irish">Irish</option>
+                                <option value="Israeli">Israeli</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Ivorian">Ivorian</option>
+                                <option value="Jamaican">Jamaican</option>
+                                <option value="Japanese">Japanese</option>
+                                <option value="Jordanian">Jordanian</option>
+                                <option value="Kazakhstani">Kazakhstani</option>
+                                <option value="Kenyan">Kenyan</option>
+                                <option value="Kittitian">Kittitian</option>
+                                <option value="Korean (North)">Korean (North)</option>
+                                <option value="Korean (South)">Korean (South)</option>
+                                <option value="Kosovar">Kosovar</option>
+                                <option value="Kuwaiti">Kuwaiti</option>
+                                <option value="Kyrgyzstani">Kyrgyzstani</option>
+                                <option value="Laotian">Laotian</option>
+                                <option value="Latvian">Latvian</option>
+                                <option value="Lebanese">Lebanese</option>
+                                <option value="Lesothan">Lesothan</option>
+                                <option value="Liberian">Liberian</option>
+                                <option value="Libyan">Libyan</option>
+                                <option value="Liechtensteiner">Liechtensteiner</option>
+                                <option value="Lithuanian">Lithuanian</option>
+                                <option value="Luxembourgish">Luxembourgish</option>
+                                <option value="Macedonian">Macedonian</option>
+                                <option value="Malagasy">Malagasy</option>
+                                <option value="Malawian">Malawian</option>
+                                <option value="Malaysian">Malaysian</option>
+                                <option value="Maldivian">Maldivian</option>
+                                <option value="Malian">Malian</option>
+                                <option value="Maltese">Maltese</option>
+                                <option value="Marshallese">Marshallese</option>
+                                <option value="Mauritanian">Mauritanian</option>
+                                <option value="Mauritian">Mauritian</option>
+                                <option value="Mexican">Mexican</option>
+                                <option value="Micronesian">Micronesian</option>
+                                <option value="Moldovan">Moldovan</option>
+                                <option value="Monégasque">Monégasque</option>
+                                <option value="Mongolian">Mongolian</option>
+                                <option value="Montenegrin">Montenegrin</option>
+                                <option value="Moroccan">Moroccan</option>
+                                <option value="Mozambican">Mozambican</option>
+                                <option value="Myanmarese">Myanmarese</option>
+                                <option value="Namibian">Namibian</option>
+                                <option value="Nauruan">Nauruan</option>
+                                <option value="Nepalese">Nepalese</option>
+                                <option value="New Zealander">New Zealander</option>
+                                <option value="Nicaraguan">Nicaraguan</option>
+                                <option value="Nigerien">Nigerien</option>
+                                <option value="Nigerian">Nigerian</option>
+                                <option value="Norwegian">Norwegian</option>
+                                <option value="Omani">Omani</option>
+                                <option value="Pakistani">Pakistani</option>
+                                <option value="Palauan">Palauan</option>
+                                <option value="Palestinian">Palestinian</option>
+                                <option value="Panamanian">Panamanian</option>
+                                <option value="Papua New Guinean">Papua New Guinean</option>
+                                <option value="Paraguayan">Paraguayan</option>
+                                <option value="Peruvian">Peruvian</option>
+                                <option value="Polish">Polish</option>
+                                <option value="Portuguese">Portuguese</option>
+                                <option value="Qatari">Qatari</option>
+                                <option value="Romanian">Romanian</option>
+                                <option value="Russian">Russian</option>
+                                <option value="Rwandan">Rwandan</option>
+                                <option value="Saint Lucian">Saint Lucian</option>
+                                <option value="Salvadoran">Salvadoran</option>
+                                <option value="Samoan">Samoan</option>
+                                <option value="San Marinese">San Marinese</option>
+                                <option value="São Toméan">São Toméan</option>
+                                <option value="Saudi">Saudi</option>
+                                <option value="Senegalese">Senegalese</option>
+                                <option value="Serbian">Serbian</option>
+                                <option value="Seychellois">Seychellois</option>
+                                <option value="Sierra Leonean">Sierra Leonean</option>
+                                <option value="Singaporean">Singaporean</option>
+                                <option value="Slovak">Slovak</option>
+                                <option value="Slovenian">Slovenian</option>
+                                <option value="Solomon Islander">Solomon Islander</option>
+                                <option value="Somali">Somali</option>
+                                <option value="South African">South African</option>
+                                <option value="South Sudanese">South Sudanese</option>
+                                <option value="Spanish">Spanish</option>
+                                <option value="Sri Lankan">Sri Lankan</option>
+                                <option value="Sudanese">Sudanese</option>
+                                <option value="Surinamese">Surinamese</option>
+                                <option value="Swedish">Swedish</option>
+                                <option value="Swiss">Swiss</option>
+                                <option value="Syrian">Syrian</option>
+                                <option value="Taiwanese">Taiwanese</option>
+                                <option value="Tajik">Tajik</option>
+                                <option value="Tanzanian">Tanzanian</option>
+                                <option value="Thai">Thai</option>
+                                <option value="Togolese">Togolese</option>
+                                <option value="Tongan">Tongan</option>
+                                <option value="Trinidadian">Trinidadian</option>
+                                <option value="Tunisian">Tunisian</option>
+                                <option value="Turkish">Turkish</option>
+                                <option value="Turkmen">Turkmen</option>
+                                <option value="Tuvaluan">Tuvaluan</option>
+                                <option value="Ugandan">Ugandan</option>
+                                <option value="Ukrainian">Ukrainian</option>
+                                <option value="Uruguayan">Uruguayan</option>
+                                <option value="Uzbekistani">Uzbekistani</option>
+                                <option value="Vanuatuan">Vanuatuan</option>
+                                <option value="Venezuelan">Venezuelan</option>
+                                <option value="Vietnamese">Vietnamese</option>
+                                <option value="Vincentian">Vincentian</option>
+                                <option value="Yemeni">Yemeni</option>
+                                <option value="Zambian">Zambian</option>
+                                <option value="Zimbabwean">Zimbabwean</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact No.</label>
@@ -741,7 +983,7 @@
                 </div>
 
                 <div class="border-t border-gray-200 pt-6 flex justify-end gap-3">
-                    <button type="button" onclick="closeModal('addMemberModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+                    <button type="button" data-action="closeModal" data-arg='["addMemberModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
                     <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                         <i data-lucide="user-plus" class="w-4 h-4"></i>
                         Add Member
@@ -768,11 +1010,11 @@
                     <span id="detail-member-id" class="ml-2 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-mono font-bold rounded-lg border border-slate-200">--</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button class="px-3 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                    <button data-action="printMemberSOA" class="px-3 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors flex items-center gap-1.5">
                         <i data-lucide="printer" class="w-3.5 h-3.5"></i>
                         Print SOA
                     </button>
-                    <button onclick="closeModal('memberDetailModal')" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <button data-action="closeModal" data-arg='["memberDetailModal"]' class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
                     </button>
                 </div>
@@ -800,32 +1042,27 @@
                                 <div class="flex items-center gap-1.5 text-xs text-slate-600">
                                     <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i>
                                     <span id="detail-email" class="font-medium">--</span>
-                                    <button onclick="copyToClipboard(this.previousElementSibling)" class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy email">
+                                    <button data-action="copy-prev" class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy email">
                                         <i data-lucide="copy" class="w-3 h-3 text-slate-400"></i>
                                     </button>
                                 </div>
                                 <div class="flex items-center gap-1.5 text-xs text-slate-600">
                                     <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i>
                                     <span id="detail-phone" class="font-medium">--</span>
-                                    <button onclick="copyToClipboard(this.previousElementSibling)" class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy phone">
+                                    <button data-action="copy-prev" class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy phone">
                                         <i data-lucide="copy" class="w-3 h-3 text-slate-400"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <a id="detail-send-sc-email" href="#" class="px-3 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center gap-1.5 shrink-0">
-                            <i data-lucide="mail" class="w-3.5 h-3.5"></i>
-                            Send Capital Email
-                        </a>
                     </div>
-                </div>
 
                 <!-- Balance Cards -->
                 <div class="space-y-4">
                     <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
-                        <button onclick="filterBalanceCards('all')" class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors bg-slate-900 text-white" data-filter="all">All Balances</button>
-                        <button onclick="filterBalanceCards('share')" class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50" data-filter="share">Share Capital</button>
-                        <button onclick="filterBalanceCards('savings')" class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50" data-filter="savings">Savings</button>
+                        <button data-action="filterBalanceCards" data-arg='["all"]' class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors bg-slate-900 text-white" data-filter="all">All Balances</button>
+                        <button data-action="filterBalanceCards" data-arg='["share"]' class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50" data-filter="share">Share Capital</button>
+                        <button data-action="filterBalanceCards" data-arg='["savings"]' class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50" data-filter="savings">Savings</button>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -870,16 +1107,17 @@
                         </div>
                     </div>
                 </div>
+                </div>
 
                 <!-- Tab Navigation -->
                 <div class="border-b border-slate-200">
                     <div class="flex gap-0 overflow-x-auto">
-                        <button onclick="switchMemberTab('overview')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-indigo-600 text-indigo-600 bg-white" data-tab="overview">Overview</button>
-                        <button onclick="switchMemberTab('financials')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="financials">Financials & Balances</button>
-                        <button onclick="switchMemberTab('personal')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="personal">Personal & Family</button>
-                        <button onclick="switchMemberTab('govids')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="govids">Government IDs</button>
-                        <button onclick="switchMemberTab('vehicles')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="vehicles">Vehicles & Fleet</button>
-                        <button onclick="switchMemberTab('settings')" class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="settings">Account Settings</button>
+                        <button data-action="switchMemberTab" data-arg='["overview"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-indigo-600 text-indigo-600 bg-white" data-tab="overview">Overview</button>
+                        <button data-action="switchMemberTab" data-arg='["financials"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="financials">Financials & Balances</button>
+                        <button data-action="switchMemberTab" data-arg='["personal"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="personal">Personal & Family</button>
+                        <button data-action="switchMemberTab" data-arg='["govids"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="govids">Government IDs</button>
+                        <button data-action="switchMemberTab" data-arg='["vehicles"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="vehicles">Vehicles & Fleet</button>
+                        <button data-action="switchMemberTab" data-arg='["settings"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="settings">Account Settings</button>
                     </div>
                 </div>
 
@@ -1176,7 +1414,7 @@
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">SSS ID</p>
                                 <p id="detail-sss-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
                             </div>
-                            <button onclick="copyToClipboard(document.getElementById('detail-sss-id-2'))" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                            <button data-action="copy-target" data-target="detail-sss-id-2" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
                                 <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
                             </button>
                         </div>
@@ -1188,7 +1426,7 @@
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PhilHealth ID</p>
                                 <p id="detail-philhealth-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
                             </div>
-                            <button onclick="copyToClipboard(document.getElementById('detail-philhealth-id-2'))" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                            <button data-action="copy-target" data-target="detail-philhealth-id-2" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
                                 <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
                             </button>
                         </div>
@@ -1200,7 +1438,7 @@
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PAG-IBIG ID</p>
                                 <p id="detail-pagibig-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
                             </div>
-                            <button onclick="copyToClipboard(document.getElementById('detail-pagibig-id-2'))" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                            <button data-action="copy-target" data-target="detail-pagibig-id-2" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
                                 <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
                             </button>
                         </div>
@@ -1212,7 +1450,7 @@
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">TIN ID</p>
                                 <p id="detail-tin-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
                             </div>
-                            <button onclick="copyToClipboard(document.getElementById('detail-tin-id-2'))" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                            <button data-action="copy-target" data-target="detail-tin-id-2" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
                                 <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
                             </button>
                         </div>
@@ -1269,15 +1507,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="border-t border-slate-100 pt-4">
-                            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Email Actions</label>
-                            <a id="detail-send-sc-email-2" href="#" class="inline-flex px-4 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-black transition-colors items-center gap-2">
-                                <i data-lucide="mail" class="w-4 h-4"></i>
-                                Send Share Capital Email
-                            </a>
-                            <p class="text-[10px] text-slate-400 mt-2">Send an email to this member reminding them to complete their share capital contribution.</p>
                         </div>
-                    </div>
                 </div>
             </div>
 
@@ -1285,7 +1515,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-white shrink-0">
                 <span class="text-[10px] text-slate-400 font-medium">Cooperative Member Records &bull; CDA Compliant</span>
                 <div class="flex items-center gap-3">
-                    <button onclick="closeModal('memberDetailModal')" class="px-5 py-2.5 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-colors">Close</button>
+                    <button data-action="closeModal" data-arg='["memberDetailModal"]' class="px-5 py-2.5 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-colors">Close</button>
                     <button id="detail-save-btn" class="px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-colors flex items-center gap-2">
                         <i data-lucide="save" class="w-4 h-4"></i>
                         Save & Confirm Changes
@@ -1295,13 +1525,192 @@
         </div>
     </div>
 
+    <!-- Pending Application Review Modal -->
+    <div id="pendingDetailModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto hidden">
+        <div class="bg-slate-50 rounded-3xl w-full max-w-4xl my-auto shadow-2xl border border-slate-200 flex flex-col max-h-[94vh] overflow-hidden">
+
+            <!-- Top Header Bar -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Pending Application Review</h2>
+                        <p class="text-[10px] text-slate-400 font-medium">Details submitted in the member application</p>
+                    </div>
+                    <span id="review-member-id" class="ml-2 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-mono font-bold rounded-lg border border-slate-200">--</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button data-action="closeModal" data-arg='["pendingDetailModal"]' class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                        <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Body -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+                <!-- Hero Banner -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-5">
+                        <div id="review-avatar-circle" class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-extrabold text-xl shadow-lg ring-2 ring-amber-500/20 flex items-center justify-center overflow-hidden shrink-0">
+                            <img id="review-profile-pic" src="" alt="" class="w-full h-full object-cover hidden">
+                            <span id="review-avatar">--</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 id="review-name" class="text-xl font-extrabold text-slate-900">--</h3>
+                            <div class="flex flex-wrap items-center gap-2 mt-1">
+                                <span id="review-category" class="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
+                            </div>
+                            <p id="review-applied" class="text-[10px] text-slate-400 font-medium mt-1.5">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="user" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        Personal Information
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Date of Birth</label><p id="review-dob" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Sex</label><p id="review-sex" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Civil Status</label><p id="review-civil-status" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Citizenship</label><p id="review-citizenship" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Place of Birth</label><p id="review-pob" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Blood Type</label><p id="review-blood-type" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Height</label><p id="review-height" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Weight</label><p id="review-weight" class="text-xs font-semibold text-slate-800">--</p></div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="mail" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        Contact Information
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Email</label><p id="review-email" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Contact Number</label><p id="review-phone" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Present Address</label><p id="review-address" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Permanent Address</label><p id="review-permanent-address" class="text-xs font-semibold text-slate-800">--</p></div>
+                    </div>
+                </div>
+
+                <!-- Government IDs -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="id-card" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        Government IDs
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">SSS ID</label><p id="review-sss" class="text-xs font-semibold text-slate-800">Not provided</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PhilHealth ID</label><p id="review-philhealth" class="text-xs font-semibold text-slate-800">Not provided</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Pag-IBIG ID</label><p id="review-pagibig" class="text-xs font-semibold text-slate-800">Not provided</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">TIN ID</label><p id="review-tin" class="text-xs font-semibold text-slate-800">Not provided</p></div>
+                    </div>
+                </div>
+
+                <!-- Family -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="users" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        Family
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Spouse Name</label><p id="review-spouse" class="text-xs font-semibold text-slate-800">Not specified</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Number of Sons</label><p id="review-sons" class="text-xs font-semibold text-slate-800">0</p></div>
+                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Number of Daughters</label><p id="review-daughters" class="text-xs font-semibold text-slate-800">0</p></div>
+                    </div>
+                </div>
+
+                <!-- Registered Vehicles -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="car" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        Registered Vehicles
+                    </h4>
+                    <table class="w-full">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Vehicle Type</th>
+                                <th class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Plate Number</th>
+                                <th class="px-5 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="review-vehicles-body">
+                            <tr>
+                                <td colspan="3" class="px-5 py-6 text-center">
+                                    <p class="text-xs font-semibold text-slate-400">No vehicles registered</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Skills -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        Skills
+                    </h4>
+                    <p id="review-skills" class="text-xs font-semibold text-slate-800">No skills specified</p>
+                </div>
+            </div>
+
+            <!-- Sticky Footer -->
+            <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-white shrink-0">
+                <span class="text-[10px] text-slate-400 font-medium">Review the application before approving</span>
+                <div class="flex items-center gap-3">
+                    <button data-action="closeModal" data-arg='["pendingDetailModal"]' class="px-5 py-2.5 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-colors">Close</button>
+                    <form id="review-decline-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" data-action="stop-propagation" data-confirm="Are you sure you want to decline this application? The member record will be removed."
+                            class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors border border-red-200 text-red-600 bg-white hover:bg-red-50 flex items-center gap-2">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                            Decline
+                        </button>
+                    </form>
+                    <form id="review-accept-form" method="POST">
+                        @csrf
+                        <button type="submit" class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                            Accept Application
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="application/json" id="members-data">
-        {!! json_encode($members) !!}
+        {!! json_encode($members, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
     </script>
     
-    <script>
-        const membersData = {!! json_encode($members->items()) !!};
-        const adminsData = {!! json_encode($adminList) !!};
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+            A.register('open-member-category-modal', function (e, el) {
+                var m=document.getElementById('memberCategoryModal');m.classList.remove('hidden');m.style.display='flex';
+            });
+            A.register('open-edit-admin', function (e, el) {
+                e.stopPropagation(); openEditAdminModal({{ $member->id }});
+            });
+            A.register('copy-prev', function (e, el) {
+                copyToClipboard(el.previousElementSibling);
+            });
+            A.register('copy-target', function (e, el) {
+                copyToClipboard(document.getElementById(el.getAttribute('data-target')));
+            });
+        })();
+
+        const membersData = {{ Js::from($members->items()) }};
+        const adminsData = {{ Js::from($adminList) }};
         
         function closeAllDropdowns() {
             document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.add('hidden'));
@@ -1401,6 +1810,13 @@
             })
             .catch(() => showToast('Error', 'Failed to deactivate admin account', 'error'));
         }
+
+        document.querySelectorAll('.js-confirm-delete-admin').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                confirmDeleteAdmin(Number(this.dataset.memberId), this.dataset.memberName);
+            });
+        });
         @endif
         
         function openMemberDetailModal(memberId) {
@@ -1497,12 +1913,17 @@
 
             // Vehicles
             const vehiclesBody = document.getElementById('detail-vehicles-body');
+            const esc = (value) => {
+                const div = document.createElement('div');
+                div.textContent = value;
+                return div.innerHTML;
+            };
             if (member.vehicles && member.vehicles.length > 0) {
                 vehiclesBody.innerHTML = member.vehicles.map(v => `
                     <tr class="border-t border-slate-100">
-                        <td class="px-5 py-3 text-xs font-semibold text-slate-800">${v.vehicle_type || 'N/A'}</td>
-                        <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${v.plate_no || 'N/A'}</td>
-                        <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${v.quantity || 1}</td>
+                        <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
+                        <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
+                        <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
                     </tr>
                 `).join('');
             } else {
@@ -1544,8 +1965,6 @@
             }
 
             document.getElementById('detail-sc-see-more').href = '/dashboard-sharecapitals?member=' + member.id;
-            document.getElementById('detail-send-sc-email').href = '/dashboard-members/send-share-email/' + member.id;
-            document.getElementById('detail-send-sc-email-2').href = '/dashboard-members/send-share-email/' + member.id;
 
             // Savings Card (hero balance cards)
             document.getElementById('detail-savings-amount').textContent = '₱' + (member.savings_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
@@ -1611,7 +2030,25 @@
                 loansBody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No active loans</p></td></tr>';
             }
 
-            document.getElementById('detail-role').value = member.role || 'member';
+            const roleSelect = document.getElementById('detail-role');
+            const ROLES = ['Pending', 'Member', 'inactive'];
+            Array.from(roleSelect.options).forEach(o => { if (!ROLES.includes(o.value)) o.remove(); });
+            roleSelect.disabled = false;
+
+            if (isAdmin) {
+                let opt = Array.from(roleSelect.options).find(o => o.value === (member.role || 'Admin'));
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = member.role || 'Admin';
+                    opt.textContent = member.role || 'Admin';
+                    roleSelect.appendChild(opt);
+                }
+                roleSelect.value = opt.value;
+                roleSelect.disabled = true;
+            } else {
+                const roleValue = { member: 'Member', active: 'Member', pending: 'Pending', inactive: 'inactive' }[String(member.role || 'member').toLowerCase()] || '';
+                roleSelect.value = roleValue;
+            }
 
             // Reset to Overview tab
             switchMemberTab('overview');
@@ -1623,6 +2060,96 @@
 
             openModal('memberDetailModal');
             window.currentMemberId = member.id;
+            window.currentMember = member;
+        }
+
+        function openMemberReviewModal(memberId) {
+            const member = membersData.find(m => m.id === memberId);
+            if (!member) return;
+
+            const initials = (member.first_name?.charAt(0) || '') + (member.last_name?.charAt(0) || '');
+            const fullName = (member.first_name || '') + ' ' + (member.last_name || '');
+
+            document.getElementById('review-avatar').textContent = initials.toUpperCase();
+            document.getElementById('review-name').textContent = fullName;
+            document.getElementById('review-member-id').textContent = 'MEM-' + String(member.id).padStart(4, '0');
+            document.getElementById('review-category').textContent = member.membership_category || 'Investor Associate';
+            document.getElementById('review-applied').textContent = member.created_at
+                ? 'Application submitted ' + new Date(member.created_at).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })
+                : '';
+
+            const reviewProfilePic = document.getElementById('review-profile-pic');
+            const reviewAvatar = document.getElementById('review-avatar');
+            if (member.profile_picture) {
+                reviewProfilePic.src = '/' + member.profile_picture;
+                reviewProfilePic.classList.remove('hidden');
+                reviewAvatar.classList.add('hidden');
+            } else {
+                reviewProfilePic.classList.add('hidden');
+                reviewAvatar.classList.remove('hidden');
+            }
+
+            document.getElementById('review-dob').textContent = member.date_of_birth || 'N/A';
+            document.getElementById('review-sex').textContent = member.sex || 'N/A';
+            document.getElementById('review-civil-status').textContent = member.civil_status || 'N/A';
+            document.getElementById('review-citizenship').textContent = member.citizenship || 'N/A';
+            document.getElementById('review-pob').textContent = member.place_of_birth || 'N/A';
+            document.getElementById('review-blood-type').textContent = member.blood_type || 'N/A';
+            document.getElementById('review-height').textContent = member.height || 'N/A';
+            document.getElementById('review-weight').textContent = member.weight || 'N/A';
+
+            document.getElementById('review-email').textContent = member.email || 'N/A';
+            document.getElementById('review-phone').textContent = member.contact_no || 'N/A';
+            document.getElementById('review-address').textContent = member.present_address || 'N/A';
+            document.getElementById('review-permanent-address').textContent = member.permanent_address || 'N/A';
+
+            document.getElementById('review-sss').textContent = member.sss_id || 'Not provided';
+            document.getElementById('review-philhealth').textContent = member.philhealth_id || 'Not provided';
+            document.getElementById('review-pagibig').textContent = member.pagibig_id || 'Not provided';
+            document.getElementById('review-tin').textContent = member.tin_id || 'Not provided';
+
+            document.getElementById('review-spouse').textContent = member.spouse_name || 'Not specified';
+            document.getElementById('review-sons').textContent = member.number_son || 0;
+            document.getElementById('review-daughters').textContent = member.number_daughter || 0;
+
+            const recordVehiclesBody = document.getElementById('review-vehicles-body');
+            const esc = (value) => {
+                const div = document.createElement('div');
+                div.textContent = value;
+                return div.innerHTML;
+            };
+            if (member.vehicles && member.vehicles.length > 0) {
+                recordVehiclesBody.innerHTML = member.vehicles.map(v => `
+                    <tr class="border-t border-slate-100">
+                        <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
+                        <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
+                        <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
+                    </tr>
+                `).join('');
+            } else {
+                recordVehiclesBody.innerHTML = '<tr><td colspan="3" class="px-5 py-6 text-center"><p class="text-xs font-semibold text-slate-400">No vehicles registered</p></td></tr>';
+            }
+
+            const skillsEl = document.getElementById('review-skills');
+            if (member.skills && member.skills.trim()) {
+                const skillsArray = member.skills.split(',').map(s => s.trim()).filter(s => s);
+                skillsEl.innerHTML = skillsArray.length > 0
+                    ? skillsArray.map(skill =>
+                        `<span class="inline-block px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-bold rounded-lg mr-1.5 mb-1.5">${skill}</span>`
+                    ).join('')
+                    : 'No skills specified';
+            } else {
+                skillsEl.textContent = 'No skills specified';
+            }
+
+            document.getElementById('review-accept-form').action = '/approve-user/' + memberId;
+            document.getElementById('review-decline-form').action = '/dashboard-members/decline/' + memberId;
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            openModal('pendingDetailModal');
         }
 
         function switchMemberTab(tabName) {
@@ -1668,6 +2195,162 @@
             });
         }
         
+        function printMemberSOA() {
+            const member = window.currentMember || membersData.find(m => m.id === window.currentMemberId);
+            if (!member) {
+                showToast('Error', 'Member data unavailable. Please reopen the member profile and try again.');
+                return;
+            }
+
+            const soaEsc = (value) => {
+                const div = document.createElement('div');
+                div.textContent = String(value ?? '');
+                return div.innerHTML;
+            };
+            const fmt = (n) => '₱' + (Number(n) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const fullName = soaEsc([member.first_name, member.last_name].filter(Boolean).join(' '));
+            const memberId = 'MEM-' + String(member.id).padStart(4, '0');
+            const asOf = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+            const memberSince = member.created_at ? new Date(member.created_at).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) : '—';
+
+            const loans = Array.isArray(member.active_loans) ? member.active_loans : [];
+            const loanRows = loans.length > 0
+                ? loans.map(l => `
+                    <tr>
+                        <td>${soaEsc(l.reference_no || '—')}</td>
+                        <td>${soaEsc(l.lending_type || '—')}</td>
+                        <td class="num">${fmt(l.lending_amount)}</td>
+                        <td class="num">${fmt(l.monthly_payment)}</td>
+                        <td class="num">${fmt(l.total_payment)}</td>
+                    </tr>`).join('')
+                : '<tr><td colspan="5">No active loans</td></tr>';
+
+            const scAmount = Number(member.sc_total_amount) || 0;
+            const savingsBalance = Number(member.savings_balance) || 0;
+            const scrOpen = '<scr' + 'ipt>';
+
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Statement of Account - ${fullName}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000; padding: 15px 20px; background: #fff; }
+        .header { margin-bottom: 18px; text-align: center; }
+        .header .coop-name { font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .header .title { font-size: 13px; font-weight: 700; margin-top: 4px; }
+        .header .subtitle { font-size: 10px; color: #333; margin-top: 2px; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 16px; }
+        thead th { background: #e0e0e0; border: 1px solid #000; padding: 5px 8px; font-weight: 700; text-align: center; text-transform: uppercase; font-size: 9px; }
+        tbody td { border: 1px solid #000; padding: 4px 8px; }
+        .num { text-align: right; font-family: 'Courier New', Courier, monospace; }
+        .totals-row td { font-weight: 700; background: #e8e8e8; border-top: 2px solid #000; }
+        .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 14px 0 4px; letter-spacing: 0.5px; }
+        .toolbar { margin-bottom: 12px; }
+        .toolbar button { padding: 6px 18px; font-size: 12px; cursor: pointer; background: #1E2A4A; color: #fff; border: none; border-radius: 4px; margin-right: 6px; }
+        .toolbar .close { background: #6c757d; }
+        .footer { margin-top: 14px; padding-top: 6px; border-top: 1px solid #000; display: flex; justify-content: space-between; font-size: 8px; color: #555; }
+        @@media print {
+            body { padding: 10px 15px; font-size: 9px; }
+            thead th { font-size: 8px; padding: 4px 6px; }
+            tbody td { padding: 3px 6px; }
+            .toolbar { display: none !important; }
+        }
+        @@page { size: portrait; margin: 15mm; }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button id="btn-print">Print / Save as PDF</button>
+        <button id="btn-close" class="close">Close</button>
+    </div>
+
+    <div class="header">
+        <div class="coop-name">Kingsland Pala-Pala Multi-Purpose Cooperative</div>
+        <div class="title">STATEMENT OF ACCOUNT</div>
+        <div class="subtitle">${fullName} &middot; ${memberId} &middot; As of ${asOf}</div>
+    </div>
+
+    <table>
+        <tbody>
+            <tr><td><strong>MEMBER NAME</strong></td><td>${fullName}</td></tr>
+            <tr><td><strong>MEMBERSHIP NO.</strong></td><td>${memberId}</td></tr>
+            <tr><td><strong>MEMBERSHIP CATEGORY</strong></td><td>${soaEsc(member.membership_category || 'Investor Associate')}</td></tr>
+            <tr><td><strong>EMAIL</strong></td><td>${soaEsc(member.email)}</td></tr>
+            <tr><td><strong>CONTACT NO.</strong></td><td>${soaEsc(member.contact_no)}</td></tr>
+            <tr><td><strong>PRESENT ADDRESS</strong></td><td>${soaEsc(member.present_address)}</td></tr>
+            <tr><td><strong>MEMBER SINCE</strong></td><td>${memberSince}</td></tr>
+            <tr><td><strong>STATEMENT DATE</strong></td><td>${asOf}</td></tr>
+        </tbody>
+    </table>
+
+    <div class="section-label">Account Balances</div>
+    <table>
+        <thead>
+            <tr><th>Account</th><th>Details</th><th>Status</th><th>Amount</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Share Capital</td>
+                <td>${Number(member.sc_total_shares) || 0} shares</td>
+                <td>${soaEsc(member.sc_status || 'No Account')}</td>
+                <td class="num">${fmt(scAmount)}</td>
+            </tr>
+            <tr>
+                <td>Regular Savings</td>
+                <td>Current balance</td>
+                <td>${soaEsc(member.savings_status || 'No Account')}</td>
+                <td class="num">${fmt(savingsBalance)}</td>
+            </tr>
+            <tr>
+                <td>Savings Interest Accrued</td>
+                <td>&mdash;</td>
+                <td>&mdash;</td>
+                <td class="num">${fmt(member.savings_interest)}</td>
+            </tr>
+            <tr class="totals-row">
+                <td colspan="3">TOTAL EQUITY (Share Capital + Savings)</td>
+                <td class="num">${fmt(scAmount + savingsBalance)}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-label">Active Loans</div>
+    <table>
+        <thead>
+            <tr><th>Reference</th><th>Type</th><th class="num">Loan Amount</th><th class="num">Monthly</th><th class="num">Total Payable</th></tr>
+        </thead>
+        <tbody>${loanRows}</tbody>
+    </table>
+
+    <div class="footer">
+        <span>Generated on ${asOf}</span>
+        <span>Kingsland Pala-Pala Multi-Purpose Cooperative</span>
+    </div>
+
+    ${scrOpen}
+        setTimeout(function () { window.print(); }, 300);
+        document.addEventListener('click', function (e) {
+            if (e.target.id === 'btn-print') window.print();
+            if (e.target.id === 'btn-close') window.close();
+        });
+    <\/script>
+</body>
+</html>`;
+
+            const w = window.open('', '_blank', 'width=900,height=760');
+            if (!w) {
+                showToast('Error', 'Popup blocked. Please allow popups for this site.');
+                return;
+            }
+            w.document.open();
+            w.document.write(html);
+            w.document.close();
+            w.focus();
+        }
+
         document.getElementById('detail-save-btn').addEventListener('click', function() {
             const memberId = window.currentMemberId;
             const role = document.getElementById('detail-role').value;

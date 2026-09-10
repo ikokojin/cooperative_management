@@ -50,7 +50,7 @@
                 <tr id="patronage-row-{{ $record->id }}">
                     <td class="text-sm text-gray-500">{{ $record->id }}</td>
                     <td>
-                        <div class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 -my-1 transition-colors" onclick="openPatronageBreakdown({{ $record->id }})">
+                        <div class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 -my-1 transition-colors" data-action="openPatronageBreakdown" data-arg='[{{ $record->id }}]'>
                             <div class="w-8 h-8 rounded-full bg-warning-100 flex items-center justify-center">
                                 <span class="text-xs text-warning-600 font-medium">
                                     {{ strtoupper(substr($record->user->first_name ?? 'U', 0, 1) . substr($record->user->last_name ?? '', 0, 1)) }}
@@ -74,7 +74,7 @@
                                     value="{{ $record->amount }}"
                                     class="w-28 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                                     id="patronage-amount-input-{{ $record->id }}"
-                                    onchange="updatePatronageAmount({{ $record->id }}, this.value)">
+                                    data-action="updatePatronageAmount" data-arg='[{{ $record->id }},"|value|"]'>
                             </div>
                         @else
                             <span class="text-sm font-semibold text-gray-900">₱{{ number_format($record->amount, 2) }}</span>
@@ -92,13 +92,13 @@
                     <td>
                         <div class="flex items-center gap-1">
                             @if($record->status === 'pending')
-                                <button onclick="approvePatronageRefund({{ $record->id }})"
+                                <button data-action="approvePatronageRefund" data-arg='[{{ $record->id }}]'
                                     class="btn btn-sm btn-warning" title="Approve">
                                     <i data-lucide="check" class="w-4 h-4"></i>
                                     Approve
                                 </button>
                             @elseif($record->status === 'approved')
-                                <button onclick="disbursePatronageRefund({{ $record->id }})"
+                                <button data-action="disbursePatronageRefund" data-arg='[{{ $record->id }}]'
                                     class="btn btn-sm btn-success" title="Disburse">
                                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                                     Disburse
@@ -152,7 +152,7 @@
                         <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
                 @else
-                    <button onclick="loadPatronagePage('{{ $patronageDistributions->previousPageUrl() }}')" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    <button class="js-patronage-page p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $patronageDistributions->previousPageUrl() }}">
                         <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
                 @endif
@@ -161,12 +161,12 @@
                     @if($page == $patronageDistributions->currentPage())
                         <span class="px-4 py-2 rounded-lg bg-primary-600 text-white font-medium">{{ $page }}</span>
                     @else
-                        <button onclick="loadPatronagePage('{{ $url }}')" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">{{ $page }}</button>
+                        <button class="js-patronage-page px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $url }}">{{ $page }}</button>
                     @endif
                 @endforeach
 
                 @if($patronageDistributions->hasMorePages())
-                    <button onclick="loadPatronagePage('{{ $patronageDistributions->nextPageUrl() }}')" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    <button class="js-patronage-page p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $patronageDistributions->nextPageUrl() }}">
                         <i data-lucide="chevron-right" class="w-4 h-4"></i>
                     </button>
                 @else

@@ -10,7 +10,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                 <h2 class="text-lg font-semibold text-gray-900">Loan Charges</h2>
                 <p class="text-sm text-gray-500">Configure the interest and fee rates applied to <strong>all loan types</strong>. Fees are a percentage (%) of the principal; loan protection is a flat ₱ amount per month of term. Changes apply to new loan applications.</p>
             </div>
-            <button type="button" onclick="openManageLoanTypeModal()" class="btn btn-outline">Manage Loan Type</button>
+            <button type="button" data-action="openManageLoanTypeModal" class="btn btn-outline">Manage Loan Type</button>
         </div>
 
         @php
@@ -111,13 +111,13 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                     <label class="block text-sm font-medium text-gray-700 mb-1">Dividend Fund (%)</label>
                     <input type="number" name="dividend_fund_percentage" id="finDividendPct" step="0.01" min="1" max="99"
                         value="{{ $dividendFundPercentage ?? 60.00 }}"
-                        class="input" style="width: 120px;" oninput="syncFinFundPcts()" required>
+                        class="input" style="width: 120px;" data-action="syncFinFundPcts" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Patronage Refund Fund (%)</label>
                     <input type="number" name="patronage_fund_percentage" id="finPatronagePct" step="0.01" min="1" max="99"
                         value="{{ $patronageFundPercentage ?? 40.00 }}"
-                        class="input" style="width: 120px;" oninput="syncFinFundPcts()" required>
+                        class="input" style="width: 120px;" data-action="syncFinFundPcts" required>
                 </div>
                 <button type="submit" class="btn btn-primary">
                     <i data-lucide="save" class="w-4 h-4"></i>
@@ -134,7 +134,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
             <p class="text-sm text-gray-500">Sets how the annual net surplus is allocated to statutory and optional funds before the remaining surplus is distributed to the Dividend Fund and Patronage Refund Pool</p>
         </div>
         <div class="p-4">
-            <form method="POST" action="{{ route('settings', ['tab' => 'finance']) }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 items-end gap-4" id="statutoryForm" onsubmit="return validateStatutoryAllocation()">
+            <form method="POST" action="{{ route('settings', ['tab' => 'finance']) }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 items-end gap-4" id="statutoryForm" data-action="validateStatutoryAllocation">
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1 min-h-10">Year</label>
@@ -153,25 +153,25 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                     <label class="block text-sm font-medium text-gray-700 mb-1 min-h-10">Reserve Fund (%)</label>
                     <input type="number" name="reserve_fund_percentage" id="statReserve" step="0.01" min="0" max="100"
                         value="{{ $reserveFundPercentage ?? 10.00 }}"
-                        class="input h-10" oninput="updateStatutoryLive()" required>
+                        class="input h-10" data-action="updateStatutoryLive" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1 min-h-10">CETF / Education Fund (%)</label>
                     <input type="number" name="cetf_percentage" id="statCETF" step="0.01" min="0" max="100"
                         value="{{ $cetfPercentage ?? 10.00 }}"
-                        class="input h-10" oninput="updateStatutoryLive()" required>
+                        class="input h-10" data-action="updateStatutoryLive" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1 min-h-10">Community Dev. Fund (%)</label>
                     <input type="number" name="cdf_percentage" id="statCDF" step="0.01" min="0" max="100"
                         value="{{ $cdfPercentage ?? 3.00 }}"
-                        class="input h-10" oninput="updateStatutoryLive()" required>
+                        class="input h-10" data-action="updateStatutoryLive" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1 min-h-10">Optional Fund (%)</label>
                     <input type="number" name="optional_fund_percentage" id="statOptional" step="0.01" min="0" max="100"
                         value="{{ $optionalFundPercentage ?? 7.00 }}"
-                        class="input h-10" oninput="updateStatutoryLive()" required>
+                        class="input h-10" data-action="updateStatutoryLive" required>
                 </div>
                 <button type="submit" class="btn btn-primary h-10 w-full justify-center whitespace-nowrap" id="statutorySaveBtn">
                     <i data-lucide="save" class="w-4 h-4"></i>
@@ -254,7 +254,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="savings_to_loan_enabled" value="1"
                                 {{ $loanEligibilitySettings->savings_to_loan_enabled ? 'checked' : '' }}
-                                class="sr-only peer" onchange="document.getElementById('ratioField').classList.toggle('hidden', !this.checked)">
+                                class="sr-only peer" data-action="toggle-ratio-field">
                             <div class="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                         </label>
                         <span class="text-sm font-medium text-gray-700">Enable Savings Holdback Requirement</span>
@@ -306,7 +306,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                 <h2 class="text-lg font-semibold text-gray-900">Payment Methods Management</h2>
                 <p class="text-sm text-gray-500">Manage payment methods and QR codes for member payments</p>
             </div>
-            <button onclick="openPaymentMethodModal()" class="btn btn-primary">
+            <button type="button" data-action="openPaymentMethodModal" class="btn btn-primary">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 Add Payment Method
             </button>
@@ -341,19 +341,22 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                             @endif
                         </td>
                         <td>
-                            <button onclick="togglePaymentMethod({{ $pm->id }})" class="relative inline-flex items-center cursor-pointer">
+                            <button type="button" data-action="togglePaymentMethod" data-arg='[{{ $pm->id }}]' class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" class="sr-only peer" {{ $pm->is_active ? 'checked' : '' }}>
                                 <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600"></div>
                             </button>
                         </td>
                         <td>
                             <div class="flex items-center gap-2">
-                                <button onclick="editPaymentMethod({{ $pm->id }}, '{{ $pm->method_name }}', {{ $pm->has_qr_code ? 'true' : 'false' }})"
-                                    class="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
+                                <button class="js-edit-payment-method px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+                                    data-pm-id="{{ $pm->id }}"
+                                    data-pm-name="{{ $pm->method_name }}"
+                                    data-pm-has-qr="{{ $pm->has_qr_code ? 'true' : 'false' }}">
                                     Edit
                                 </button>
-                                <button onclick="deletePaymentMethod({{ $pm->id }}, '{{ $pm->method_name }}')"
-                                    class="px-3 py-1.5 text-xs font-medium text-danger-600 bg-danger-50 rounded-lg hover:bg-danger-100 transition-colors">
+                                <button class="js-delete-payment-method px-3 py-1.5 text-xs font-medium text-danger-600 bg-danger-50 rounded-lg hover:bg-danger-100 transition-colors"
+                                    data-pm-id="{{ $pm->id }}"
+                                    data-pm-name="{{ $pm->method_name }}">
                                     Delete
                                 </button>
                             </div>
@@ -383,7 +386,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                             <p class="text-xs text-gray-500">Configure a payment method for member transactions</p>
                         </div>
                     </div>
-                    <button onclick="closePaymentMethodModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button type="button" data-action="closePaymentMethodModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -401,7 +404,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Requires QR Code?</label>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="has_qr_code" id="pm_has_qr" value="1" class="sr-only peer" onchange="toggleQrUpload()">
+                            <input type="checkbox" name="has_qr_code" id="pm_has_qr" value="1" class="sr-only peer" data-action="toggleQrUpload">
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                             <span class="ml-3 text-sm font-medium text-gray-700">Yes, this method requires a QR code</span>
                         </label>
@@ -410,7 +413,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                     <div id="pm-qr-upload" class="hidden">
                         <label class="block text-sm font-medium text-gray-700 mb-1">QR Code Image</label>
                         <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary-400 transition-colors">
-                            <input type="file" name="qr_code_image" id="pm_qr_image" accept="image/png,image/jpeg,image/jpg" class="hidden" onchange="previewQrImage(this)">
+                            <input type="file" name="qr_code_image" id="pm_qr_image" accept="image/png,image/jpeg,image/jpg" class="hidden" data-action="previewQrImage" data-arg='["|el|"]'>
                             <label for="pm_qr_image" class="cursor-pointer">
                                 <div id="pm-qr-preview" class="hidden mb-3">
                                     <img id="pm-qr-preview-img" class="w-32 h-32 mx-auto rounded-lg object-cover border border-gray-200">
@@ -426,7 +429,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                 </div>
 
                 <div class="mt-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
-                    <button type="button" onclick="closePaymentMethodModal()" class="btn btn-outline">Cancel</button>
+                    <button type="button" data-action="closePaymentMethodModal" class="btn btn-outline">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <i data-lucide="save" class="w-4 h-4"></i>
                         <span id="pmSubmitText">Save Payment Method</span>
@@ -450,7 +453,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                             <p class="text-xs text-gray-500">Add new loan types or remove existing ones</p>
                         </div>
                     </div>
-                    <button onclick="closeManageLoanTypeModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button type="button" data-action="closeManageLoanTypeModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -464,7 +467,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-medium text-gray-900">{{ $setting->loan_type }}</span>
                             </div>
-                            <button type="button" data-id="{{ $setting->id }}" data-name="{{ $setting->loan_type }}" onclick="deleteLoanType(this)" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition-colors" title="Delete loan type">
+                            <button type="button" data-id="{{ $setting->id }}" data-name="{{ $setting->loan_type }}" data-action="deleteLoanType" data-arg='["|el|"]' class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition-colors" title="Delete loan type">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -486,7 +489,7 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
                             <p class="text-xs text-gray-400">New loan types use the global loan charges configured on the Loan Charges card.</p>
                         </div>
                         <div class="flex justify-end gap-3 mt-4">
-                            <button type="button" onclick="closeManageLoanTypeModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                            <button type="button" data-action="closeManageLoanTypeModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
                             <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                                 <i data-lucide="plus" class="w-4 h-4"></i> Add Loan Type
                             </button>
@@ -499,7 +502,16 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
 
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
+    // Event-binding glue (CSP delegation hooks)
+    (function () {
+        var A = window.CSP_actions;
+        if (!A) return;
+        A.register('toggle-ratio-field', function (e, el) {
+            document.getElementById('ratioField').classList.toggle('hidden', !el.checked);
+        });
+    })();
+
     // Payment Methods Management
     function openPaymentMethodModal() {
         document.getElementById('pmModalTitle').textContent = 'Add Payment Method';
@@ -555,6 +567,18 @@ Moved from the Finance page (financial_activity.blade.php) so it lives under Set
         document.body.style.overflow = 'hidden';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
+
+    document.querySelectorAll('.js-edit-payment-method').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            editPaymentMethod(Number(this.dataset.pmId), this.dataset.pmName, this.dataset.pmHasQr === 'true');
+        });
+    });
+
+    document.querySelectorAll('.js-delete-payment-method').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            deletePaymentMethod(Number(this.dataset.pmId), this.dataset.pmName);
+        });
+    });
 
     document.getElementById('paymentMethodForm').addEventListener('submit', function(e) {
         e.preventDefault();

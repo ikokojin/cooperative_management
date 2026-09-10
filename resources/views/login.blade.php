@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Sign In</title>
     <link rel="icon" href="images/websitelogo.png" type="image/png">
+    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     {{-- css link --}}
     <link rel="stylesheet" href="css_folder/login.css">
@@ -241,7 +242,7 @@
                                     placeholder="Enter your password" class="mt-2" style="padding-right: 40px;"
                                     required>
                                 <div class="focus-bar"></div>
-                                <span onclick="toggleLoginPassword()"
+                                <span data-action="toggleLoginPassword"
                                     style="position: absolute; right: 12px; top: 60%; transform: translateY(-50%); cursor: pointer; color: #888;">
                                     <i class="fa fa-eye" id="eye-login"></i>
                                 </span>
@@ -249,7 +250,7 @@
                         </div>
 
                         <div class="mt-4 tw:flex tw:justify-end form-forgot">
-                            <a href="#">Forgot Password</a>
+                            <a href="{{ route('password.request') }}">Forgot Password</a>
                         </div>
 
                         <div class="mt-4 form-button">
@@ -287,7 +288,7 @@
             </div>
         </div>
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             // const vids = document.querySelectorAll('.form-image video');
             // const dots = document.querySelectorAll('.vid-dot');
             // let current = 0;
@@ -316,7 +317,7 @@
             }
         </script>
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             function toggleLoginPassword() {
                 const input = document.getElementById('login-password');
                 const icon = document.getElementById('eye-login');

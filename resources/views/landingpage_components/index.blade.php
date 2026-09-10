@@ -1321,7 +1321,7 @@
         </footer> --}}
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('DOMContentLoaded', () => {
             const slides = document.querySelectorAll('.slide');
             const images = document.querySelectorAll('.slide-img');
@@ -1415,7 +1415,7 @@
         startAuto();
     </script> -->
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
 
         const observer = new IntersectionObserver((entries) => {

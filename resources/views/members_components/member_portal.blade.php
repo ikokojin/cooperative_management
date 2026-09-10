@@ -18,6 +18,7 @@
 
     {{-- bootstrap and tailwind link --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     {{-- font awesome cdn link --}}
     <link rel="stylesheet" href="font-awesome-icon/css/all.min.css">
@@ -242,7 +243,7 @@
                         <div class="card-parent">
 
                             {{-- Savings Balance --}}
-                            <div class="card-box" onclick="window.location='{{ route('Financial') }}'">
+                            <div class="card-box" data-action="navigate" data-url="{{ route('Financial') }}">
                                 <div class="card-header">
                                     <p>Savings Balance</p>
                                     <div class="update"><i class="fa fa-layer-group"></i></div>
@@ -254,7 +255,7 @@
                             </div>
 
                             {{-- Share Capital --}}
-                            <div class="card-box" onclick="window.location='{{ route('Financial') }}'">
+                            <div class="card-box" data-action="navigate" data-url="{{ route('Financial') }}">
                                 <div class="card-header">
                                     <p>Share Capital</p>
                                     <div class="update"><i class="fa fa-coins"></i></div>
@@ -266,7 +267,7 @@
                             </div>
 
                             {{-- Seminars --}}
-                            <div class="card-box" onclick="document.getElementById('seminarsModal').style.display='flex'">
+                            <div class="card-box" data-action="show-modal" data-target="seminarsModal">
                                 <div class="card-header">
                                     <p>Seminars</p>
                                     <div class="update"><i class="fa fa-graduation-cap"></i></div>
@@ -284,7 +285,7 @@
                             </div>
 
                             {{-- Active Loans --}}
-                            <div class="card-box" onclick="window.location='{{ route('LoanStatus') }}'">
+                            <div class="card-box" data-action="navigate" data-url="{{ route('LoanStatus') }}">
                                 <div class="card-header">
                                     <p>Active Loans</p>
                                     <div class="update"><i class="fa fa-piggy-bank"></i></div>
@@ -296,7 +297,7 @@
                             </div>
 
                             {{-- Upcoming Dues --}}
-                            <div class="card-box" onclick="document.getElementById('upcomingDuesModal').style.display='flex'">
+                            <div class="card-box" data-action="show-modal" data-target="upcomingDuesModal">
                                 <div class="card-header">
                                     <p>Upcoming Dues</p>
                                     <div class="update"><i class="fa fa-calendar-day"></i></div>
@@ -308,7 +309,7 @@
                             </div>
 
                             {{-- Overdue Loans --}}
-                            <div class="card-box" onclick="document.getElementById('overdueLoansModal').style.display='flex'">
+                            <div class="card-box" data-action="show-modal" data-target="overdueLoansModal">
                                 <div class="card-header">
                                     <p>Overdue Loans</p>
                                     <div class="update">
@@ -327,7 +328,7 @@
                             
                             <div class="card-1">
                                 {{-- Savings Balance --}}
-                            <div class="card-box" onclick="window.location='{{ route('savings.index') }}'">
+                            <div class="card-box" data-action="navigate" data-url="{{ route('savings.index') }}">
                                 <div class="card-header">
                                     <p>Savings Balance</p>
                                     <div class="update"><i class="fa fa-layer-group"></i></div>
@@ -339,7 +340,7 @@
                             </div>
 
                             {{-- Share Capital --}}
-                            <div class="card-box" onclick="window.location='{{ route('Financial') }}'">
+                            <div class="card-box" data-action="navigate" data-url="{{ route('Financial') }}">
                                 <div class="card-header">
                                     <p>Share Capital</p>
                                     <div class="update"><i class="fa fa-coins"></i></div>
@@ -351,7 +352,7 @@
                             </div>
 
                             {{-- Seminars --}}
-                            <div class="card-box" onclick="document.getElementById('seminarsModal').style.display='flex'">
+                            <div class="card-box" data-action="show-modal" data-target="seminarsModal">
                                 <div class="card-header">
                                     <p>Seminars</p>
                                     <div class="update"><i class="fa fa-graduation-cap"></i></div>
@@ -371,7 +372,7 @@
 
                             <div class="card-2">
                                 {{-- Active Loans --}}
-                            <div class="card-box" onclick="window.location='{{ route('LoanStatus') }}'">
+                            <div class="card-box" data-action="navigate" data-url="{{ route('LoanStatus') }}">
                                 <div class="card-header">
                                     <p>Active Loans</p>
                                     <div class="update"><i class="fa fa-piggy-bank"></i></div>
@@ -383,7 +384,7 @@
                             </div>
 
                             {{-- Upcoming Dues --}}
-                            <div class="card-box" onclick="document.getElementById('upcomingDuesModal').style.display='flex'">
+                            <div class="card-box" data-action="show-modal" data-target="upcomingDuesModal">
                                 <div class="card-header">
                                     <p>Upcoming Dues</p>
                                     <div class="update"><i class="fa fa-calendar-day"></i></div>
@@ -395,7 +396,7 @@
                             </div>
 
                             {{-- Overdue Loans --}}
-                            <div class="card-box" onclick="document.getElementById('overdueLoansModal').style.display='flex'">
+                            <div class="card-box" data-action="show-modal" data-target="overdueLoansModal">
                                 <div class="card-header">
                                     <p>Overdue Loans</p>
                                     <div class="update">
@@ -473,10 +474,10 @@
                                 </div>
 
                                 <div class="button-parent" style="">
-                                    <button type="button" class="tx-tab-btn active" data-tx-filter="all" onclick="filterRecentTx('all', this)">All</button>
-                                    <button type="button" class="tx-tab-btn" data-tx-filter="loans" onclick="filterRecentTx('loans', this)">Loans</button>
-                                    <button type="button" class="tx-tab-btn" data-tx-filter="savings" onclick="filterRecentTx('savings', this)">Savings</button>
-                                    <button type="button" class="tx-tab-btn" data-tx-filter="share_capital" onclick="filterRecentTx('share_capital', this)">Share Capital</button>
+                                    <button type="button" class="tx-tab-btn active" data-tx-filter="all" data-action="filterRecentTx" data-arg='["all","|el|"]'>All</button>
+                                    <button type="button" class="tx-tab-btn" data-tx-filter="loans" data-action="filterRecentTx" data-arg='["loans","|el|"]'>Loans</button>
+                                    <button type="button" class="tx-tab-btn" data-tx-filter="savings" data-action="filterRecentTx" data-arg='["savings","|el|"]'>Savings</button>
+                                    <button type="button" class="tx-tab-btn" data-tx-filter="share_capital" data-action="filterRecentTx" data-arg='["share_capital","|el|"]'>Share Capital</button>
                                 </div>
 
                                 <div class="recent-body">
@@ -523,10 +524,10 @@
                                     </div>
                                 </div>
                                 <div style="display:flex; border-bottom: 1px solid var(--line);">
-                                    <button onclick="switchMemberCommunityTab('announcements')" id="member-community-tab-announcements" style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid var(--teal); color:var(--teal);">
+                                    <button type="button" data-action="switchMemberCommunityTab" data-arg='["announcements"]' id="member-community-tab-announcements" style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid var(--teal); color:var(--teal);">
                                         <i class="fa-solid fa-bullhorn" style="margin-right:4px;"></i> Announcements
                                     </button>
-                                    <button onclick="switchMemberCommunityTab('polls')" id="member-community-tab-polls" style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; color:var(--muted);">
+                                    <button type="button" data-action="switchMemberCommunityTab" data-arg='["polls"]' id="member-community-tab-polls" style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; color:var(--muted);">
                                         <i class="fa-solid fa-chart-bar" style="margin-right:4px;"></i> Polls
                                     </button>
                                 </div>
@@ -536,7 +537,7 @@
                                     <div class="tx-list" id="announcementsList">
                                         @forelse ($announcements as $announcement)
                                             <div class="tx-list-item member-announcement-item" style="flex-direction:column; align-items:stretch; padding:12px 0; border-bottom:1px solid var(--line);">
-                                                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleMemberAnnouncement({{ $announcement->id }})">
+                                                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" data-action="toggleMemberAnnouncement" data-arg='[{{ $announcement->id }}]'>
                                                     <div class="tx-icon gold"><i class="fa-solid fa-bullhorn"></i></div>
                                                     <div class="tx-list-info" style="flex:1;">
                                                         <strong>{{ $announcement->title }}</strong>
@@ -552,10 +553,10 @@
                                                 <div id="announcement-expanded-{{ $announcement->id }}" style="display:none; margin-top:10px; padding-left:46px;">
                                                     <p style="font-size:13px; color:#555; white-space:pre-wrap; line-height:1.5;">{{ trim($announcement->content) }}</p>
                                                     <div style="display:flex; gap:8px; margin-top:10px;">
-                                                        <button onclick="event.stopPropagation(); toggleMemberLike({{ $announcement->id }}, this)" class="member-like-btn {{ $announcement->likes->contains('user_id', $user->id ?? 0) ? 'liked' : '' }}" style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#FEE2E2' : 'var(--card)' }}; color:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#DC2626' : '#6B7280' }}; cursor:pointer;">
+                                                        <button type="button" data-action="toggleMemberLike" data-arg='[{{ $announcement->id }},"|el|"]' data-stop class="member-like-btn {{ $announcement->likes->contains('user_id', $user->id ?? 0) ? 'liked' : '' }}" style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#FEE2E2' : 'var(--card)' }}; color:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#DC2626' : '#6B7280' }}; cursor:pointer;">
                                                             <i class="fa-solid fa-heart"></i> <span class="like-count">{{ $announcement->likes_count }}</span>
                                                         </button>
-                                                        <button onclick="event.stopPropagation(); toggleMemberComments({{ $announcement->id }})" style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:var(--card); color:#6B7280; cursor:pointer;">
+                                                        <button type="button" data-action="toggleMemberComments" data-arg='[{{ $announcement->id }}]' data-stop style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:var(--card); color:#6B7280; cursor:pointer;">
                                                             <i class="fa-solid fa-comment"></i> {{ $announcement->comments_count }}
                                                         </button>
                                                     </div>
@@ -579,7 +580,7 @@
                                                                 </div>
                                                             @endforeach
                                                         </div>
-                                                        <form onsubmit="postMemberComment(event, {{ $announcement->id }})" style="display:flex; gap:6px; margin-top:8px;">
+                                                        <form data-action="postMemberComment" data-arg='["|event|",{{ $announcement->id }}]' style="display:flex; gap:6px; margin-top:8px;">
                                                             @csrf
                                                             <input type="text" placeholder="Write a comment..." required style="flex:1; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; background:var(--card); color:var(--text);">
                                                             <button type="submit" style="padding:6px 12px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
@@ -640,7 +641,7 @@
                                                             </div>
                                                         </div>
                                                     @else
-                                                        <button onclick="voteMemberPoll({{ $poll->id }}, {{ $i }})" style="width:100%; text-align:left; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; font-weight:600; background:var(--card); color:var(--text); cursor:pointer;">
+                                                        <button type="button" data-action="voteMemberPoll" data-arg='[{{ $poll->id }},{{ $i }}]' style="width:100%; text-align:left; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; font-weight:600; background:var(--card); color:var(--text); cursor:pointer;">
                                                             {{ $option }}
                                                         </button>
                                                     @endif
@@ -746,7 +747,7 @@
                                         <p>Share capital, savings &amp; loan balance overview</p>
                                     </div>
                                     <div class="balance-date">
-                                        <select id="balanceMonthSelect" onchange="updateBalanceMonth()">
+                                        <select id="balanceMonthSelect" data-action="updateBalanceMonth">
                                             @foreach (range(1, 12) as $m)
                                                 <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}"
                                                     {{ (int) explode('-', $balanceMonth)[1] === $m ? 'selected' : '' }}>
@@ -754,7 +755,7 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <select id="balanceYearSelect" onchange="updateBalanceMonth()">
+                                        <select id="balanceYearSelect" data-action="updateBalanceMonth">
                                             @foreach ($availableYears as $year)
                                                 <option value="{{ $year }}"
                                                     {{ (int) explode('-', $balanceMonth)[0] === $year ? 'selected' : '' }}>
@@ -786,7 +787,7 @@
                                         <p>Net contributions over the last 6 months</p>
                                     </div>
                                     <div class="year-filter">
-                                        <select onchange="window.location='{{ url()->current() }}?year='+this.value">
+                                        <select data-action="goto-year" data-base-url="{{ url()->current() }}">
                                             @foreach ($availableYears as $year)
                                                 <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
                                                     {{ $year }}
@@ -846,7 +847,7 @@
                             <p style="color: #1e293b;">If you wish to resign from the cooperative, you may submit a resignation request. A 60-day holding period applies for share capital withdrawal.</p>
                         </div>
                         <div class="link-box">
-                            <button onclick="document.getElementById('resignModal').style.display='flex'" style="background: #dc2626; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <button data-action="show-modal" data-target="resignModal" style="background: #dc2626; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
                                 <i class="fa fa-sign-out-alt"></i>
                                 <span>Request Resignation</span>
                             </button>
@@ -857,14 +858,14 @@
                         <!-- Resignation Modal -->
                         <div id="resignModal"
                             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center;"
-                            onclick="if(event.target===this)this.style.display='none'">
+                            data-overlay>
                             <div
                                 style="background:#fff; border-radius:12px; max-width:450px; width:90%; padding:0; box-shadow:0 25px 60px rgba(0,0,0,0.3);">
                                 <div
                                     style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
                                     <h3 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Request
                                         Resignation</h3>
-                                    <button onclick="document.getElementById('resignModal').style.display='none'"
+                                    <button data-action="hide-modal" data-target="resignModal"
                                         style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
                                 </div>
                                 <form method="POST" action="{{ route('resignation.request') }}" style="padding:24px;">
@@ -876,7 +877,7 @@
                                             style="display:flex; align-items:center; gap:12px; padding:14px 16px; border:2px solid #e5e7eb; border-radius:10px; cursor:pointer; transition:all .2s;">
                                             <input type="radio" name="withdraw_share_capital" value="1"
                                                 style="accent-color:#1E2A4A;" required
-                                                onchange="document.querySelectorAll('.resign-option').forEach(l=>l.style.borderColor='#e5e7eb');this.closest('label').style.borderColor='#1E2A4A'">
+                                                data-action="resign-option-select">
                                             <div>
                                                 <strong style="display:block; color:#111827; font-size:15px;">Withdraw
                                                     Share Capital</strong>
@@ -888,7 +889,7 @@
                                             style="display:flex; align-items:center; gap:12px; padding:14px 16px; border:2px solid #e5e7eb; border-radius:10px; cursor:pointer; transition:all .2s;">
                                             <input type="radio" name="withdraw_share_capital" value="0"
                                                 style="accent-color:#1E2A4A;" required
-                                                onchange="document.querySelectorAll('.resign-option').forEach(l=>l.style.borderColor='#e5e7eb');this.closest('label').style.borderColor='#1E2A4A'">
+                                                data-action="resign-option-select">
                                             <div>
                                                 <strong style="display:block; color:#111827; font-size:15px;">Leave
                                                     Share Capital</strong>
@@ -899,11 +900,11 @@
                                     </div>
                                     <div style="display:flex; gap:12px;">
                                         <button type="button"
-                                            onclick="document.getElementById('resignModal').style.display='none'"
+                                            data-action="hide-modal" data-target="resignModal"
                                             style="flex:1; padding:12px; background:#f3f4f6; color:#374151; border:none; border-radius:8px; cursor:pointer; font-weight:600;">Cancel</button>
                                         <button type="submit"
                                             style="flex:1; padding:12px; background:#dc2626; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;"
-                                            onclick="return confirm('Are you sure you want to submit a resignation request? This action will be reviewed by admin.')">Submit
+                                            data-confirm="Are you sure you want to submit a resignation request? This action will be reviewed by admin.">Submit
                                             Request</button>
                                     </div>
                                 </form>
@@ -913,7 +914,7 @@
                         <!-- Net Standing Modal -->
                         <div id="netStandingModal"
                             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center;"
-                            onclick="if(event.target===this)this.style.display='none'">
+                            data-overlay>
                             <div
                                 style="background:#fff; border-radius:16px; max-width:420px; width:90%; padding:0; box-shadow:0 25px 60px rgba(0,0,0,0.3);">
                                 <div
@@ -922,14 +923,14 @@
                                         <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Net Standing</h3>
                                         <p style="margin: 3.2px 0 0; font-size: 13.5px;color: var(--muted);">Overall Financial Position</p>
                                     </div>
-                                    <button onclick="document.getElementById('netStandingModal').style.display='none'"
+                                    <button data-action="hide-modal" data-target="netStandingModal"
                                         style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
                                 </div>
 
                                 <div style="padding:24px;">
 
                                     <div style="display:flex; gap:8px; margin-bottom:15px;">
-                                        <select id="standingMonthSelect" class="form-select" onchange="updateStandingMonth()" style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; font-weight:600; color:#111827;">
+                                        <select id="standingMonthSelect" class="form-select" data-action="updateStandingMonth" style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; font-weight:600; color:#111827;">
                                             @foreach (range(1, 12) as $m)
                                                 <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}"
                                                     {{ (int) explode('-', $standingMonth)[1] === $m ? 'selected' : '' }}>
@@ -937,7 +938,7 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <select id="standingYearSelect" class="form-select" onchange="updateStandingMonth()" style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; font-weight:600; color:#111827;">
+                                        <select id="standingYearSelect" class="form-select" data-action="updateStandingMonth" style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; font-weight:600; color:#111827;">
                                             @foreach ($availableYears as $year)
                                                 <option value="{{ $year }}"
                                                     {{ (int) explode('-', $standingMonth)[0] === $year ? 'selected' : '' }}>
@@ -994,7 +995,7 @@
     <!-- Upcoming Dues Modal -->
     <div id="upcomingDuesModal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center;"
-        onclick="if(event.target===this)this.style.display='none'">
+        data-overlay>
         <div
             style="background:#fff; border-radius:16px; max-width:480px; width:90%; padding:0; box-shadow:0 25px 60px rgba(0,0,0,0.3); max-height:80vh; display:flex; flex-direction:column;">
             <div
@@ -1003,7 +1004,7 @@
                     <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Upcoming Dues</h3>
                     <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Your next loan payments across all accounts</p>
                 </div>
-                <button onclick="document.getElementById('upcomingDuesModal').style.display='none'"
+                <button data-action="hide-modal" data-target="upcomingDuesModal"
                     style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
             </div>
 
@@ -1032,7 +1033,7 @@
     <!-- Overdue Loans Modal -->
     <div id="overdueLoansModal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center;"
-        onclick="if(event.target===this)this.style.display='none'">
+        data-overlay>
         <div
             style="background:#fff; border-radius:16px; max-width:480px; width:90%; padding:0; box-shadow:0 25px 60px rgba(0,0,0,0.3); max-height:80vh; display:flex; flex-direction:column;">
             <div
@@ -1041,7 +1042,7 @@
                     <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Overdue Loans</h3>
                     <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Loans past due across all accounts</p>
                 </div>
-                <button onclick="document.getElementById('overdueLoansModal').style.display='none'"
+                <button data-action="hide-modal" data-target="overdueLoansModal"
                     style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
             </div>
 
@@ -1070,7 +1071,7 @@
     <!-- Seminars Modal -->
     <div id="seminarsModal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center;"
-        onclick="if(event.target===this)this.style.display='none'">
+        data-overlay>
         <div
             style="background:#fff; border-radius:16px; max-width:460px; width:90%; padding:0; box-shadow:0 25px 60px rgba(0,0,0,0.3);">
             <div
@@ -1079,17 +1080,17 @@
                     <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Seminars</h3>
                     <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Your membership training progress</p>
                 </div>
-                <button onclick="document.getElementById('seminarsModal').style.display='none'"
+                <button data-action="hide-modal" data-target="seminarsModal"
                     style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
             </div>
 
             {{-- Tab buttons --}}
             <div style="display:flex; border-bottom:1px solid #e5e7eb;">
-                <button id="seminarTabAttended" onclick="switchSeminarTab('attended')"
+                <button id="seminarTabAttended" data-action="switchSeminarTab" data-arg='["attended"]'
                     style="flex:1; padding:10px; font-size:13px; font-weight:600; border:none; cursor:pointer; background:transparent; color:var(--teal); border-bottom:2px solid var(--teal);">
                     Attended
                 </button>
-                <button id="seminarTabPasscode" onclick="switchSeminarTab('passcode')"
+                <button id="seminarTabPasscode" data-action="switchSeminarTab" data-arg='["passcode"]'
                     style="flex:1; padding:10px; font-size:13px; font-weight:600; border:none; cursor:pointer; background:transparent; color:#9ca3af; border-bottom:2px solid transparent;">
                     Enter Passcode
                 </button>
@@ -1174,7 +1175,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function switchSeminarTab(tab) {
             const attended = document.getElementById('seminarAttendedPanel');
             const passcode = document.getElementById('seminarPasscodePanel');
@@ -1215,7 +1216,19 @@
         }
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+            A.register('resign-option-select', function (e, el) {
+                document.querySelectorAll('.resign-option').forEach(function (l) { l.style.borderColor = '#e5e7eb'; });
+                var label = el.closest('label');
+                if (label) label.style.borderColor = '#1E2A4A';
+            });
+        })();
+    </script>
+
+    <script nonce="{{ csp_nonce() }}">
 
     {{-- Toast --}}
     @if (session("message"))
@@ -1225,7 +1238,7 @@
                 <p>{{ session("message") }}</p>
             </div>
         </div>
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             setTimeout(() => {
                 const msg = document.querySelector(".toast-message");
                 if (msg) {
@@ -1237,7 +1250,7 @@
     @endif
 
     @if (request('open_standing_modal'))
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('netStandingModal').style.display = 'flex';
             });
@@ -1247,7 +1260,7 @@
 
     {{-- ─── Skeleton dismiss logic — only runs after login ─── --}}
     @if (session('just_logged_in'))
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             (function () {
                 var MIN_DISPLAY = 2000;
                 var startTime = Date.now();
@@ -1299,7 +1312,7 @@
         </script>
     @endif
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         (function () {
             const style = getComputedStyle(document.documentElement);
             const colors = {
@@ -1334,7 +1347,7 @@
     </script>
 
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function filterLoans(status) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.currentTarget.classList.add('active');
@@ -1413,11 +1426,16 @@
             .then(data => {
                 if (data.success) {
                     const c = data.comment;
+                    const escHtml = (value) => {
+                        const el = document.createElement('div');
+                        el.textContent = value;
+                        return el.innerHTML;
+                    };
                     const isAdmin = ['admin', 'general-manager'].includes(c.user.role);
                     const container = form.previousElementSibling;
                     const div = document.createElement('div');
                     div.style.cssText = 'display:flex; gap:8px; padding:8px; background:var(--bg); border-radius:8px;';
-                    div.innerHTML = '<div style="width:24px; height:24px; border-radius:50%; background:' + (isAdmin ? '#3B82F6' : 'var(--teal)') + '; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="color:#fff; font-size:10px; font-weight:700;">' + (c.user.first_name?.[0] || '') + (c.user.last_name?.[0] || '') + '</span></div><div style="flex:1; min-width:0;"><div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;"><span style="font-size:12px; font-weight:600;">' + c.user.first_name + ' ' + c.user.last_name + '</span>' + (isAdmin ? '<span style="font-size:10px; padding:1px 4px; background:#DBEAFE; color:#1D4ED8; border-radius:4px; font-weight:600;">Admin</span>' : '') + '<span style="font-size:11px; color:var(--muted);">' + c.created_at + '</span></div><p style="font-size:12px; color:#555; margin:0;">' + c.comment + '</p></div>';
+                    div.innerHTML = '<div style="width:24px; height:24px; border-radius:50%; background:' + (isAdmin ? '#3B82F6' : 'var(--teal)') + '; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="color:#fff; font-size:10px; font-weight:700;">' + escHtml((c.user.first_name?.[0] || '') + (c.user.last_name?.[0] || '')) + '</span></div><div style="flex:1; min-width:0;"><div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;"><span style="font-size:12px; font-weight:600;">' + escHtml(c.user.first_name) + ' ' + escHtml(c.user.last_name) + '</span>' + (isAdmin ? '<span style="font-size:10px; padding:1px 4px; background:#DBEAFE; color:#1D4ED8; border-radius:4px; font-weight:600;">Admin</span>' : '') + '<span style="font-size:11px; color:var(--muted);">' + escHtml(c.created_at) + '</span></div><p style="font-size:12px; color:#555; margin:0;">' + escHtml(c.comment) + '</p></div>';
                     container.appendChild(div);
                     input.value = '';
                 }
@@ -1425,7 +1443,7 @@
             .catch(() => {});
         }
 
-        const memberPollOptions = @json($pollOptionsMap);
+        const memberPollOptions = {{ Js::from($pollOptionsMap) }};
 
         function voteMemberPoll(pollId, optionIndex) {
             fetch('/polls/' + pollId + '/vote', {
@@ -1442,9 +1460,14 @@
                     data.results.forEach((count, i) => {
                         const pct = data.total_votes > 0 ? Math.round((count / data.total_votes) * 100) : 0;
                         const isChosen = data.voted_index === i;
+                        const escHtml = (value) => {
+                            const el = document.createElement('div');
+                            el.textContent = value;
+                            return el.innerHTML;
+                        };
                         const div = document.createElement('div');
                         div.style.cssText = 'position:relative; height:28px; border-radius:8px; overflow:hidden; background:var(--line);';
-                        div.innerHTML = '<div style="height:100%; width:' + pct + '%; background:' + (isChosen ? 'var(--teal)' : '#D1D5DB') + '; border-radius:8px; transition:width .5s;"></div><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px;"><span style="font-size:12px; font-weight:600; color:' + (isChosen ? '#fff' : '#555') + ';">' + (options[i] || 'Option ' + (i+1)) + '</span><span style="font-size:11px; font-weight:600; color:' + (isChosen ? '#fff' : '#888') + ';">' + pct + '% <span style="font-weight:400;">(' + count + ')</span></span></div>';
+                        div.innerHTML = '<div style="height:100%; width:' + pct + '%; background:' + (isChosen ? 'var(--teal)' : '#D1D5DB') + '; border-radius:8px; transition:width .5s;"></div><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px;"><span style="font-size:12px; font-weight:600; color:' + (isChosen ? '#fff' : '#555') + ';">' + escHtml(options[i] || 'Option ' + (i+1)) + '</span><span style="font-size:11px; font-weight:600; color:' + (isChosen ? '#fff' : '#888') + ';">' + pct + '% <span style="font-weight:400;">(' + count + ')</span></span></div>';
                         container.appendChild(div);
                     });
                     const pollEl = document.getElementById('member-poll-' + pollId);

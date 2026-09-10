@@ -4,11 +4,11 @@
             <p class="text-sm text-gray-500">Manage member share capital contributions</p>
         </div>
         <div class="flex items-center gap-3">
-            <button onclick="openModal('scContributionModal')" class="btn btn-primary">
+            <button data-action="openModal" data-arg='["scContributionModal"]' class="btn btn-primary">
                 <i data-lucide="plus" class="w-4 h-4"></i>
 Manage Share-capital
             </button>
-            <button onclick="openModal('sellSharesModal')" class="btn btn-primary" style="background: #1E2A4A; border-color: #1E2A4A;">
+            <button data-action="openModal" data-arg='["sellSharesModal"]' class="btn btn-primary" style="background: #1E2A4A; border-color: #1E2A4A;">
                 <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
 Sell Shares
             </button>
@@ -17,7 +17,7 @@ Sell Shares
 
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" onclick="openShareCapitalsModal(false)">
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" data-action="openShareCapitalsModal" data-arg='[false]'>
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Contributions</p>
@@ -33,7 +33,7 @@ Sell Shares
             </div>
         </div>
 
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-success-200 transition-all group" onclick="openShareCapitalsModal(true)">
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-success-200 transition-all group" data-action="openShareCapitalsModal" data-arg='[true]'>
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Eligible Accounts</p>
@@ -62,12 +62,12 @@ Sell Shares
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <select name="sc_type" class="select w-40" onchange="this.form.submit()">
+                    <select name="sc_type" class="select w-40" data-submit-on-change>
                         <option value="all">All Types</option>
                         <option value="Deposit" {{ request('sc_type') === 'Deposit' ? 'selected' : '' }}>Deposit</option>
                         <option value="Withdrawal" {{ request('sc_type') === 'Withdrawal' ? 'selected' : '' }}>Withdrawal</option>
                     </select>
-                    <select name="sc_status" class="select w-32" onchange="this.form.submit()">
+                    <select name="sc_status" class="select w-32" data-submit-on-change>
                         <option value="all">All Status</option>
                         <option value="Completed" {{ request('sc_status') === 'Completed' ? 'selected' : '' }}>Completed</option>
                         <option value="Pending" {{ request('sc_status') === 'Pending' ? 'selected' : '' }}>Pending</option>
@@ -170,7 +170,7 @@ Sell Shares
                             data-method="{{ $tx->payment_method ?? 'N/A' }}"
                             data-ref="{{ $tx->reference_no ?? 'N/A' }}"
                             data-date="{{ $tx->transaction_date }}"
-                            onclick="openSCRow(event, this)"
+                            data-action="openSCRow" data-arg='["|event|","|el|"]'
                         @endif
                     >
                         <td class="text-sm text-gray-900">{{ $tx->created_at->format('M d, Y') }}</td>

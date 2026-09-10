@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Share Capital</title>
     <link rel="icon" href="images/websitelogo.png" type="image/png">
+    <script src="{{ asset('js/csp-events.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('css_folder/share_capital_form.css') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('font-awesome-icon/css/all.min.css') }}">
@@ -323,10 +324,10 @@
 
                 {{-- Footer Buttons --}}
                 <div class="modal-receipt-footer">
-                    <button class="btn-download-receipt" onclick="downloadReceipt()">
+                    <button class="btn-download-receipt" data-action="downloadReceipt">
                         <i class="fa-solid fa-download"></i> Download Receipt
                     </button>
-                    <button class="btn-close-modal" onclick="closeModal()">
+                    <button class="btn-close-modal" data-action="closeModal">
                         Close
                     </button>
                 </div>
@@ -426,7 +427,7 @@
 
                 @else
 
-                    <form action="{{ route('share_capital.store') }}" method="POST" id="cash-form">
+                    <form action="{{ route('share_capital.member.store') }}" method="POST" id="cash-form">
                         @csrf
 
                         <div class="card-share-body">
@@ -470,7 +471,6 @@
                                     <select name="payment_method" id="paymentMethod" class="form-select" required>
                                         <option value="" disabled selected>Select payment method...</option>
                                         <option value="cash">Cash</option>
-                                        <option value="gcash">Gcash</option>
                                     </select>
                                     <i class="fa fa-chevron-down select-arrow"></i>
                                 </div>
@@ -484,34 +484,6 @@
                                     placeholder="e.g. Monthly contribution">
                             </div>
 
-                            <div id="gcash-section" style="display: none; margin-top: 1rem;">
-                                <div style="border-top: 1.5px dashed #e8e8e8; margin: 1.2rem 0;"></div>
-                                <div
-                                    style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4ff 100%); border: 1.5px solid #c2deff; border-radius: 12px; padding: 1rem 1.2rem; width: 100%;">
-                                    <div
-                                        style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; width: 100%;">
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <div
-                                                style="width: 40px; height: 40px; background: #007DFF; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fa-solid fa-mobile-screen-button"
-                                                    style="color: white; font-size: 18px;"></i>
-                                            </div>
-                                            <div>
-                                                <p style="margin: 0; font-size: 14px; font-weight: 700; color: #0056b3;">Pay
-                                                    via GCash</p>
-                                                <p style="margin: 0; font-size: 11px; color: #5a8ac4;">Fast & secure online
-                                                    payment</p>
-                                            </div>
-                                        </div>
-                                        <button type="button" onclick="submitGcashShareCapital()"
-                                            style="background: #007DFF; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-                                            <i class="fa-solid fa-arrow-right" style="font-size: 12px;"></i>
-                                            Pay Now
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
 
                         <div class="card-share-footer">
@@ -520,13 +492,6 @@
                             </button>
                         </div>
 
-                    </form>
-
-                    <form id="gcash-share-form" action="{{ route('share_capital.gcash') }}" method="POST"
-                        style="display: none;">
-                        @csrf
-                        <input type="hidden" name="shares" id="gcash-shares-input">
-                        <input type="hidden" name="note" id="gcash-note-input">
                     </form>
 
                 @endif
@@ -538,13 +503,10 @@
     {{-- html2canvas CDN for receipt download --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         /* ── Form Logic (only runs when form is present) ── */
         const sharesInput = document.getElementById('sharesInput');
         const totalCostEl = document.getElementById('totalCost');
-        const paymentMethod = document.getElementById('paymentMethod');
-        const gcashSection = document.getElementById('gcash-section');
-        const confirmBtn = document.getElementById('confirm-btn');
         const PRICE_PER_SHARE = 1000;
 
         if (sharesInput) {
@@ -560,22 +522,6 @@
                 document.querySelectorAll('.quick-btn').forEach(btn => {
                     btn.classList.toggle('active', parseInt(btn.dataset.value) === value);
                 });
-            }
-
-            paymentMethod.addEventListener('change', function () {
-                if (this.value === 'gcash') {
-                    gcashSection.style.display = 'flex';
-                    confirmBtn.style.display = 'none';
-                } else {
-                    gcashSection.style.display = 'none';
-                    confirmBtn.style.display = 'flex';
-                }
-            });
-
-            function submitGcashShareCapital() {
-                document.getElementById('gcash-shares-input').value = sharesInput.value;
-                document.getElementById('gcash-note-input').value = document.getElementById('noteInput').value;
-                document.getElementById('gcash-share-form').submit();
             }
 
             document.getElementById('decreaseBtn').addEventListener('click', () => {

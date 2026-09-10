@@ -33,11 +33,17 @@
                         </div>
 
                         <div class="col-lg-4">
-                            <a href="{{ route('approve.user', $getTheUser->id) }}">Approved</a>
+                            <form method="POST" action="{{ route('approve.user', $getTheUser->id) }}" class="d-inline">
+                                @csrf
+                                <button type="submit" style="background:none;border:none;padding:0;color:inherit;text-decoration:underline;cursor:pointer;">Approved</button>
+                            </form>
                         </div>
 
                         <div class="col-lg-4">
-                            <a href="{{ route("message.user", $getTheUser->id) }}">Open Share Capital</a>
+                            <form method="POST" action="{{ route('message.user', $getTheUser->id) }}" class="d-inline">
+                                @csrf
+                                <button type="submit" style="background:none;border:none;padding:0;color:inherit;text-decoration:underline;cursor:pointer;">Open Share Capital</button>
+                            </form>
                         </div>
 
                     @endforeach

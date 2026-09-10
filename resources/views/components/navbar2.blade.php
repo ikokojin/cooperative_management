@@ -1,5 +1,6 @@
 <nav id="dashboard-nav"
     class="tw:flex justify-content-between align-items-center tw:w-[100%] tw:h-[80px] tw:bg-[#ffffff]">
+    <script src="{{ asset('js/csp-events.js') }}"></script>
     <div class="nav-logo">
         {{-- <h2 class="m-0" style="font-size: 25px">LOGO</h2> --}}
         <!-- <img src="images/logo2.png" width="50px" height="50px" style="border-radius: 50%" alt="">
@@ -14,7 +15,7 @@
 
         <!-- <i class="fa fa-bars" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu1"
                 aria-controls="staticBackdrop"></i> -->
-        <button class="collapse-button" onclick="toggleSidebar()">
+        <button type="button" class="collapse-button" data-action="toggleSidebar">
             <i class="fa fa-bars"></i>
         </button>
 
@@ -59,7 +60,7 @@
     <div class="nav-acc2" id="nav-acc2">
         <ul class="m-0 p-0">
             <div class="nb-notif-wrap">
-                <button type="button" onclick="toggleNavNotif(event)"
+                <button type="button" data-action="toggleNavNotif" data-arg='["|event|"]'
                     style="background:none; border:none; cursor:pointer; position:relative; padding:4px; display:flex; align-items:center;">
                     <i class="fa-solid fa-bell" style="font-size: 17px; color: var(--muted);"></i>
                     @if($navNotifications->count() > 0)
@@ -102,7 +103,7 @@
                 </div>
             </div>
 
-            <script>
+            <script nonce="{{ csp_nonce() }}">
                 function toggleNavNotif(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -120,14 +121,14 @@
             </script>
             @if(auth()->user()?->isAlliedWorker())
             <li class="tw:list-none" style="align-self:center; margin-right:12px;">
-                <button type="button" onclick="openAwSwitch()"
+                <button type="button" data-action="openAwSwitch"
                     style="background:#1D4ED8; color:#fff; border:none; border-radius:8px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer;">
                     <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right:6px;"></i>Switch to Allied Worker
                 </button>
             </li>
             @endif
             <li>
-                <a href="#" onclick="toggleDropdown(event)"
+                <a href="#" data-action="toggleDropdown" data-arg='["|event|"]'
                     class="tw:flex tw:justify-center tw:items-center tw:gap-x-[0.7rem] position-relative">
                     <div class="first-last">
                         <p>{{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}</p>
@@ -231,7 +232,7 @@
         </ul>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function toggleDropdown(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -246,7 +247,7 @@
         // });
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const rightbar = document.querySelector('.rightbar');
@@ -266,13 +267,13 @@
                 <input type="password" name="password" required placeholder="Enter your password"
                     style="width:100%; padding:11px 13px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:14px;">
                 <div style="display:flex; justify-content:flex-end; gap:10px;">
-                    <button type="button" onclick="closeAwSwitch()" style="padding:9px 14px; border:1px solid #ddd; border-radius:8px; background:#fff; color:#333; font-size:13px; cursor:pointer;">Cancel</button>
+                    <button type="button" data-action="closeAwSwitch" style="padding:9px 14px; border:1px solid #ddd; border-radius:8px; background:#fff; color:#333; font-size:13px; cursor:pointer;">Cancel</button>
                     <button type="submit" style="padding:9px 16px; border:none; border-radius:8px; background:#1D4ED8; color:#fff; font-size:13px; font-weight:600; cursor:pointer;">Switch Mode</button>
                 </div>
             </form>
         </div>
     </div>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function openAwSwitch() { document.getElementById('awSwitchModal').style.display = 'flex'; }
         function closeAwSwitch() { document.getElementById('awSwitchModal').style.display = 'none'; }
     </script>

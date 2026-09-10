@@ -14,6 +14,7 @@
 
     {{-- bootstrap and tailwind link --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     {{-- font awesome cdn link --}}
     <link rel="stylesheet" href="font-awesome-icon/css/all.min.css">
@@ -471,13 +472,13 @@
                             <div class="loan-tabs-bar">
                                 <div class="loan-tabs">
                                     <button type="button" class="loan-tab-btn active" data-status-filter="all"
-                                        onclick="filterLoanStatusTab('all', this)">All</button>
+                                        data-action="filterLoanStatusTab" data-arg='["all","|el|"]'>All</button>
                                     <button type="button" class="loan-tab-btn" data-status-filter="active"
-                                        onclick="filterLoanStatusTab('active', this)">Active</button>
+                                        data-action="filterLoanStatusTab" data-arg='["active","|el|"]'>Active</button>
                                     <button type="button" class="loan-tab-btn" data-status-filter="completed"
-                                        onclick="filterLoanStatusTab('completed', this)">Completed</button>
+                                        data-action="filterLoanStatusTab" data-arg='["completed","|el|"]'>Completed</button>
                                     <button type="button" class="loan-tab-btn" data-status-filter="overdue"
-                                        onclick="filterLoanStatusTab('overdue', this)">Overdue</button>
+                                        data-action="filterLoanStatusTab" data-arg='["overdue","|el|"]'>Overdue</button>
                                 </div>
                                 {{-- <div class="pg-controls" id="loan-grid-pg"></div> --}}
                             </div>
@@ -488,7 +489,7 @@
                                         data-type="{{ $loan->display_type }}"
                                         data-date="{{ \Carbon\Carbon::parse($loan->created_at)->format('Y-m-d') }}"
                                         data-status="{{ strtolower($loan->card_status) }}"
-                                        onclick="navigateToLoan('{{ $loan->id }}')">
+                                        data-action="navigateToLoan" data-arg='["{{ $loan->id }}"]'>
                                         <div class="lsc-top">
                                             <div class="lsc-icon"><i class="fa fa-file-invoice-dollar"></i></div>
                                             <span class="lsc-status lsc-status-{{ strtolower($loan->card_status) }}">
@@ -573,7 +574,7 @@
                                 </div>
                                 <div class="right-hero">
                                     <div class="payment-button payment-desktop">
-                                        <button onclick="handleMakePaymentClick('monthly')" {{ $fullBalanceRemaining <= 0 ? 'disabled style=opacity:.5;cursor:not-allowed;' : '' }}>
+                                        <button data-action="handleMakePaymentClick" data-arg='["monthly"]' {{ $fullBalanceRemaining <= 0 ? 'disabled style=opacity:.5;cursor:not-allowed;' : '' }}>
                                             <i class="fa fa-peso-sign"></i>
                                             <span>Make a Payment</span>
                                         </button>
@@ -661,7 +662,7 @@
 
                             </div>
                             <div class="payment-button payment-mobile">
-                                <button onclick="handleMakePaymentClick('monthly')" {{ $fullBalanceRemaining <= 0 ? 'disabled style=opacity:.5;cursor:not-allowed;' : '' }}>
+                                <button data-action="handleMakePaymentClick" data-arg='["monthly"]' {{ $fullBalanceRemaining <= 0 ? 'disabled style=opacity:.5;cursor:not-allowed;' : '' }}>
                                     <i class="fa fa-peso-sign"></i>
                                     <span>Make a Payment</span>
                                 </button>
@@ -734,7 +735,7 @@
                         {{-- SCHEDULE & CHARGES --}}
                         <div class="schedule-charges">
                             <div class="schedule-parent">
-                                <div class="schedule-header" onclick="openScheduleModal()" style="cursor:pointer;">
+                                <div class="schedule-header" data-action="openScheduleModal" style="cursor:pointer;">
                                     <!-- <div class="header-tag">
                                                                 <div class="header-icon">
                                                                     <i class="fa fa-calendar-check"></i> 
@@ -756,7 +757,7 @@
                                             data-status="{{ $row['paid'] ? 'paid' : ($row['overdue'] ? 'overdue' : ($row['is_next'] ? 'active' : 'upcoming')) }}"
                                             data-number="{{ $row['number'] }}" data-date="{{ $row['date'] }}"
                                             data-amount="{{ $row['amount'] + ($row['penalty'] ?? 0) }}"
-                                            onclick="selectScheduleRow(this)">
+                                            data-action="selectScheduleRow" data-arg='["|el|"]'>
                                             <div class="item">
                                                 <div class="item-icon">
                                                     <span>{{ $row['number'] }}</span>
@@ -788,7 +789,7 @@
                                 </div>
                             </div>
                             <div class="charges-parent">
-                                <div class="charges-header" onclick="openChargesModal()" style="cursor:pointer;">
+                                <div class="charges-header" data-action="openChargesModal" style="cursor:pointer;">
                                     <!-- <div class="header-tag">
                                                                 <div class="header-icon">
                                                                     <i class="fa fa-money-check-dollar"></i> 
@@ -941,7 +942,7 @@
                                                 data-ref="{{ $payment->reference_no }}"
                                                 data-loanref="{{ $payment->loan_reference_no ?? ($payment->loan_ref ?? '') }}"
                                                 data-paymentnum="{{ $payment->payment_number ?? '' }}"
-                                                onclick="showLoanVoidReason(this)"
+                                                data-action="showLoanVoidReason" data-arg='["|el|"]'
                                             @endif
                                         >
                                             <div class="ph-card-top">
@@ -1021,7 +1022,7 @@
                                                         data-ref="{{ $payment->reference_no }}"
                                                         data-loanref="{{ $payment->loan_reference_no ?? ($payment->loan_ref ?? '') }}"
                                                         data-paymentnum="{{ $payment->payment_number ?? '' }}"
-                                                        onclick="showLoanVoidReason(this)"
+                                                        data-action="showLoanVoidReason" data-arg='["|el|"]'
                                                     @endif
                                                 >
                                                     <td>{{ $payment->reference_no }}</td>
@@ -1109,7 +1110,7 @@
                             </div>
                         </div>
                         <button type="button" class="btn-close" style="color: var(--muted); font-size: 16px;"
-                            onclick="closeRepayModal()"></button>
+                            data-action="closeRepayModal"></button>
                     </div>
 
                     <div class="modal-body" style="padding: 1.6rem; background: #fff;">
@@ -1121,7 +1122,7 @@
                                 Payment Type
                             </label>
                             <select id="payment-type-select" class="form-select"
-                                onchange="handlePaymentTypeChange(this.value)"
+                                data-action="handlePaymentTypeChange" data-arg='["|value|"]'
                                 style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
                                 <option value="monthly">Monthly Payment — ₱{{ number_format($currentDueAmount, 2) }}</option>
                                 <option value="full">Full Balance — ₱{{ number_format($fullBalanceRemaining, 2) }}
@@ -1172,7 +1173,7 @@
                                     Payment Method
                                 </label>
                                 <select name="payment_method" id="repay-method" class="form-select"
-                                    onchange="handleMethodChange(this.value)"
+                                    data-action="handleMethodChange" data-arg='["|value|"]'
                                     style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
                                     <option value="" disabled selected>Select payment method...</option>
                                     @foreach($paymentMethods as $pm)
@@ -1194,16 +1195,17 @@
                                         <img src="{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}"
                                             alt="GCash QR Code" loading="lazy"
                                             style="width: 320px; height: 320px; max-width: 100%; object-fit: contain; border-radius: 10px; border: 1px solid #c2deff; background: #fff; padding: 14px; display: block; margin: 0 auto;"
-                                            ondblclick="openQrLightbox(this.src)">
+                                            data-action="openQrLightbox" data-trigger="dblclick" data-arg='["|src|"]'>
                                         <p style="margin: 10px 0 0; font-size: 11px; color: #5a8ac4;">
                                             Scan this using your GCash app, then upload your payment screenshot below.
                                         </p>
                                         <p style="margin: 6px 0 0; font-size: 11px;">
                                             <a href="#"
-                                                onclick="openQrLightbox('{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}'); return false;"
-                                                style="color: #0056b3; font-weight: 600;">
-                                                <i class="fa fa-up-right-and-down-left-from-center"></i> View full-size QR
-                                            </a>
+                                                    class="js-open-qr-lightbox"
+                                                    data-qr-src="{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}"
+                                                    style="color: #0056b3; font-weight: 600;">
+                                                    <i class="fa fa-up-right-and-down-left-from-center"></i> View full-size QR
+                                                </a>
                                         </p>
                                     </div>
 
@@ -1277,7 +1279,7 @@
                             <i class="fa-solid fa-check" style="font-size: 12px;"></i>
                             Confirm Payment
                         </button>
-                        <button type="button" class="btn w-100 text-center" onclick="closeRepayModal()"
+                        <button type="button" class="btn w-100 text-center" data-action="closeRepayModal"
                             style="border-radius: 8px; font-size: 14px; padding: 10px 18px; border: 1.5px solid #e0e0e0; color: var(--muted);">
                             Cancel
                         </button>
@@ -1306,7 +1308,7 @@
                             </div>
                         </div>
                         <button type="button" class="btn-close" style="color:var(--muted);font-size:16px;"
-                            onclick="closeModal('scheduleModal')"></button>
+                            data-action="closeModal" data-arg='["scheduleModal"]'>
                     </div>
                     <div class="modal-body" style="padding:0;background:#fff;max-height:70vh;overflow-y:auto;">
                         @forelse($paymentSchedule as $row)
@@ -1314,7 +1316,7 @@
                                 data-status="{{ $row['paid'] ? 'paid' : ($row['overdue'] ? 'overdue' : ($row['is_next'] ? 'active' : 'upcoming')) }}"
                                 data-number="{{ $row['number'] }}" data-date="{{ $row['date'] }}"
                                 data-amount="{{ $row['amount'] + ($row['penalty'] ?? 0) }}"
-                                onclick="selectScheduleRow(this); closeModal('scheduleModal');">
+                                data-action="pick-schedule-row" data-arg='["|el|"]'>
                                 <div class="item">
                                     <div class="item-icon"><span>{{ $row['number'] }}</span></div>
                                     <p>{{ $row['date'] }}</p>
@@ -1361,7 +1363,7 @@
                             </div>
                         </div>
                         <button type="button" class="btn-close" style="color:var(--muted);font-size:16px;"
-                            onclick="closeModal('chargesModal')"></button>
+                            data-action="closeModal" data-arg='["chargesModal"]'>
                     </div>
                     <div class="modal-body" style="padding:0;background:#fff;max-height:70vh;overflow-y:auto;">
                         <div class="pay-item">
@@ -1555,10 +1557,10 @@
                 </div>
 
                 <div class="lr-receipt-footer">
-                    <button class="lr-btn-download" onclick="loanDownloadReceipt()">
+                    <button class="lr-btn-download" data-action="loanDownloadReceipt">
                         <i class="fa-solid fa-download"></i> Download Receipt
                     </button>
-                    <button class="lr-btn-close" onclick="loanCloseReceipt()">Close</button>
+                    <button class="lr-btn-close" data-action="loanCloseReceipt">Close</button>
                 </div>
             </div>
         </div>
@@ -1615,7 +1617,7 @@
                 <div class="lr-void-value" id="lr-void-reason-text"></div>
             </div>
             <div class="lr-void-footer">
-                <button class="lr-btn-void-close" onclick="lrCloseVoidModal()">Close</button>
+                <button class="lr-btn-void-close" data-action="lrCloseVoidModal">Close</button>
             </div>
         </div>
     </div>
@@ -1641,7 +1643,7 @@
     {{-- QR Lightbox --}}
     <div id="qr-lightbox-overlay"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100000; align-items:center; justify-content:center;">
-        <button type="button" onclick="closeQrLightbox()"
+        <button type="button" data-action="closeQrLightbox"
             style="position:absolute; top:20px; right:24px; background:#fff; border:none; width:40px; height:40px; border-radius:50%; font-size:20px; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center;">
             <i class="fa fa-times"></i>
         </button>
@@ -1650,9 +1652,15 @@
     </div>
 
     {{-- AOS animation link js --}}
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" onerror="window.__aosFailed=true"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" data-error-mark="__aosFailed"></script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+            A.register('pick-schedule-row', function (e, el) { selectScheduleRow(el); closeModal('scheduleModal'); });
+        })();
+
         (function () {
             const tbody = document.getElementById('ph-tbody');
             if (!tbody) return;
@@ -1726,9 +1734,17 @@
         document.getElementById('qr-lightbox-overlay')?.addEventListener('click', function (e) {
             if (e.target === this) closeQrLightbox();
         });
+
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('.js-open-qr-lightbox');
+            if (link) {
+                e.preventDefault();
+                openQrLightbox(link.dataset.qrSrc);
+            }
+        });
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function navigateToLoan(loanId) {
             if (!loanId) return;
             const url = new URL(window.location.href);
@@ -1877,7 +1893,7 @@
         document.addEventListener('DOMContentLoaded', applyLoanFilters);
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         if (typeof AOS !== 'undefined') AOS.init();
 
         // Real values from controller
@@ -2204,7 +2220,7 @@
         });
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function loanCloseReceipt() {
             var overlay = document.getElementById('loan-receipt-overlay');
             if (overlay) overlay.remove();

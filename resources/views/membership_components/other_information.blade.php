@@ -32,14 +32,14 @@
                         <div class="col-lg-4 mt-4">
                             <label>Son</label>
                             <input type="number" name="number_son" id="number_son" class="form-control" min="0"
-                                onkeydown="if(event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') event.preventDefault();">
+                                data-numeric-guard>
                         </div>
 
                         <div class="col-lg-4 mt-4">
                             <label>Daughter</label>
                             <input type="number" name="number_daughter" id="number_daughter" class="form-control"
                                 min="0"
-                                onkeydown="if(event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') event.preventDefault();">
+                                data-numeric-guard>
                         </div>
 
                         <div class="col-lg-4 mt-4">

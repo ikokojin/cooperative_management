@@ -575,7 +575,7 @@ class lendingController extends Controller
                 ->with('MemberName', trim(Auth::user()->first_name.' '.Auth::user()->last_name) ?: Auth::user()->username);
 
         } catch (\Exception $e) {
-            dd($e->getMessage(), $e->getLine(), $e->getFile());
+            throw $e;
         }
     }
 

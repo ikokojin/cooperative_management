@@ -10,7 +10,8 @@
     <script src="{{ asset('vendor/chart.js/chart.umd.js') }}"></script>
     <script src="{{ asset('vendor/lucide/lucide.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
+    <script src="{{ asset('js/csp-events.js') }}"></script>
+    <script nonce="{{ csp_nonce() }}">
         tailwind.config = {
             theme: {
                 extend: {
@@ -66,7 +67,9 @@
             padding: 0.5rem 0.875rem;
             color: #6b7a99;
             border-radius: 9px;
-            transition: all 0.3s ease;
+            transition-property: background-color, color;
+            transition-duration: 150ms;
+            transition-timing-function: ease-out;
             font-weight: 600;
             font-size: 13.5px;
         }
@@ -74,7 +77,6 @@
         .sidebar-link:hover {
             background-color: #EEF3FF;
             color: #4F7FFA;
-            transform: translateX(3%);
         }
 
         .sidebar-link.active {
@@ -100,7 +102,9 @@
             width: 1rem;
             height: 1rem;
             color: #6b7a99;
-            transition: all 0.3s ease;
+            transition-property: color;
+            transition-duration: 150ms;
+            transition-timing-function: ease-out;
         }
 
         .sidebar-link.active i {
@@ -118,18 +122,36 @@
         .card {
             background-color: white;
             border-radius: 1rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f3f4f6;
+            box-shadow:
+                0px 0px 0px 1px oklch(0 0 0 / 0.06),
+                0px 1px 2px -1px oklch(0 0 0 / 0.06),
+                0px 2px 4px 0px oklch(0 0 0 / 0.04);
+            transition-property: box-shadow;
+            transition-duration: 150ms;
+            transition-timing-function: ease-out;
+        }
+
+        .card:hover {
+            box-shadow:
+                0px 0px 0px 1px oklch(0 0 0 / 0.08),
+                0px 1px 2px -1px oklch(0 0 0 / 0.08),
+                0px 2px 4px 0px oklch(0 0 0 / 0.06);
         }
 
         .btn {
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             font-weight: 500;
-            transition: all 0.2s;
+            transition-property: background-color, color, box-shadow, scale;
+            transition-duration: 150ms;
+            transition-timing-function: ease-out;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        .btn:active:not(:disabled) {
+            scale: 0.96;
         }
 
         .btn-primary {
@@ -190,7 +212,9 @@
             border: 1px solid #d1d5db;
             border-radius: 0.5rem;
             outline: none;
-            transition: all 0.2s;
+            transition-property: border-color, box-shadow;
+            transition-duration: 150ms;
+            transition-timing-function: ease-out;
         }
 
         .input:focus,
@@ -279,6 +303,32 @@
             justify-content: center;
         }
 
+        .modal-visible {
+            animation: modalEnter 200ms cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        .modal-exiting {
+            animation: modalExit 150ms cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        @keyframes modalEnter {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes modalExit {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
         .hidden {
             display: none !important;
         }
@@ -296,6 +346,44 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+        }
+
+        .modal-visible .modal {
+            animation: modalContentEnter 200ms cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        .modal-exiting .modal {
+            animation: modalContentExit 150ms cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        .modal-visible > div {
+            animation: modalContentEnter 200ms cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        .modal-exiting > div {
+            animation: modalContentExit 150ms cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        @keyframes modalContentEnter {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes modalContentExit {
+            from {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.96) translateY(8px);
+            }
         }
 
         /* Hide scrollbar for Chrome/Safari/Edge */
@@ -353,9 +441,21 @@
         .stat-card {
             background-color: white;
             border-radius: 1rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f3f4f6;
+            box-shadow:
+                0px 0px 0px 1px oklch(0 0 0 / 0.06),
+                0px 1px 2px -1px oklch(0 0 0 / 0.06),
+                0px 2px 4px 0px oklch(0 0 0 / 0.04);
+            transition-property: box-shadow;
+            transition-duration: 150ms;
+            transition-timing-function: ease-out;
             padding: 1.5rem;
+        }
+
+        .stat-card:hover {
+            box-shadow:
+                0px 0px 0px 1px oklch(0 0 0 / 0.08),
+                0px 1px 2px -1px oklch(0 0 0 / 0.08),
+                0px 2px 4px 0px oklch(0 0 0 / 0.06);
         }
 
         .toast {
@@ -371,10 +471,51 @@
             align-items: center;
             gap: 0.75rem;
             z-index: 50;
+            opacity: 1;
+            transform: translateY(0);
+            transition-property: opacity, transform;
+            transition-duration: 200ms;
+            transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .toast.toast-hidden {
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
         }
 
         [x-cloak] {
             display: none !important;
+        }
+
+        .nav-logo img {
+            outline: 1px solid oklch(0 0 0 / 0.1);
+            outline-offset: -1px;
+        }
+
+        .todo-content,
+        .activity-content,
+        [id^="community-content-"] {
+            animation: tabFadeIn 150ms ease-out;
+        }
+
+        @keyframes tabFadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
@@ -457,7 +598,7 @@
                         <span>Seminar</span>
                     </a>
                     @endif
-                    @if($hasFullAccess || in_array('audit-logs', $perms))
+                    @if($user?->isGeneralManager())
                     <a href="{{ route('admin.audit-logs.index') }}"
                         class="sidebar-link justify-start {{ request()->routeIs('admin.audit-logs.index') ? 'active' : '' }}">
                         <i data-lucide="history" class="w-5 h-5"></i>
@@ -489,7 +630,7 @@
 
                 <!-- User Info -->
                 <div class="p-3 border-t border-[#E5EAF3] relative">
-                    <button onclick="toggleUserDropdown(event)" class="flex items-center gap-3 p-3 rounded-xl hover:bg-[#EEF3FF] cursor-pointer transition-colors w-full text-left">
+                    <button type="button" data-action="toggleUserDropdown" data-arg='["|event|"]' class="flex items-center gap-3 p-3 rounded-xl hover:bg-[#EEF3FF] cursor-pointer transition-colors w-full text-left">
                         <div class="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center shadow-sm">
                             <span class="text-primary-600 font-semibold text-sm">{{ strtoupper(substr(auth()->user()->first_name ?? 'A', 0, 1) . substr(auth()->user()->last_name ?? '', 0, 1)) }}</span>
                         </div>
@@ -506,6 +647,13 @@
                             <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
                             <span class="text-sm">View Profile</span>
                         </a>
+                        @if(auth()->user()?->isGeneralManager() || auth()->user()?->isMainAdmin())
+                        <hr class="my-2 border-gray-100">
+                        <a href="{{ route('2fa.manage') }}" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-gray-500"></i>
+                            <span class="text-sm">Two-Factor Auth</span>
+                        </a>
+                        @endif
                         <hr class="my-2 border-gray-100">
                         <a href="{{ route('logout') }}" class="flex items-center gap-3 px-4 py-3 text-danger-600 hover:bg-red-50 transition-colors">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
@@ -520,17 +668,7 @@
         <div class="flex-1 flex flex-col min-h-0">
             <!-- Top Navigation -->
             <header class="bg-white border-b border-gray-200 flex-shrink-0 z-30">
-                <div class="flex items-center justify-between px-6 py-4">
-                    <!-- Search -->
-                    <div class="flex-1 max-w-md">
-                        <div class="relative">
-                            <i data-lucide="search"
-                                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                            <input type="text" placeholder="Search members, loans, transactions..."
-                                class="input pl-10 bg-gray-50">
-                        </div>
-                    </div>
-
+                <div class="flex items-center justify-end px-6 py-4">
                     <!-- Right Side -->
                     <div class="flex items-center gap-4">
                         @if(session('aw_mode'))
@@ -574,7 +712,7 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast hidden">
+    <div id="toast" class="toast toast-hidden">
         <div class="w-8 h-8 rounded-full flex items-center justify-center" id="toast-icon">
             <i data-lucide="check-circle" class="w-5 h-5 text-success-500"></i>
         </div>
@@ -582,12 +720,12 @@
             <p class="font-medium text-gray-900" id="toast-title">Success</p>
             <p class="text-sm text-gray-500" id="toast-message">Operation completed successfully</p>
         </div>
-        <button onclick="hideToast()" class="ml-4">
+        <button type="button" data-action="hideToast" class="ml-4">
             <i data-lucide="x" class="w-4 h-4 text-gray-400"></i>
         </button>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // Initialize Lucide icons
         lucide.createIcons();
 
@@ -611,14 +749,17 @@
             toastIcon.innerHTML = `<i data-lucide="${icons[type]}" class="w-5 h-5 text-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'warning'}-500"></i>`;
             lucide.createIcons();
 
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
+            toast.classList.remove('toast-hidden');
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(() => {
+                toast.classList.add('toast-hidden');
             }, 5000);
         }
 
         function hideToast() {
-            document.getElementById('toast').classList.add('hidden');
+            const toast = document.getElementById('toast');
+            toast.classList.add('toast-hidden');
+            clearTimeout(toast._hideTimer);
         }
 
         // Dropdown toggle
@@ -649,25 +790,43 @@
 
         // Modal functions
         function openModal(id) {
-            document.getElementById(id).classList.remove('hidden');
-            document.getElementById(id).style.display = 'flex';
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+            modal.classList.remove('modal-exiting');
+            modal.style.display = 'flex';
+            modal.classList.add('modal-visible');
             document.body.style.overflow = 'hidden';
         }
 
         function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-            document.getElementById(id).style.display = 'none';
-            document.body.style.overflow = 'auto';
+            const modal = document.getElementById(id);
+            modal.classList.remove('modal-visible');
+            modal.classList.add('modal-exiting');
+            modal.addEventListener('animationend', function handler(e) {
+                if (e.target !== modal) return;
+                modal.classList.remove('modal-exiting');
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                modal.removeEventListener('animationend', handler);
+            });
         }
 
         // Close modal on escape
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-overlay:not(.hidden), #memberDetailModal:not(.hidden)').forEach(modal => {
-                    modal.classList.add('hidden');
-                    modal.style.display = 'none';
+                    modal.classList.remove('modal-visible');
+                    modal.classList.add('modal-exiting');
+                    modal.addEventListener('animationend', function handler(e) {
+                        if (e.target !== modal) return;
+                        modal.classList.remove('modal-exiting');
+                        modal.classList.add('hidden');
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                        modal.removeEventListener('animationend', handler);
+                    });
                 });
-                document.body.style.overflow = 'auto';
             }
         });
 

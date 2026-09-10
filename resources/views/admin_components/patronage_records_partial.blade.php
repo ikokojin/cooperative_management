@@ -5,7 +5,7 @@
                 <h3 class="text-lg font-bold text-gray-900">Additional Patronage Records — {{ $year }}</h3>
                 <p class="text-sm text-gray-500">{{ $recordCount }} record(s) · Total: ₱{{ number_format($totalAmount, 2) }}</p>
             </div>
-            <button onclick="openAddPatronageRecordModal()" class="btn btn-primary btn-sm">
+            <button data-action="openAddPatronageRecordModal" class="btn btn-primary btn-sm">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 Add Record
             </button>
@@ -49,11 +49,14 @@
                     <td class="text-sm text-gray-500">{{ $record->created_at->format('M d, Y') }}</td>
                     <td>
                         <div class="flex items-center gap-1">
-                            <button onclick="editPatronageRecord({{ $record->id }}, '{{ addslashes($record->source) }}', '{{ addslashes($record->description ?? '') }}', {{ $record->amount }})"
-                                class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Edit">
+                            <button class="js-edit-patronage-record p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Edit"
+                                data-record-id="{{ $record->id }}"
+                                data-record-source="{{ $record->source }}"
+                                data-record-description="{{ $record->description ?? '' }}"
+                                data-record-amount="{{ $record->amount }}">
                                 <i data-lucide="pencil" class="w-4 h-4 text-gray-500"></i>
                             </button>
-                            <button onclick="deletePatronageRecord({{ $record->id }})"
+                            <button data-action="deletePatronageRecord" data-arg='[{{ $record->id }}]'
                                 class="p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Delete">
                                 <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
                             </button>
@@ -87,7 +90,7 @@
                         <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
                 @else
-                    <button onclick="loadPatronageRecordsPage('{{ $records->previousPageUrl() }}')" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    <button class="js-patronage-records-page p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $records->previousPageUrl() }}">
                         <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
                 @endif
@@ -96,12 +99,12 @@
                     @if($page == $records->currentPage())
                         <span class="px-4 py-2 rounded-lg bg-primary-600 text-white font-medium">{{ $page }}</span>
                     @else
-                        <button onclick="loadPatronageRecordsPage('{{ $url }}')" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">{{ $page }}</button>
+                        <button class="js-patronage-records-page px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $url }}">{{ $page }}</button>
                     @endif
                 @endforeach
 
                 @if($records->hasMorePages())
-                    <button onclick="loadPatronageRecordsPage('{{ $records->nextPageUrl() }}')" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    <button class="js-patronage-records-page p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-page-url="{{ $records->nextPageUrl() }}">
                         <i data-lucide="chevron-right" class="w-4 h-4"></i>
                     </button>
                 @else
@@ -129,7 +132,7 @@
                         <p class="text-xs text-gray-500">Record patronage from services outside the system</p>
                     </div>
                 </div>
-                <button onclick="closePatronageRecordModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closePatronageRecordModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -168,7 +171,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" onclick="closePatronageRecordModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                <button type="button" data-action="closePatronageRecordModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
                     Cancel
                 </button>
                 <button type="submit" id="patronageRecordSubmitBtn" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">

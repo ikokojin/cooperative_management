@@ -13,7 +13,7 @@
                         <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Purchase or withdraw shares</p>
                     </div>
                 </div>
-                <button onclick="closeModal('scContributionModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button data-action="closeModal" data-arg='["scContributionModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                 </button>
             </div>
@@ -47,7 +47,7 @@
                 <!-- Type -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                    <select name="type" id="shareTypeSelect" class="select" style="width: 100%;" required onchange="toggleAdminFullWithdrawalWarning(); toggleScPaymentFields(); syncAdminAmountForType()">
+                    <select name="type" id="shareTypeSelect" class="select" style="width: 100%;" required data-action="sc-type-change">
                         <option value="">Select type...</option>
                         <option value="Deposit">Deposit</option>
                         <option value="Withdrawal">Withdrawal</option>
@@ -56,7 +56,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
-                    <input type="number" name="amount_input" id="adminAmountInput" value="{{ $perShareValue }}" min="200" step="200" style="width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #1E2A4A; border: 1px solid #ddd; border-radius: 8px; padding: 8px;" oninput="updateFromAmount()">
+                    <input type="number" name="amount_input" id="adminAmountInput" value="{{ $perShareValue }}" min="200" step="200" style="width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #1E2A4A; border: 1px solid #ddd; border-radius: 8px; padding: 8px;" data-action="updateFromAmount" data-trigger="input">
                     <p style="font-size: 12px; color: #888; margin: 4px 0 0;">Equivalent to <strong id="adminSharesDisplay">1</strong> {{ Str::plural('share', 1) }} · ₱{{ number_format($perShareValue, 0) }}/share</p>
                 </div>
 
@@ -93,11 +93,11 @@
             </form>
 
             <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 8px;">
-                <button onclick="submitAdminShareCapital()" 
+                <button data-action="submitAdminShareCapital"
                     style="width: 100%; padding: 0.7rem; background: #1E2A4A; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Confirm Transaction
                 </button>
-                <button onclick="closeModal('scContributionModal')" 
+                <button data-action="closeModal" data-arg='["scContributionModal"]'
                     style="width: 100%; padding: 0.65rem; background: #fff; color: #666; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; cursor: pointer;">
                     Cancel
                 </button>
@@ -120,7 +120,7 @@
                         <p id="shareCapitalsModalSubtitle" class="text-xs text-gray-500">All member accounts</p>
                     </div>
                 </div>
-                <button onclick="closeModal('shareCapitalsModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["shareCapitalsModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -161,7 +161,7 @@
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button onclick="closeModal('shareCapitalsModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+            <button data-action="closeModal" data-arg='["shareCapitalsModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
             <a href="{{ route('financial.activity', ['tab' => 'share-capitals']) }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                 <i data-lucide="list" class="w-4 h-4"></i>
                 View All Transactions
@@ -185,7 +185,7 @@
                         <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Transfer shares between members</p>
                     </div>
                 </div>
-                <button onclick="closeModal('sellSharesModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button data-action="closeModal" data-arg='["sellSharesModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                 </button>
             </div>
@@ -221,7 +221,7 @@
 
                 <div style="margin-bottom: 1rem;">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
-                    <input type="number" name="amount_input" id="sellAmountInput" placeholder="Enter amount (minimum ₱1,000)" min="1000" step="100" style="width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #1E2A4A; border: 1px solid #ddd; border-radius: 8px; padding: 8px;" oninput="updateSellSharesFromAmount()" required>
+                    <input type="number" name="amount_input" id="sellAmountInput" placeholder="Enter amount (minimum ₱1,000)" min="1000" step="100" style="width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #1E2A4A; border: 1px solid #ddd; border-radius: 8px; padding: 8px;" data-action="updateSellSharesFromAmount" data-trigger="input" required>
                     <p style="font-size: 12px; color: #888; margin: 4px 0 0;">Equivalent to <strong id="sellSharesDisplay">1</strong> {{ Str::plural('share', 1) }} · ₱{{ number_format($perShareValue, 0) }}/share</p>
                     <p style="font-size: 12px; color: #d32f2f; margin: 4px 0 0;">Minimum transfer amount is ₱1,000.</p>
                 </div>
@@ -231,11 +231,11 @@
             </form>
 
             <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 8px;">
-                <button onclick="submitSellShares()" 
+                <button data-action="submitSellShares"
                     style="width: 100%; padding: 0.7rem; background: #1E2A4A; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <i data-lucide="arrow-left-right" class="w-4 h-4"></i> Transfer Shares
                 </button>
-                <button onclick="closeModal('sellSharesModal')" 
+                <button data-action="closeModal" data-arg='["sellSharesModal"]'
                     style="width: 100%; padding: 0.65rem; background: #fff; color: #666; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; cursor: pointer;">
                     Cancel
                 </button>
@@ -244,7 +244,22 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
+    (function () {
+        var A = window.CSP_actions;
+        if (!A) return;
+        A.register('sc-close-modal', function () {
+            var m = document.getElementById('scTransactionModal');
+            if (m && typeof m.remove === 'function') m.remove();
+            document.body.style.overflow = 'auto';
+        });
+        A.register('sc-type-change', function () {
+            toggleAdminFullWithdrawalWarning();
+            toggleScPaymentFields();
+            syncAdminAmountForType();
+        });
+    })();
+
     function openShareCapitalsModal(eligibleOnly) {
         const eligible = !!eligibleOnly;
         const title = document.getElementById('shareCapitalsModalTitle');
@@ -446,10 +461,10 @@
             const amountFmt = Number(amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
             bodyHtml = scReceiptRows(memberName, type, shares, amountFmt, paymentMethod, referenceNo, transactionDate, isWithdrawal);
             actionsHtml = '<div style="padding:0 1.5rem 1.5rem; display:flex; flex-direction:column; gap:0.6rem;">'
-                + '<button onclick="downloadSCReceipt()" style="width:100%; padding:0.8rem; background:' + SC_NAVY + '; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;" onmouseover="this.style.opacity=\'0.88\';" onmouseout="this.style.opacity=\'1\';">'
+                + '<button data-action="downloadSCReceipt" class="sc-rec-dl" style="width:100%; padding:0.8rem; background:' + SC_NAVY + '; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;">'
                 + '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
                 + 'Download Receipt</button>'
-                + '<button onclick="document.getElementById(\'scTransactionModal\').remove();document.body.style.overflow=\'auto\';" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;" onmouseover="this.style.background=\'#f5f5f5\';this.style.color=\'#333\';" onmouseout="this.style.background=\'transparent\';this.style.color=\'#888\';">Close</button>'
+                + '<button data-action="sc-close-modal" class="sc-ghost-close" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>'
                 + '</div>';
         } else {
             let badge = '';
@@ -471,9 +486,9 @@
                 + '</div>';
 
             if (isWithdrawal && isPending) {
-                actionsHtml = '<div style="display:flex;gap:12px;margin-top:24px;"><button onclick="processWithdrawalSC(\'accept\')" style="flex:1;padding:10px;background:#16a34a;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500;">Accept</button><button onclick="processWithdrawalSC(\'reject\')" style="flex:1;padding:10px;background:#dc2626;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500;">Reject</button></div>';
+                actionsHtml = '<div style="display:flex;gap:12px;margin-top:24px;"><button data-action="processWithdrawalSC" data-arg=\'["accept"]\' style="flex:1;padding:10px;background:#16a34a;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500;">Accept</button><button data-action="processWithdrawalSC" data-arg=\'["reject"]\' style="flex:1;padding:10px;background:#dc2626;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500;">Reject</button></div>';
             } else {
-                actionsHtml = '<div style="margin-top:24px;"><button onclick="document.getElementById(\'scTransactionModal\').remove();document.body.style.overflow=\'auto\';" style="width:100%;padding:10px;background:#e5e7eb;color:#374151;border:none;border-radius:8px;cursor:pointer;font-weight:500;">Close</button></div>';
+                actionsHtml = '<div style="margin-top:24px;"><button data-action="sc-close-modal" style="width:100%;padding:10px;background:#e5e7eb;color:#374151;border:none;border-radius:8px;cursor:pointer;font-weight:500;">Close</button></div>';
             }
         }
 
@@ -484,6 +499,8 @@
                         from { opacity: 0; transform: translateY(28px) scale(0.97); }
                         to { opacity: 1; transform: translateY(0) scale(1); }
                     }
+                    .sc-rec-dl:hover { opacity:0.88; }
+                    .sc-ghost-close:hover { background:#f5f5f5; color:#333; }
                 </style>
                 ${isCompleted ? ('<div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">'
                     + '<div style="width:60px;height:60px;background:' + SC_NAVY + ';border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">'
@@ -496,7 +513,7 @@
                     + actionsHtml)
                 : ('<div style="padding:1.5rem; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">'
                     + '<h3 style="margin:0; font-size:1.05rem; font-weight:700; color:#1a1a1a;">Transaction Details</h3>'
-                    + '<button onclick="document.getElementById(\'scTransactionModal\').remove();document.body.style.overflow=\'auto\';" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#666; line-height:1;">&times;</button>'
+                    + '<button data-action="sc-close-modal" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#666; line-height:1;">&times;</button>'
                     + '</div>'
                     + '<div style="padding:1.25rem 1.5rem;">' + bodyHtml + actionsHtml + '</div>')}
             </div>
@@ -559,6 +576,7 @@
                         from { opacity: 0; transform: translateY(28px) scale(0.97); }
                         to { opacity: 1; transform: translateY(0) scale(1); }
                     }
+                    .sc-ghost-close:hover { background:#f5f5f5; color:#333; }
                 </style>
                 <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">
                     <div style="width:60px;height:60px;background:#c0392b;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
@@ -588,7 +606,7 @@
                     <div style="font-size:1rem; font-weight:700; color:#c0392b; background:#fdecec; border:1px solid #f5c6c6; border-radius:10px; padding:0.75rem 1rem;">${label}</div>
                 </div>
                 <div style="padding:0 1.5rem 1.5rem;">
-                    <button onclick="document.getElementById('scVoidReasonModal').remove()" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;" onmouseover="this.style.background='#f5f5f5';this.style.color='#333';" onmouseout="this.style.background='transparent';this.style.color='#888';">Close</button>
+                    <button data-action="remove-element" data-target="scVoidReasonModal" class="sc-ghost-close" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
                 </div>
             </div>
         `;
@@ -834,7 +852,7 @@
                         <p class="text-xs text-gray-500">Review and act on this deposit request</p>
                     </div>
                 </div>
-                <button onclick="closeModal('scDepositDetailModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["scDepositDetailModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -888,12 +906,12 @@
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button onclick="openScVoidConfirm()" id="scVoidBtn"
+            <button data-action="openScVoidConfirm" id="scVoidBtn"
                 class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors flex items-center gap-2">
                 <i data-lucide="x-circle" class="w-4 h-4"></i>
                 Void Deposit
             </button>
-            <button onclick="confirmCompleteSCDeposit()" id="scCompleteBtn"
+            <button data-action="confirmCompleteSCDeposit" id="scCompleteBtn"
                 class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
                 Mark as Complete
@@ -916,7 +934,7 @@
                         <p class="text-xs text-gray-500">Are you sure you want to void this deposit?</p>
                     </div>
                 </div>
-                <button onclick="closeModal('scVoidConfirmModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["scVoidConfirmModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -947,8 +965,8 @@
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button onclick="openScDetailFromVoid()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go Back</button>
-            <button id="scVoidConfirmBtn" onclick="submitSCVoid()" disabled
+            <button data-action="openScDetailFromVoid" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go Back</button>
+            <button id="scVoidConfirmBtn" data-action="submitSCVoid" disabled
                 class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <i data-lucide="x-circle" class="w-4 h-4"></i>
                 Confirm Void
@@ -957,7 +975,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     let currentSCDepositId = null;
 
     document.querySelectorAll('.sc-deposit-row').forEach(row => {

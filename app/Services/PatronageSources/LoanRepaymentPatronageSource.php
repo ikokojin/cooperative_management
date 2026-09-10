@@ -88,11 +88,18 @@ class LoanRepaymentPatronageSource implements PatronageSource
             ->value('patronage_basis');
 
         if (! empty($stored)) {
-            return $stored;
+            $basis = $stored;
+        } else {
+            $setting = DividendSetting::where('year', $year)->first();
+            $basis = $setting->patronage_basis ?? 'total_repayment';
         }
 
-        $setting = DividendSetting::where('year', $year)->first();
+        // Only whitelisted bases are ever used to build the SQL income
+        // expression below; anything unexpected falls back safely.
+        if (! in_array($basis, ['total_repayment', 'net_repayment'], true)) {
+            return 'total_repayment';
+        }
 
-        return $setting->patronage_basis ?? 'total_repayment';
+        return $basis;
     }
 }

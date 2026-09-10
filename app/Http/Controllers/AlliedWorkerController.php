@@ -72,9 +72,17 @@ class AlliedWorkerController extends Controller
             ->limit(200)
             ->get();
 
-        // The General Manager is the top authority; the legacy Admin and Officer
-        // system roles are intentionally not managed here.
-        $roles = Role::whereNotIn('slug', ['admin', 'officer'])->orderBy('name')->get();
+        // The General Manager is the top authority; only the General Manager
+        // and custom roles remain after the removal of Admin and Officer.
+        $roles = Role::orderBy('name')->get();
+
+        $customRoleCount = Role::where('is_system', false)->count();
+
+        // Active user counts per role (for the Manage Roles table).
+        $roleCounts = [];
+        foreach ($roles as $role) {
+            $roleCounts[$role->slug] = Users_tbl::where('role', $role->slug)->count();
+        }
 
         return view('admin_components.allied_workers', compact(
             'candidates',
@@ -82,7 +90,9 @@ class AlliedWorkerController extends Controller
             'activeRoles',
             'systemRoles',
             'history',
-            'roles'
+            'roles',
+            'customRoleCount',
+            'roleCounts'
         ));
     }
 

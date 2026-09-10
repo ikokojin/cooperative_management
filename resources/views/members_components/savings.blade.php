@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css_folder/loading.css">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     <link rel="stylesheet" href="font-awesome-icon/css/all.min.css">
 
@@ -451,16 +452,6 @@
                                     @endif
 
                                     {{-- ★ MOVED: "Open TD" now lives on the Time Deposit page --}}
-                                    <!-- <a href="{{ route('TimeDeposit') }}" style="text-decoration:none;">
-                                                <div class="card-box" style="cursor:pointer;">
-                                                    <div class="card-icon">
-                                                        <i class="fa-solid fa-lock"></i>
-                                                    </div>
-                                                    <div>
-                                                        <p>Open TD</p>
-                                                    </div>
-                                                </div>
-                                            </a> -->
 
                                 </div>
                             </div>
@@ -554,7 +545,7 @@
                                         </p>
                                     </div>
                                     <select class="sm-filter-select" id="growthYearSelect"
-                                        onchange="changeGrowthYear(this.value)">
+                                        data-action="changeGrowthYear" data-arg='["|value|"]'>
                                         @foreach($availableGrowthYears as $y)
                                             <option value="{{ $y }}" {{ $growthYear == $y ? 'selected' : '' }}>{{ $y }}
                                             </option>
@@ -641,9 +632,9 @@
                                             placeholder="Search by reference no.">
                                     </div>
                                     <input type="date" class="sm-filter-select" name="date" value="{{ $date }}"
-                                        onchange="document.getElementById('sm-tx-filter-form').submit()">
+                                        data-action="sm-submit-tx-filter">
 
-                                    <select name="status" class="sm-filter-select" onchange="this.form.submit()">
+                                    <select name="status" class="sm-filter-select" data-submit-on-change>
                                         <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All Status</option>
                                         @foreach($availableStatuses as $s)
                                             <option value="{{ strtolower($s) }}" {{ $status === strtolower($s) ? 'selected' : '' }}>{{ $s }}</option>
@@ -674,7 +665,7 @@
                                                     <tr class="{{ strtolower($tx->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
                                                         @if(strtolower($tx->status ?? '') === 'voided')
                                                             style="cursor:pointer;" data-reason="{{ $tx->void_reason }}"
-                                                            onclick="showVoidReason(this)"
+                                                            data-action="showVoidReason" data-arg='["|el|"]'
                                                         @endif
                                                     >
                                                         <td class="text-start">
@@ -865,15 +856,15 @@
                                 </div>
                                 <div class="sm-quick-amounts">
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('depositAmount', 500)">₱500</button>
+                                        data-action="setSavingsAmount" data-arg='["depositAmount",500]'>₱500</button>
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('depositAmount', 1000)">₱1,000</button>
+                                        data-action="setSavingsAmount" data-arg='["depositAmount",1000]'>₱1,000</button>
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('depositAmount', 1500)">₱1,500</button>
+                                        data-action="setSavingsAmount" data-arg='["depositAmount",1500]'>₱1,500</button>
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('depositAmount', 2000)">₱2,000</button>
+                                        data-action="setSavingsAmount" data-arg='["depositAmount",2000]'>₱2,000</button>
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('depositAmount', 5000)">₱5,000</button>
+                                        data-action="setSavingsAmount" data-arg='["depositAmount",5000]'>₱5,000</button>
                                 </div>
                                 @error('amount')
                                     <div class="sm-error-msg show">{{ $message }}</div>
@@ -910,7 +901,8 @@
                                         </p>
                                         <p style="margin: 6px 0 0; font-size: 11px;">
                                             <a href="#"
-                                                onclick="openQrLightbox('{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}'); return false;"
+                                                class="js-open-qr-lightbox"
+                                                data-qr-src="{{ asset('storage/' . $gcashPaymentMethod->qr_code_image_path) }}"
                                                 style="color: #0056b3; font-weight: 600;">
                                                 <i class="fa fa-up-right-and-down-left-from-center"></i> View full-size QR
                                             </a>
@@ -1035,15 +1027,15 @@
                                 </div>
                                 <div class="sm-quick-amounts">
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('withdrawAmount', 500)">₱500</button>
+                                        data-action="setSavingsAmount" data-arg='["withdrawAmount",500]'>₱500</button>
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('withdrawAmount', 1000)">₱1,000</button>
+                                        data-action="setSavingsAmount" data-arg='["withdrawAmount",1000]'>₱1,000</button>
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('withdrawAmount', 1500)">₱1,500</button>
+                                        data-action="setSavingsAmount" data-arg='["withdrawAmount",1500]'>₱1,500</button>
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('withdrawAmount', 2000)">₱2,000</button>
+                                        data-action="setSavingsAmount" data-arg='["withdrawAmount",2000]'>₱2,000</button>
                                     <button type="button" class="sm-quick-btn"
-                                        onclick="setSavingsAmount('withdrawAmount', {{ $totalSavingsBalance }})">All</button>
+                                        data-action="setSavingsAmount" data-arg='["withdrawAmount",{{ $totalSavingsBalance }}]'>All</button>
                                 </div>
                                 @error('amount')
                                     <div class="sm-error-msg show">{{ $message }}</div>
@@ -1135,10 +1127,10 @@
                     </div>
 
                     <div class="sv-receipt-footer">
-                        <button class="sv-btn-download" onclick="svDownloadReceipt()">
+                        <button class="sv-btn-download" data-action="svDownloadReceipt">
                             <i class="fa-solid fa-download"></i> Download Receipt
                         </button>
-                        <button class="sv-btn-close-modal" onclick="svCloseModal()">Close</button>
+                        <button class="sv-btn-close-modal" data-action="svCloseModal">Close</button>
                     </div>
                 </div>
             </div>
@@ -1168,25 +1160,17 @@
                     <div class="sv-void-value" id="sv-void-reason-text"></div>
                 </div>
                 <div class="sv-void-footer">
-                    <button class="sv-btn-void-close" onclick="svCloseVoidModal()">Close</button>
+                    <button class="sv-btn-void-close" data-action="svCloseVoidModal">Close</button>
                 </div>
             </div>
         </div>
-
-        <form id="savings-withdraw-gcash-form" action="{{ route('savings.gcash') }}" method="POST"
-            style="display:none;">
-            @csrf
-            <input type="hidden" name="transaction_type" value="withdraw">
-            <input type="hidden" name="amount" id="savings-withdraw-gcash-amount">
-            <input type="hidden" name="note" id="savings-withdraw-gcash-note">
-        </form>
 
     </div>{{-- end container-fluid --}}
 
     {{-- QR Lightbox --}}
     <div id="qr-lightbox-overlay"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100000; align-items:center; justify-content:center;">
-        <button type="button" onclick="closeQrLightbox()"
+        <button type="button" data-action="closeQrLightbox"
             style="position:absolute; top:20px; right:24px; background:#fff; border:none; width:40px; height:40px; border-radius:50%; font-size:20px; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center;">
             <i class="fa fa-times"></i>
         </button>
@@ -1199,17 +1183,23 @@
     @enderror
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+            A.register('sm-submit-tx-filter', function (e, el) { document.getElementById('sm-tx-filter-form').submit(); });
+        })();
+
         AOS.init();
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         @if ($errors->any() && old('_form') === 'deposit')
             document.getElementById('triggerDepositModal').click();
         @endif
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const smRefInput = document.querySelector('.sm-search-box input[name="ref"]');
         const smFilterForm = document.getElementById('sm-tx-filter-form');
         let smSearchDebounce;
@@ -1246,9 +1236,17 @@
         document.getElementById('qr-lightbox-overlay')?.addEventListener('click', function (e) {
             if (e.target === this) closeQrLightbox();
         });
+
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('.js-open-qr-lightbox');
+            if (link) {
+                e.preventDefault();
+                openQrLightbox(link.dataset.qrSrc);
+            }
+        });
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function setSavingsAmount(inputId, val) {
             document.getElementById(inputId).value = val;
         }
@@ -1333,21 +1331,6 @@
             document.getElementById('withdrawGcashNumber').value = '{{ Auth::user()->otherinfo->contact_no ?? '' }}';
             document.getElementById('withdraw-confirm-btn-wrap').style.display = 'block';
         });
-
-        function submitSavingsGcash(type) {
-            const amountInput = document.getElementById(type === 'deposit' ? 'depositAmount' : 'withdrawAmount');
-            const noteInput = document.getElementById(type === 'deposit' ? 'depositNote' : 'withdrawNote');
-            const amount = amountInput.value;
-
-            if (!amount || parseFloat(amount) < 1) {
-                alert('Please enter a valid amount first.');
-                return;
-            }
-
-            document.getElementById(`savings-${type}-gcash-amount`).value = amount;
-            document.getElementById(`savings-${type}-gcash-note`).value = noteInput.value;
-            document.getElementById(`savings-${type}-gcash-form`).submit();
-        }
 
         window.addEventListener('DOMContentLoaded', function () {
 

@@ -18,7 +18,6 @@ return new class extends Migration
             $table->boolean('savings_updates')->default(true);
             $table->boolean('email_digest')->default(false);
             $table->boolean('announcements')->default(true);
-            $table->boolean('two_factor_enabled')->default(false);
             $table->boolean('login_alerts')->default(true);
             $table->timestamps();
 

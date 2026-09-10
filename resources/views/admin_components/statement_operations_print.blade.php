@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statement of Operations - {{ $fromDate }} to {{ $toDate }}</title>
+    <script src="{{ asset('js/csp-events.js') }}"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -124,11 +125,11 @@
     </div>
 
     <div class="no-print" style="text-align:center;margin-top:20px;">
-        <button onclick="window.print()" style="padding:8px 24px;font-size:13px;cursor:pointer;background:#1E2A4A;color:#fff;border:none;border-radius:6px;">Print / Save as PDF</button>
-        <button onclick="window.close()" style="padding:8px 24px;font-size:13px;cursor:pointer;background:#6c757d;color:#fff;border:none;border-radius:6px;margin-left:8px;">Close</button>
+        <button data-action="print" style="padding:8px 24px;font-size:13px;cursor:pointer;background:#1E2A4A;color:#fff;border:none;border-radius:6px;">Print / Save as PDF</button>
+        <button data-action="close" style="padding:8px 24px;font-size:13px;cursor:pointer;background:#6c757d;color:#fff;border:none;border-radius:6px;margin-left:8px;">Close</button>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         window.onload = function() {
             setTimeout(function() {
                 if (window.location.search.includes('print=1')) {

@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
+    /**
+     * Maximum number of custom (non-system) roles that can exist at once.
+     * System roles (General Manager) do not count toward this limit.
+     */
+    public const MAX_CUSTOM_ROLES = 5;
+
     protected $fillable = [
         'name',
         'slug',

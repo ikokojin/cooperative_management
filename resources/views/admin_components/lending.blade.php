@@ -40,7 +40,7 @@
             @endphp
             <div class="flex items-center gap-1.5 bg-gray-100 p-1 rounded-lg">
                 @foreach($loanTabs as $tabValue => $tabLabel)
-                <button onclick="filterByStatus('{{ $tabValue }}')"
+                <button data-action="filterByStatus" data-arg='["{{ $tabValue }}"]'
                     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all {{ ($statusFilter ?? 'pending') === $tabValue ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-200' }}">
                     {{ $tabLabel }}
                 </button>
@@ -102,7 +102,7 @@
                 </thead>
                 <tbody id="loansTableBody">
                     @forelse($loans as $loan)
-                        <tr class="cursor-pointer loan-row" data-status="{{ strtolower($loan->status) }}" onclick="openLoanModal({{ $loop->index }})">
+                        <tr class="cursor-pointer loan-row" data-status="{{ strtolower($loan->status) }}" data-action="openLoanModal" data-arg='[{{ $loop->index }}]'>
                             <td>
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
@@ -265,7 +265,7 @@
                         <h2 class="text-xl font-semibold" style="color: #fff; margin: 0;">Loan Application Details</h2>
                         <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 13px;" id="modalReferenceNo">LN-XXXX</p>
                     </div>
-                    <button onclick="closeModal('loanDetailModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["loanDetailModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -379,7 +379,7 @@
 
                 <div class="p-6 border-t border-gray-100">
                     <div class="flex gap-3 justify-end" id="actionButtons">
-                            <button type="button" id="declineBtn" onclick="showDeclineReason()"
+                            <button type="button" id="declineBtn" data-action="showDeclineReason"
                                 class="btn btn-danger flex-1">
                                 <i data-lucide="x-circle" class="w-4 h-4"></i>
                                 Decline
@@ -397,9 +397,9 @@
     </div>
 
     <!-- Image Preview Modal -->
-    <div id="imagePreviewModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4" onclick="closePreview()">
-        <div class="relative max-w-4xl w-full" onclick="event.stopPropagation()">
-            <button onclick="closePreview()" class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors">
+    <div id="imagePreviewModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4" data-action="closePreview">
+        <div class="relative max-w-4xl w-full" data-action="stop-propagation">
+            <button data-action="closePreview" class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors">
                 <i data-lucide="x" class="w-8 h-8"></i>
             </button>
             <img id="previewImage" src="" class="w-full h-auto max-h-[85vh] object-contain rounded-lg shadow-2xl">
@@ -421,7 +421,7 @@
                             <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a new loan for a member</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('newLoanModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["newLoanModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -447,7 +447,7 @@
                         <!-- Loan Type -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1.5">Loan Type <span class="text-red-500">*</span></label>
-                            <select name="lending_type" class="input w-full" onchange="updateTermOptions()" required>
+                            <select name="lending_type" class="input w-full" data-action="updateTermOptions" required>
                                 <option value="">Select loan type</option>
                                 @foreach(array_keys($loanSettings) as $lt)
                                     <option value="{{ $lt }}">{{ $lt }}</option>
@@ -458,7 +458,7 @@
                         <!-- Loan Amount -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1.5">Loan Amount (₱) <span class="text-red-500">*</span></label>
-                            <input type="number" name="lending_amount" placeholder="Enter amount (max ₱25,000)" class="input w-full" oninput="this.value = Math.min(this.value, 25000); adminRecalculate()" required>
+                            <input type="number" name="lending_amount" placeholder="Enter amount (max ₱25,000)" class="input w-full" data-action="clamp-loan-amount" data-trigger="input" required>
                         </div>
                     </div>
 
@@ -467,12 +467,12 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1.5">Loan Term <span class="text-red-500">*</span></label>
                             <!-- Non-Business Term (default) -->
-                            <select id="termNonBusiness" class="input w-full" onchange="adminRecalculate()">
+                            <select id="termNonBusiness" class="input w-full" data-action="adminRecalculate">
                                 <option value="">Select loan term</option>
                                 <option value="6 months">6 months</option>
                             </select>
                             <!-- Business Term (hidden by default) -->
-                            <select id="termBusiness" class="input w-full" style="display: none;" onchange="adminRecalculate()">
+                            <select id="termBusiness" class="input w-full" style="display: none;" data-action="adminRecalculate">
                                 <option value="">Select loan term</option>
                                 <option value="6 months">6 months</option>
                                 <option value="12 months">12 months</option>
@@ -572,7 +572,7 @@
 
                     <!-- Action Buttons -->
                     <div class="flex gap-3 pt-2">
-                        <button type="button" onclick="closeModal('newLoanModal')" class="flex-1 px-5 py-2.5 text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
+                        <button type="button" data-action="closeModal" data-arg='["newLoanModal"]' class="flex-1 px-5 py-2.5 text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
                             Cancel
                         </button>
                         <button type="submit" class="flex-1 px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2">
@@ -603,7 +603,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
+    (function () {
+        var A = window.CSP_actions;
+        if (!A) return;
+        A.register('clamp-loan-amount', function (e, el) {
+            el.value = Math.min(el.value, 25000);
+            adminRecalculate();
+        });
+    })();
     (function() {
     let loansData = [];
     
@@ -679,21 +687,35 @@
         const paymentsMade = Array.isArray(loan.repayments) ? loan.repayments.length : 0;
         const termMatch = String(loan.lending_type_term || '').match(/\d+/);
         const totalPaymentsCount = termMatch ? parseInt(termMatch[0], 10) : (paymentsMade > 0 ? paymentsMade : 1);
-        const pct = totalPaymentsCount > 0 ? Math.min(100, Math.round((paymentsMade / totalPaymentsCount) * 100)) : 0;
-        document.getElementById('modalPaymentProgress').textContent = paymentsMade + ' of ' + totalPaymentsCount;
+        const isCompleted = String(loan.status || '').toLowerCase() === 'completed';
+        const displayed = isCompleted ? totalPaymentsCount : paymentsMade;
+        const pct = totalPaymentsCount > 0 ? Math.min(100, Math.round((displayed / totalPaymentsCount) * 100)) : 0;
+        document.getElementById('modalPaymentProgress').textContent = displayed + ' of ' + totalPaymentsCount;
         document.getElementById('modalPaymentProgressPct').textContent = pct + '%';
         document.getElementById('modalPaymentProgressBar').style.width = pct + '%';
 
-        // Documents
+        // Documents — every attachment column the member form can populate
+        const docFields = [
+            ['valid_id', 'Valid ID'],
+            ['proof_of_income', 'Proof of Income'],
+            ['proof_of_emergency', 'Proof of Emergency'],
+            ['business_permit', 'Business Permit'],
+            ['financial_statement', 'Financial Statement'],
+            ['school_id', 'School ID'],
+            ['cor', 'Certificate of Registration (COR)'],
+            ['cog', 'Certificate of Good Standing (COG)'],
+        ];
+
         const docsContainer = document.getElementById('modalDocuments');
         docsContainer.innerHTML = '';
 
-        if (loan.valid_id) {
-            docsContainer.innerHTML += window.createDocRow('Valid ID', loan.valid_id);
-        }
-        if (loan.proof_of_income) {
-            docsContainer.innerHTML += window.createDocRow('Proof of Income', loan.proof_of_income);
-        }
+        docFields.forEach(function (pair) {
+            const field = pair[0];
+            const label = pair[1];
+            if (loan[field]) {
+                docsContainer.innerHTML += window.createDocRow(label, loan[field]);
+            }
+        });
 
         if (docsContainer.innerHTML === '') {
             docsContainer.innerHTML = '<p class="text-gray-500 text-sm">No documents attached</p>';
@@ -751,7 +773,7 @@
                         <span class="text-sm text-gray-900">${name}</span>
                     </div>
                     <div class="flex gap-2">
-                        <button type="button" onclick="previewImage('/storage/${path}')" class="btn btn-outline text-sm py-1">
+                        <button type="button" data-action="previewImage" data-arg='["/storage/${path}"]' class="btn btn-outline text-sm py-1">
                             <i data-lucide="eye" class="w-4 h-4"></i>
                             View
                         </button>

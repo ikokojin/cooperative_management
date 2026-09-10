@@ -16,7 +16,7 @@
                         <p class="text-xs text-gray-500">Category breakdown</p>
                     </div>
                 </div>
-                <button onclick="closeAdminCategoryModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeAdminCategoryModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -40,12 +40,12 @@
             @endforelse
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end">
-            <button onclick="closeAdminCategoryModal()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+            <button data-action="closeAdminCategoryModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
         </div>
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     function openAdminCategoryModal() {
         var m = document.getElementById('adminCategoryModal');
         m.classList.remove('hidden');

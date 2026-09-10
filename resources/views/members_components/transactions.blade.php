@@ -19,6 +19,7 @@
 
     {{-- bootstrap and tailwind link --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     {{-- font awesome cdn link --}}
     <link rel="stylesheet" href="font-awesome-icon/css/all.min.css">
@@ -109,9 +110,9 @@
                                 placeholder="Search by description or reference no.">
                         </div>
                         <input type="date" class="filter-select" name="date" value="{{ $date }}"
-                            onchange="document.getElementById('tx-filter-form').submit()">
+                            data-action="tx-submit-filter">
                         <select class="filter-select " name="status"
-                            onchange="document.getElementById('tx-filter-form').submit()">
+                            data-action="tx-submit-filter">
                             <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All statuses</option>
                             <option value="completed" {{ $status === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -195,7 +196,13 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+            A.register('tx-submit-filter', function (e, el) { document.getElementById('tx-filter-form').submit(); });
+        })();
+
         const searchInput = document.querySelector('.search-box input[name="search"]');
         const filterForm = document.getElementById('tx-filter-form');
         let searchDebounce;

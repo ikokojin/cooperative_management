@@ -92,7 +92,7 @@
         </a>
 
         {{-- Loans Card (modal on pending) --}}
-        <div onclick="{{ $pendingLoansCount > 0 ? "openPendingLoansModal()" : "window.location.href='" . route('lendings') . "'" }}"
+        <div data-action="dashboard-card" @if($pendingLoansCount > 0)data-open="openPendingLoansModal"@else data-url="{{ route('lendings') }}" @endif
             class="group relative bg-white rounded-xl border border-gray-100 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-warning-200 cursor-pointer">
             <div class="flex items-start justify-between mb-3">
                 <div class="w-11 h-11 rounded-xl bg-warning-50 flex items-center justify-center group-hover:bg-warning-100 transition-colors">
@@ -112,7 +112,7 @@
         </div>
 
         {{-- Pending Resignations Card (modal) --}}
-        <div onclick="openResignationsModal()"
+        <div data-action="openResignationsModal"
             class="group relative bg-white rounded-xl border border-gray-100 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-danger-200 cursor-pointer">
             <div class="flex items-start justify-between mb-3">
                 <div class="w-11 h-11 rounded-xl bg-danger-50 flex items-center justify-center group-hover:bg-danger-100 transition-colors">
@@ -132,7 +132,7 @@
         </div>
 
         {{-- Upcoming Seminars Card (modal) --}}
-        <div onclick="{{ $upcomingSeminarsCount > 0 ? "openSeminarsModal()" : "window.location.href='" . route('seminars.index') . "'" }}"
+        <div data-action="dashboard-card" @if($upcomingSeminarsCount > 0)data-open="openSeminarsModal"@else data-url="{{ route('seminars.index') }}" @endif
             class="group relative bg-white rounded-xl border border-gray-100 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-sky-200 cursor-pointer">
             <div class="flex items-start justify-between mb-3">
                 <div class="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
@@ -162,25 +162,25 @@
             </div>
 
             <div class="grid grid-cols-3 gap-2 mb-6">
-                <button onclick="switchTodoTab('members')" id="todo-tab-members" class="todo-tab-btn active px-4 py-2 bg-primary-600 text-white rounded-lg font-medium text-sm shadow-md text-center">
+                <button data-action="switchTodoTab" data-arg='["members"]' id="todo-tab-members" class="todo-tab-btn active px-4 py-2 bg-primary-600 text-white rounded-lg font-medium text-sm shadow-md text-center">
                     Member Approvals <span class="ml-1 px-2 py-0.5 bg-white/20 rounded-full">{{ $pendingMembersCount }}</span>
                 </button>
-                <button onclick="switchTodoTab('loans')" id="todo-tab-loans" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
+                <button data-action="switchTodoTab" data-arg='["loans"]' id="todo-tab-loans" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
                     Loan Applications <span class="ml-1 px-2 py-0.5 bg-gray-200 rounded-full">{{ $pendingLoansCount }}</span>
                 </button>
-                <button onclick="switchTodoTab('withdrawals')" id="todo-tab-withdrawals" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
+                <button data-action="switchTodoTab" data-arg='["withdrawals"]' id="todo-tab-withdrawals" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
                     Withdraw Share Capital <span class="ml-1 px-2 py-0.5 bg-gray-200 rounded-full">{{ $pendingWithdrawalsCount }}</span>
                 </button>
-                <button onclick="switchTodoTab('savings_deposits')" id="todo-tab-savings_deposits" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
+                <button data-action="switchTodoTab" data-arg='["savings_deposits"]' id="todo-tab-savings_deposits" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
                     Savings Deposits <span class="ml-1 px-2 py-0.5 bg-gray-200 rounded-full">{{ $pendingSavingsDepositsCount }}</span>
                 </button>
-                <button onclick="switchTodoTab('savings_withdrawals')" id="todo-tab-savings_withdrawals" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
+                <button data-action="switchTodoTab" data-arg='["savings_withdrawals"]' id="todo-tab-savings_withdrawals" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
                     Savings Withdrawals <span class="ml-1 px-2 py-0.5 bg-gray-200 rounded-full">{{ $pendingSavingsWithdrawalsCount }}</span>
                 </button>
-                <button onclick="switchTodoTab('share_capital_deposits')" id="todo-tab-share_capital_deposits" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
+                <button data-action="switchTodoTab" data-arg='["share_capital_deposits"]' id="todo-tab-share_capital_deposits" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
                     Share Capital Deposits <span class="ml-1 px-2 py-0.5 bg-gray-200 rounded-full">{{ $pendingShareCapitalDepositsCount }}</span>
                 </button>
-                <button onclick="switchTodoTab('loan_payments')" id="todo-tab-loan_payments" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
+                <button data-action="switchTodoTab" data-arg='["loan_payments"]' id="todo-tab-loan_payments" class="todo-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200 text-center">
                     Loan Payments <span class="ml-1 px-2 py-0.5 bg-gray-200 rounded-full">{{ $pendingLoanPaymentsCount }}</span>
                 </button>
             </div>
@@ -354,10 +354,10 @@
             </div>
 
             <div class="flex flex-wrap gap-2 mb-6">
-                <button onclick="switchActivityTab('transactions')" id="activity-tab-transactions" class="activity-tab-btn active px-4 py-2 bg-primary-600 text-white rounded-lg font-medium text-sm shadow-md">
+                <button data-action="switchActivityTab" data-arg='["transactions"]' id="activity-tab-transactions" class="activity-tab-btn active px-4 py-2 bg-primary-600 text-white rounded-lg font-medium text-sm shadow-md">
                     Transactions
                 </button>
-                <button onclick="switchActivityTab('approvals')" id="activity-tab-approvals" class="activity-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200">
+                <button data-action="switchActivityTab" data-arg='["approvals"]' id="activity-tab-approvals" class="activity-tab-btn px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-200">
                     Approvals
                 </button>
             </div>
@@ -439,7 +439,7 @@
                                 <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Publish a new announcement to all members</p>
                             </div>
                         </div>
-                        <button onclick="closeModal('createAnnouncementModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <button data-action="closeModal" data-arg='["createAnnouncementModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                         </button>
                     </div>
@@ -453,7 +453,7 @@
                         <textarea name="content" class="input" rows="5" placeholder="Write your announcement content here..." required></textarea>
                     </div>
                     <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" onclick="closeModal('createAnnouncementModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+                        <button type="button" data-action="closeModal" data-arg='["createAnnouncementModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
                         <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                             <i data-lucide="send" class="w-4 h-4"></i>
                             Publish
@@ -476,12 +476,12 @@
                                 <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a poll for members to vote on</p>
                             </div>
                         </div>
-                        <button onclick="closeModal('createPollModal')" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <button data-action="closeModal" data-arg='["createPollModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                         </button>
                     </div>
                 </div>
-                <form onsubmit="createPoll(event)" class="p-6 space-y-4">
+                <form data-action="createPoll" data-arg='["|event|"]' class="p-6 space-y-4">
                     @csrf
                     <div>
                         <input type="text" id="pollQuestion" class="input" placeholder="Poll question..." required>
@@ -494,18 +494,18 @@
                             <input type="text" class="input poll-option flex-1" placeholder="Option 2" required>
                         </div>
                     </div>
-                    <button type="button" onclick="addPollOption()" id="addPollOptionBtn" class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
+                    <button type="button" data-action="addPollOption" id="addPollOptionBtn" class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
                         <i data-lucide="plus" class="w-4 h-4"></i> Add Option
                     </button>
                     <div class="flex items-center gap-3">
                         <input type="datetime-local" id="pollExpiresAt" class="input flex-1">
                         <label class="flex items-center gap-2 text-sm text-gray-600 whitespace-nowrap">
-                            <input type="checkbox" id="pollNoExpiry" checked onchange="togglePollExpiry()" class="rounded">
+                            <input type="checkbox" id="pollNoExpiry" checked data-action="togglePollExpiry" class="rounded">
                             No expiry
                         </label>
                     </div>
                     <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" onclick="closeModal('createPollModal')" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+                        <button type="button" data-action="closeModal" data-arg='["createPollModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
                         <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                             <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
                             Create Poll
@@ -530,11 +530,11 @@
                 </div>
                 <div class="flex items-center gap-2">
                     @if($currentUser && $currentUser->isMainAdmin())
-                        <button onclick="openModal('createAnnouncementModal')" class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
+                        <button data-action="openModal" data-arg='["createAnnouncementModal"]' class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                             <i data-lucide="megaphone" class="w-4 h-4"></i>
                             New Announcement
                         </button>
-                        <button onclick="openModal('createPollModal')" class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
+                        <button data-action="openModal" data-arg='["createPollModal"]' class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                             <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
                             New Poll
                         </button>
@@ -544,10 +544,10 @@
         </div>
         <div class="border-b border-gray-100">
             <div class="flex">
-                <button onclick="switchCommunityTab('announcements')" id="community-tab-announcements" class="px-5 py-3 text-sm font-medium text-primary-600 border-b-2 border-primary-600 transition-colors">
+                <button data-action="switchCommunityTab" data-arg='["announcements"]' id="community-tab-announcements" class="px-5 py-3 text-sm font-medium text-primary-600 border-b-2 border-primary-600 transition-colors">
                     <i data-lucide="megaphone" class="w-4 h-4 inline mr-1"></i> Announcements
                 </button>
-                <button onclick="switchCommunityTab('polls')" id="community-tab-polls" class="px-5 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition-colors">
+                <button data-action="switchCommunityTab" data-arg='["polls"]' id="community-tab-polls" class="px-5 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition-colors">
                     <i data-lucide="bar-chart-3" class="w-4 h-4 inline mr-1"></i> Polls
                 </button>
             </div>
@@ -576,7 +576,7 @@
                                     {{ $announcement->created_at->format('M d, Y h:i A') }}
                                 </span>
                                 @if($currentUser && $currentUser->isMainAdmin())
-                                    <button onclick="deleteAnnouncement({{ $announcement->id }}, this)" class="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Delete announcement">
+                                    <button data-action="deleteAnnouncement" data-arg='[{{ $announcement->id }},"|el|"]' class="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Delete announcement">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
                                 @endif
@@ -585,12 +585,12 @@
                             <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{{ trim($announcement->content) }}</p>
 
                             <div class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-                                <button onclick="toggleLike({{ $announcement->id }}, this)"
+                                <button data-action="toggleLike" data-arg='[{{ $announcement->id }},"|el|"]'
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 {{ $announcement->likes->contains('user_id', $currentUser->id ?? 0) ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-gray-50 text-gray-600 hover:bg-gray-100' }}">
                                     <i data-lucide="heart" class="w-4 h-4"></i>
                                     <span class="like-count">{{ $announcement->likes_count }}</span>
                                 </button>
-                                <button onclick="toggleComments({{ $announcement->id }})"
+                                <button data-action="toggleComments" data-arg='[{{ $announcement->id }}]'
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all duration-200">
                                     <i data-lucide="message-circle" class="w-4 h-4"></i>
                                     <span>{{ $announcement->comments_count }}</span>
@@ -617,14 +617,14 @@
                                                 <p class="text-sm text-gray-700">{{ $comment->comment }}</p>
                                             </div>
                                             @if($currentUser && $currentUser->isMainAdmin())
-                                                <button onclick="deleteComment({{ $announcement->id }}, {{ $comment->id }}, this)" class="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all" title="Delete comment">
+                                                <button data-action="deleteComment" data-arg='[{{ $announcement->id }},{{ $comment->id }},"|el|"]' class="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all" title="Delete comment">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             @endif
                                         </div>
                                     @endforeach
                                 </div>
-                                <form onsubmit="postComment(event, {{ $announcement->id }})" class="flex gap-2">
+                                <form data-action="postComment" data-arg='["|event|",{{ $announcement->id }}]' class="flex gap-2">
                                     @csrf
                                     <input type="text" class="input flex-1" placeholder="Write a comment..." required>
                                     <button type="submit" class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
@@ -681,7 +681,7 @@
                                     </span>
                                 @endif
                                 @if($currentUser && $currentUser->isMainAdmin())
-                                    <button onclick="deletePoll({{ $poll->id }}, this)" class="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Delete poll">
+                                    <button data-action="deletePoll" data-arg='[{{ $poll->id }},"|el|"]' class="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Delete poll">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
                                 @endif
@@ -704,7 +704,7 @@
                                                 </div>
                                             </div>
                                         @else
-                                            <button onclick="votePoll({{ $poll->id }}, {{ $i }}, this)" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition-all text-sm font-medium text-gray-700">
+                                            <button data-action="votePoll" data-arg='[{{ $poll->id }},{{ $i }},"|el|"]' class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition-all text-sm font-medium text-gray-700">
                                                 {{ $option }}
                                             </button>
                                         @endif
@@ -885,7 +885,8 @@
     </div>
 
     <!-- Loan Distribution & Audit Logs -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    @php $showAuditLogs = auth()->user()?->isGeneralManager(); @endphp
+    <div class="grid grid-cols-1 {{ $showAuditLogs ? 'lg:grid-cols-2' : '' }} gap-6">
         <!-- Loan Distribution -->
         <div class="card p-6">
             <div class="flex items-center justify-between mb-6">
@@ -917,8 +918,8 @@
                             $displayTypes = $loanTypes ?? array_keys($loanTypeCounts);
                         @endphp
                         @forelse($displayTypes as $type)
-                        <tr class="cursor-pointer hover:bg-gray-50 transition-colors"
-                            onclick="openLoanTypeModal('{{ addslashes($type) }}')">
+                        <tr class="js-open-loan-type cursor-pointer hover:bg-gray-50 transition-colors"
+                            data-loan-type="{{ $type }}">
                             <td class="text-sm font-medium text-gray-900">{{ $type }}</td>
                             <td class="text-center">
                                 <span class="text-lg font-bold text-gray-900">{{ $loanTypeCounts[$type] ?? 0 }}</span>
@@ -944,6 +945,7 @@
             </div>
         </div>
 
+        @if($showAuditLogs)
         <!-- Audit Logs -->
         <div class="card p-6">
             <div class="flex items-center justify-between mb-6">
@@ -986,11 +988,23 @@
                 </table>
             </div>
         </div>
+        @endif
     </div>
 
     @include('admin_components.dashboard_modals')
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+            A.register('dashboard-card', function (e, el) {
+                var fn = el.getAttribute('data-open');
+                if (fn && typeof window[fn] === 'function') { window[fn](); }
+                var url = el.getAttribute('data-url');
+                if (url) { window.location.href = url; }
+            });
+        })();
+
         // To-Do List Tab Switching
         function switchTodoTab(tab) {
             const contents = document.querySelectorAll('.todo-content');
@@ -1073,6 +1087,11 @@
             .then(data => {
                 if (data.success) {
                     const c = data.comment;
+                    const escHtml = (value) => {
+                        const el = document.createElement('div');
+                        el.textContent = value;
+                        return el.innerHTML;
+                    };
                     const isAdmin = ['admin', 'general-manager'].includes(c.user.role);
                     const badge = isAdmin ? '<span class="inline-flex items-center px-1.5 py-0.5 text-xs font-semibold rounded bg-blue-100 text-blue-700">Admin</span>' : '';
                     const avatarBg = isAdmin ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 'bg-gradient-to-br from-primary-300 to-primary-500';
@@ -1080,19 +1099,19 @@
 
                     const isCurrentAdmin = {{ $currentUser && $currentUser->isMainAdmin() ? 'true' : 'false' }};
                     const deleteBtn = isCurrentAdmin
-                        ? '<button onclick="deleteComment(' + announcementId + ', ' + c.id + ', this)" class="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all" title="Delete comment"><i data-lucide="trash-2" class="w-4 h-4"></i></button>'
+                        ? '<button data-action="deleteComment" data-arg=\'[' + announcementId + ', ' + c.id + ', "|el|"]\' class="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all" title="Delete comment"><i data-lucide="trash-2" class="w-4 h-4"></i></button>'
                         : '';
 
                     const div = document.createElement('div');
                     div.className = 'flex gap-3 bg-gray-50 rounded-lg p-3 group';
                     div.id = 'comment-' + c.id;
-                    div.innerHTML = '<div class="w-7 h-7 rounded-full ' + avatarBg + ' flex items-center justify-center flex-shrink-0"><span class="text-white font-bold text-xs">' + initials.toUpperCase() + '</span></div><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold text-gray-900">' + c.user.first_name + ' ' + c.user.last_name + '</span>' + badge + '<span class="text-xs text-gray-400">' + c.created_at + '</span></div><p class="text-sm text-gray-700">' + c.comment + '</p></div>' + deleteBtn;
+                    div.innerHTML = '<div class="w-7 h-7 rounded-full ' + avatarBg + ' flex items-center justify-center flex-shrink-0"><span class="text-white font-bold text-xs">' + escHtml(initials.toUpperCase()) + '</span></div><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-semibold text-gray-900">' + escHtml(c.user.first_name) + ' ' + escHtml(c.user.last_name) + '</span>' + badge + '<span class="text-xs text-gray-400">' + escHtml(c.created_at) + '</span></div><p class="text-sm text-gray-700">' + escHtml(c.comment) + '</p></div>' + deleteBtn;
 
                     const container = form.closest('#comments-' + announcementId).querySelector('.space-y-3');
                     container.appendChild(div);
                     input.value = '';
 
-                    const countEl = form.closest('.border').querySelector('button[onclick*="toggleComments"] span:last-child');
+                    const countEl = form.closest('.border').querySelector('button[data-action="toggleComments"] span:last-child');
                     if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
 
                     lucide.createIcons();
@@ -1115,7 +1134,7 @@
                     const el = document.getElementById('comment-' + commentId);
                     if (el) el.remove();
                     if (card) {
-                        const countEl = card.querySelector('button[onclick*="toggleComments"] span:last-child');
+                        const countEl = card.querySelector('button[data-action="toggleComments"] span:last-child');
                         if (countEl) countEl.textContent = data.count;
                     }
                     showToast('Deleted', 'Comment removed.', 'success');
@@ -1168,7 +1187,7 @@
             if (count >= 10) return;
             const div = document.createElement('div');
             div.className = 'flex gap-2';
-            div.innerHTML = '<input type="text" class="input poll-option flex-1" placeholder="Option ' + (count + 1) + '" required><button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>';
+            div.innerHTML = '<input type="text" class="input poll-option flex-1" placeholder="Option ' + (count + 1) + '" required><button type="button" data-action="remove-parent" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>';
             container.appendChild(div);
             lucide.createIcons();
         }

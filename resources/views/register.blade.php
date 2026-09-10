@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Apply for Membership</title>
     <link rel="icon" href="images/websitelogo.png" type="image/png">
+    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     {{-- css link --}}
     <link rel="stylesheet" href="css_folder/register.css">
@@ -232,11 +233,11 @@
 
                             <!-- Buttons -->
                             <div class="actions">
-                                <button type="button" class="btn-prev" onclick="prevStep()" style="display:none;">
+                                <button type="button" class="btn-prev" data-action="prevStep" style="display:none;">
                                     <i class="fa fa-chevron-left"></i>
                                     <span>Previous</span>
                                 </button>
-                                <button type="button" class="btn-next" onclick="nextStep()">
+                                <button type="button" class="btn-next" data-action="nextStep">
                                     <span>Next Step</span>
                                     <i class="fa fa-chevron-right"></i>
                                 </button>
@@ -251,7 +252,7 @@
 
 
     {{-- ── Toggle password visibility ─────────────────────────────────────── --}}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function togglePassword(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
@@ -266,7 +267,7 @@
     </script>
 
     {{-- ── Membership type toggle ──────────────────────────────────────────── --}}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const select_type = document.getElementById("select_type");
 
         select_type.addEventListener("change", function () {
@@ -288,7 +289,7 @@
     <script src="js_folder/signature_pad.umd.min.js"></script>
 
     {{-- ── Animate card-box on load ────────────────────────────────────────── --}}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         window.addEventListener('load', function () {
             const cardBox = document.querySelector('.card-box');
             cardBox.style.animation = 'none';
@@ -300,7 +301,7 @@
     {{-- ── Clear saved registration data when leaving to the Login page ───── --}}
     {{-- This makes sure the form always starts fresh (Step 1, blank fields) --}}
     {{-- the next time anyone opens /register-page on this browser/tab. --}}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.getElementById('signin-link')?.addEventListener('click', function () {
             if (typeof window.clearAllRegistrationData === 'function') {
                 window.clearAllRegistrationData();
@@ -362,7 +363,7 @@
             </div>
         </div>
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             window.addEventListener('load', function () {
                 document.getElementById('triggerModal').click();
                 document.getElementById('successModal').addEventListener('hidden.bs.modal', function () {

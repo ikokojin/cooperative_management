@@ -175,18 +175,18 @@
                     <div class="col-lg-4 col-md-4 mt-4">
                         <label>Firstname *</label>
                         <input type="text" name="first_name" id="first_name" class="form-control"
-                            oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '').replace(/\b\w/g, c => c.toUpperCase())">
+                            data-action="name-format" data-trigger="input">
                     </div>
                     <div class="col-lg-4 col-md-4 mt-4">
                         <label>Middlename <span style="font-size: 14px; color: #808080;">(Optional)</span></label>
                         <input type="text" name="middle_name" id="middle_name"
                             class="form-control"
-                            oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '').replace(/\b\w/g, c => c.toUpperCase())">
+                            data-action="name-format" data-trigger="input">
                     </div>
                     <div class="col-lg-4 col-md-4 mt-4">
                         <label>Lastname *</label>
                         <input type="text" name="last_name" id="last_name" class="form-control"
-                            oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '').replace(/\b\w/g, c => c.toUpperCase())">
+                            data-action="name-format" data-trigger="input">
                     </div>
                 </div>
 
@@ -327,8 +327,8 @@
                 <div class="password-wrapper">
                     <input type="password" name="password" id="login-password" class="form-control"
                         style="padding-right: 40px;" autocomplete="new-password"
-                        oninput="checkPasswordStrength(this.value); checkPasswordMatch();">
-                    <span onclick="toggleLoginPassword()"
+                        data-action="pw-strength-match" data-trigger="input">
+                    <span data-action="toggleLoginPassword"
                         style="position: absolute; right: 12px; top: 55%; transform: translateY(-50%); cursor: pointer; color: #888;">
                         <i class="fa fa-eye" id="eye-login"></i>
                     </span>
@@ -341,14 +341,15 @@
                     <div class="bar"></div>
                 </div>
                 <div class="strength-label label-0" id="strength-label"></div>
+                <small class="form-text text-muted d-block">At least 8 characters.</small>
             </div>
 
             <div class="col-lg-4 mt-4">
                 <label>Confirm Password *</label>
                 <div class="password-wrapper">
                     <input type="password" name="password_confirmation" id="login-password-2" class="form-control"
-                        style="padding-right: 40px;" autocomplete="new-password" oninput="checkPasswordMatch();">
-                    <span onclick="toggleLoginPassword2()"
+                        style="padding-right: 40px;" autocomplete="new-password" data-action="checkPasswordMatch" data-trigger="input">
+                    <span data-action="toggleLoginPassword2"
                         style="position: absolute; right: 12px; top: 55%; transform: translateY(-50%); cursor: pointer; color: #888;">
                         <i class="fa fa-eye" id="eye-login-2"></i>
                     </span>
@@ -449,7 +450,19 @@ Rendered here but immediately moved to
     </div>
 
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+            A.register('name-format', function (e, el) {
+                el.value = el.value.replace(/[^A-Za-z ]/g, '').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+            });
+            A.register('pw-strength-match', function (e, el) {
+                checkPasswordStrength(el.value);
+                checkPasswordMatch();
+            });
+        })();
+
         // ═══════════════════════════════════════════════════
         //  TELEPORT MODAL TO <body>
         //  Moves the overlay out of any stacking-context trap
@@ -471,7 +484,7 @@ Rendered here but immediately moved to
     </script>
 
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // ═══════════════════════════════════════════════════
         //  PASSWORD TOGGLE
         // ═══════════════════════════════════════════════════
@@ -693,7 +706,7 @@ Rendered here but immediately moved to
         })();
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function toggleLoginPassword() {
             const input = document.getElementById('login-password');
             const icon = document.getElementById('eye-login');

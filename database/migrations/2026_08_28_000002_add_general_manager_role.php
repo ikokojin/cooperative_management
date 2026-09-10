@@ -8,8 +8,7 @@ return new class extends Migration
     public function up(): void
     {
         // General Manager: the authority that resolves GM-review exceptions and
-        // can manage Allied Workers. gm-review is deliberately NOT grantable to
-        // custom roles (enforced in the role/controller layer).
+        // can manage Allied Workers.
         $exists = DB::table('roles')->where('slug', 'general-manager')->exists();
         if (! $exists) {
             DB::table('roles')->insert([
@@ -19,8 +18,8 @@ return new class extends Migration
                 'is_system' => true,
                 'sidebar_permissions' => json_encode([
                     'dashboard', 'members', 'savings', 'sharecapitals', 'lendings',
-                    'payments', 'finance', 'reports', 'notifications', 'seminars',
-                    'officers-committees', 'settings', 'gm-review', 'role-management',
+                    'payments', 'finance', 'reports', 'seminars',
+                    'officers-committees', 'settings',
                 ]),
                 'created_at' => now(),
                 'updated_at' => now(),

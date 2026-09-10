@@ -4,6 +4,10 @@
 
 @section('content')
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        .rp-inline-close:hover { background: #f5f5f5 !important; color: #333 !important; }
+        .rp-inline-download:hover { opacity: 0.88; }
+    </style>
 
     <div class="mb-6">
         <nav class="text-sm text-gray-500">
@@ -27,7 +31,7 @@
             <p class="text-sm text-gray-500">View all loan repayment transactions made by members</p>
         </div>
         <div class="flex items-center gap-3">
-            <button onclick="openRecordPaymentModal()" class="btn btn-primary">
+            <button data-action="openRecordPaymentModal" class="btn btn-primary">
                 <i data-lucide="credit-card" class="w-4 h-4"></i>
                 Record Payment
             </button>
@@ -148,7 +152,7 @@
                                 data-method="{{ $payment->payment_method }}"
                                 data-ref="{{ $payment->reference_no ?? 'N/A' }}"
                                 data-date="{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y g:i A') }}"
-                                onclick="openRepayRow(event, this)"
+                                data-action="openRepayRow" data-arg='["|event|","|el|"]'
                             @endif
                         >
                             <td>
@@ -259,7 +263,7 @@
                             <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Manually record a loan repayment</p>
                         </div>
                     </div>
-                    <button onclick="closeRecordPaymentModal()" style="background: none; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
+                    <button data-action="closeRecordPaymentModal" style="background: none; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                 </div>
@@ -272,8 +276,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Member <span class="text-red-500">*</span></label>
-                        <select name="member_id" id="rpMemberSelect" class="select" style="width: 100%;" onchange="loadMemberLoans()" required>
-                            <option value="">Select member</option>
+                        <select name="member_id" id="rpMemberSelect" class="select" style="width: 100%;" data-action="loadMemberLoans" required>
                             @foreach($allMembers as $member)
                             <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
                             @endforeach
@@ -291,7 +294,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Amount Payables</label>
                         <div class="mb-2">
-                            <select id="rpPaymentType" class="select" style="width: 100%;" onchange="updatePayableAmount()">
+                            <select id="rpPaymentType" class="select" style="width: 100%;" data-action="updatePayableAmount">
                                 <option value="monthly">Monthly Bill Only</option>
                                 <option value="full">Full Payment</option>
                             </select>
@@ -305,11 +308,11 @@
                 </form>
 
                 <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 8px;">
-                    <button onclick="openRecordPaymentConfirm()"
+                    <button data-action="openRecordPaymentConfirm"
                         style="width: 100%; padding: 0.7rem; background: #1E2A4A; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <i data-lucide="check-circle" class="w-4 h-4"></i> Record Payment
                     </button>
-                    <button onclick="closeRecordPaymentModal()"
+                    <button data-action="closeRecordPaymentModal"
                         style="width: 100%; padding: 0.65rem; background: #fff; color: #666; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; cursor: pointer;">
                         Cancel
                     </button>
@@ -332,7 +335,7 @@
                             <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Please review the payment details</p>
                         </div>
                     </div>
-                    <button onclick="closeConfirmPaymentModal()" style="background: none; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
+                    <button data-action="closeConfirmPaymentModal" style="background: none; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                 </div>
@@ -359,11 +362,11 @@
                 </div>
 
                 <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 8px;">
-                    <button id="rpConfirmBtn" onclick="confirmRecordPayment()"
+                    <button id="rpConfirmBtn" data-action="confirmRecordPayment"
                         style="width: 100%; padding: 0.7rem; background: #15803D; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <i data-lucide="check-circle" class="w-4 h-4"></i> Confirm Payment
                     </button>
-                    <button onclick="closeConfirmPaymentModal()"
+                    <button data-action="closeConfirmPaymentModal"
                         style="width: 100%; padding: 0.65rem; background: #fff; color: #666; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; cursor: pointer;">
                         Cancel
                     </button>
@@ -372,7 +375,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function openRecordPaymentModal() {
             const modal = document.getElementById('recordPaymentModal');
             modal.classList.remove('hidden');
@@ -602,10 +605,10 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('DOMContentLoaded', function() {
             const el = document.querySelector('#rpMemberSelect');
-            if (el) {
+            if (el && typeof TomSelect !== 'undefined') {
                 new TomSelect('#rpMemberSelect', {
                     create: false,
                     sortField: { field: "text", direction: "asc" },
@@ -629,7 +632,7 @@
                             <p class="text-xs text-gray-500">Review and act on this repayment request</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('repaymentDetailModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closeModal" data-arg='["repaymentDetailModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -694,12 +697,12 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                <button onclick="openRepaymentVoidConfirm()" id="rpDetailVoidBtn"
+                <button data-action="openRepaymentVoidConfirm" id="rpDetailVoidBtn"
                     class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors flex items-center gap-2">
                     <i data-lucide="x-circle" class="w-4 h-4"></i>
                     Void Repayment
                 </button>
-                <button onclick="confirmCompleteRepayment()" id="rpDetailCompleteBtn"
+                <button data-action="confirmCompleteRepayment" id="rpDetailCompleteBtn"
                     class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                     <i data-lucide="check-circle" class="w-4 h-4"></i>
                     Mark as Complete
@@ -722,7 +725,7 @@
                             <p class="text-xs text-gray-500">Are you sure you want to void this repayment?</p>
                         </div>
                     </div>
-                    <button onclick="closeModal('repaymentVoidModal')" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="closeModal" data-arg='["repaymentVoidModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -753,8 +756,8 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                <button onclick="openRepaymentDetailFromVoid()" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go Back</button>
-                <button id="rpVoidConfirmBtn" onclick="submitRepaymentVoid()" disabled
+                <button data-action="openRepaymentDetailFromVoid" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go Back</button>
+                <button id="rpVoidConfirmBtn" data-action="submitRepaymentVoid" disabled
                     class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                     <i data-lucide="x-circle" class="w-4 h-4"></i>
                     Confirm Void
@@ -763,7 +766,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         let currentRepaymentId = null;
 
         document.querySelectorAll('.repay-pending-row').forEach(row => {
@@ -997,7 +1000,7 @@
                         <div style="font-size:1rem; font-weight:700; color:#c0392b; background:#fdecec; border:1px solid #f5c6c6; border-radius:10px; padding:0.75rem 1rem;">${label}</div>
                     </div>
                     <div style="padding:0 1.5rem 1.5rem;">
-                        <button onclick="document.getElementById('repayVoidReasonModal').remove()" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;" onmouseover="this.style.background='#f5f5f5';this.style.color='#333';" onmouseout="this.style.background='transparent';this.style.color='#888';">Close</button>
+                        <button data-action="remove-element" data-target="repayVoidReasonModal" class="rp-inline-close" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
                     </div>
                 </div>
             `;
@@ -1064,8 +1067,8 @@
                         ${payReceiptCard()}
                     </div>
                     <div style="padding:0 1.5rem 1.5rem; display:flex; gap:0.6rem;">
-                        <button onclick="document.getElementById('repayReceiptModal').remove()" style="flex:1; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;" onmouseover="this.style.background='#f5f5f5';this.style.color='#333';" onmouseout="this.style.background='transparent';this.style.color='#888';">Close</button>
-                        <button onclick="downloadRepayReceipt()" style="flex:1; padding:0.8rem; background:${REPAY_NAVY}; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;" onmouseover="this.style.opacity='0.88';" onmouseout="this.style.opacity='1';">
+                        <button data-action="remove-element" data-target="repayReceiptModal" class="rp-inline-close" style="flex:1; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
+                        <button data-action="downloadRepayReceipt" class="rp-inline-download" style="flex:1; padding:0.8rem; background:${REPAY_NAVY}; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             Download
                         </button>

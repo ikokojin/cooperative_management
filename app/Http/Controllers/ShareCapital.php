@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 
 class ShareCapital extends Controller
 {
@@ -403,205 +402,18 @@ class ShareCapital extends Controller
     }
 
     /**
-     * Redirect user to GCash checkout via PayMongo.
-     */
-    public function payViaGcash(Request $request)
-    {
-        if (! env('PAYMONGO_SECRET_KEY')) {
-            return redirect()->back()->with('error', 'Payment gateway is not configured yet.');
-        }
-
-        $shares = (float) $request->input('shares', 1);
-        $totalAmount = $shares * self::PAR_VALUE;
-        $type = $request->input('type', 'Deposit');
-
-        if ($type === 'Withdrawal') {
-            $memberId = Auth::id();
-            $account = DB::table('share_capital_account_tbls')
-                ->where('user_id', $memberId)
-                ->first();
-
-            $currentBalance = $account->total_amount ?? 0;
-
-            if ($currentBalance <= 0) {
-                return redirect()->back()
-                    ->with('error', 'You cannot withdraw because your current balance is ₱0.')
-                    ->withInput();
-            }
-
-            if ($totalAmount > $currentBalance) {
-                return redirect()->back()
-                    ->with('error', 'Withdrawal amount (₱'.number_format($totalAmount, 0).') exceeds your current balance (₱'.number_format($currentBalance, 0).').')
-                    ->withInput();
-            }
-
-            if ($totalAmount >= $currentBalance) {
-                $existing = ResignationRequest_tbl::where('user_id', $memberId)
-                    ->whereIn('status', ['pending'])
-                    ->first();
-
-                if ($existing) {
-                    return redirect()->back()
-                        ->with('error', 'You already have a pending resignation request.')
-                        ->withInput();
-                }
-
-                DB::beginTransaction();
-                try {
-                    ResignationRequest_tbl::create([
-                        'user_id' => $memberId,
-                        'withdraw_share_capital' => true,
-                        'status' => 'pending',
-                    ]);
-
-                    Users_tbl::where('id', $memberId)->update(['status' => 'resignation_pending']);
-
-                    DB::commit();
-
-                    return redirect()->route('ShareCapitalMember')
-                        ->with('warning', 'Fully withdrawing your share capital requires resigning from the cooperative. Your resignation request has been automatically submitted for approval, subject to the 60-day release rule.');
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-
-                    return redirect()->back()
-                        ->with('error', 'Failed to process resignation: '.$e->getMessage())
-                        ->withInput();
-                }
-            }
-        }
-
-        session([
-            'sc_pending_shares' => $shares,
-            'sc_pending_note' => $request->input('note'),
-            'sc_pending_type' => $type,
-        ]);
-
-        $response = Http::withBasicAuth(env('PAYMONGO_SECRET_KEY'), '')
-            ->withOptions(['verify' => false])
-            ->post('https://api.paymongo.com/v1/sources', [
-                'data' => [
-                    'attributes' => [
-                        'amount' => $totalAmount * 100,
-                        'currency' => 'PHP',
-                        'type' => 'gcash',
-                        'redirect' => [
-                            'success' => route('share_capital.gcash.success'),
-                            'failed' => route('share_capital.gcash.failed'),
-                        ],
-                    ],
-                ],
-            ]);
-
-        $data = $response->json();
-
-        if (isset($data['data']['attributes']['redirect']['checkout_url'])) {
-            return redirect($data['data']['attributes']['redirect']['checkout_url']);
-        }
-
-        return redirect()->back()->with('error', 'GCash payment failed. Please try again.');
-    }
-
-    /**
-     * Handle successful GCash payment callback.
-     */
-    public function gcashSuccess(Request $request)
-    {
-        $memberId = Auth::id();
-        $amountPerShare = self::PAR_VALUE;
-        $shares = (int) session('sc_pending_shares', 1);
-        $note = session('sc_pending_note');
-        $type = session('sc_pending_type', 'Deposit');
-        $totalAmount = $shares * $amountPerShare;
-        $now = Carbon::now();
-        $referenceNo = 'GCASH-'.now()->format('YmdHis');
-
-        session()->forget(['sc_pending_shares', 'sc_pending_note', 'sc_pending_type']);
-
-        $account = DB::table('share_capital_account_tbls')
-            ->where('user_id', $memberId)
-            ->first();
-
-        DB::beginTransaction();
-
-        try {
-            // Same rule as store(): GCash Deposit/Withdrawal requests stay Pending
-            // until admin approval — the account row is never credited/debited here.
-            if ($account) {
-                $accountId = $account->id;
-            } else {
-                $accountId = DB::table('share_capital_account_tbls')->insertGetId([
-                    'user_id' => $memberId,
-                    'total_shares' => 0,
-                    'total_amount' => 0,
-                    'status' => 'Active',
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-            }
-
-            $transactionStatus = 'Pending';
-
-            DB::table('share_capital_transaction_tbls')->insert([
-                'share_capital_account_id' => $accountId,
-                'type' => $type,
-                'shares' => $shares,
-                'amount_per_share' => $amountPerShare,
-                'total_amount' => $totalAmount,
-                'payment_method' => 'GCash',
-                'reference_no' => $referenceNo,
-                'note' => $note,
-                'status' => $transactionStatus,
-                'transaction_date' => $now->toDateString(),
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-
-            DB::commit();
-
-            AuditLog::log(
-                'GCash Share Capital '.$type,
-                "GCash payment of {$shares} shares (₱{$totalAmount}) for share capital {$type} (Ref: {$referenceNo})",
-                'share_capital',
-                $accountId
-            );
-
-            $memberName = $this->resolveMemberName();
-
-            return redirect()->route('Financial', ['tab' => 'share_capital'])
-                ->with('success', 'GCash payment successful!')
-                ->with('sc_receipt_shares', $shares)
-                ->with('sc_receipt_amount', $totalAmount)
-                ->with('sc_receipt_method', 'GCash')
-                ->with('sc_receipt_ref', $referenceNo)
-                ->with('sc_receipt_member', $memberName)
-                ->with('sc_receipt_type', $type)
-                ->with('sc_receipt_status', $transactionStatus);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            $redirectRoute = 'ShareCapitalMember';
-
-            return redirect()->route($redirectRoute)
-                ->with('error', 'GCash payment was received but failed to save. Please contact support.');
-        }
-    }
-
-    /**
-     * Handle failed GCash payment callback.
-     */
-    public function gcashFailed(Request $request)
-    {
-        session()->forget(['sc_pending_shares', 'sc_pending_note', 'sc_pending_type']);
-
-        return redirect()->route('ShareCapitalMember')
-            ->with('error', 'GCash payment failed. Please try again.');
-    }
-
-    /**
      * Show the Share Capital form for a specific member via email link.
      */
     public function showForMember($id)
     {
+        $id = (int) $id;
+
+        if (! Auth::check()) {
+            return redirect()->guest(route('login'));
+        }
+
+        abort_unless((int) Auth::id() === $id || \App\Services\SoDGuard::actingAsStaff(), 403);
+
         $user = \App\Models\Users_tbl::findOrFail($id);
 
         $account = DB::table('share_capital_account_tbls')
@@ -617,10 +429,6 @@ class ShareCapital extends Controller
 
         $dividendRateRecord = $this->getDividendRateRecord();
         $dividendRate = $dividendRateRecord->rate ?? 8.5;
-
-        if (! Auth::check()) {
-            Auth::loginUsingId($id);
-        }
 
         return view('ShareCapitalForm.share_capital_form', compact(
             'currentBalance',

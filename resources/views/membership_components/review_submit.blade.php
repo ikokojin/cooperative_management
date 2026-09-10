@@ -239,11 +239,11 @@
                                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                                 <h5 style="margin:0; font-weight:700; color:#1a4a3a;">Applicant's Signature</h5>
                                 <div style="display:flex; gap:8px;">
-                                    <button type="button" onclick="clearModalSignature()"
+                                    <button type="button" data-action="clearModalSignature"
                                         style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:6px 16px; font-size:13px; cursor:pointer; color:#555;">
                                         <i class="fa fa-trash" style="font-size:11px;"></i> Clear
                                     </button>
-                                    <button type="button" onclick="saveModalSignature()"
+                                    <button type="button" data-action="saveModalSignature"
                                         style="background:#1a4a3a; color:#fff; border:none; border-radius:8px; padding:6px 20px; font-size:13px; font-weight:600; cursor:pointer;">
                                         <i class="fa fa-check"></i> Save Signature
                                     </button>

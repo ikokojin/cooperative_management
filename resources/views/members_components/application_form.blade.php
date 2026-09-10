@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Application Form</title>
+    <script src="{{ asset('js/csp-events.js') }}"></script>
     <link rel="icon" href="images/websitelogo.png" type="image/png">
     <link rel="stylesheet" href="{{ asset('css_folder/application-form.css') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -379,11 +380,11 @@
                         </div>
 
                         <div class="actions">
-                            <button type="button" class="btn-prev" onclick="prevStep()">
+                            <button type="button" class="btn-prev" data-action="prevStep">
                                 <i class="fa fa-chevron-left"></i>
                                 <span>Previous</span>
                             </button>
-                            <button type="button" class="btn-next" onclick="nextStep()">
+                            <button type="button" class="btn-next" data-action="nextStep">
                                 <span>Next page</span>
                                 <i class="fa fa-chevron-right"></i>
                             </button>
@@ -407,13 +408,13 @@
             ];
         @endphp
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             const EXISTING_VEHICLES = @json($existingVehicles);
         </script>
 
         <script src="{{ asset('js_folder/vehi_application.js') }}"></script>
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             let currentStep = 0;
             const steps = document.querySelectorAll(".form-step");
             const stepper = document.querySelectorAll(".step");
