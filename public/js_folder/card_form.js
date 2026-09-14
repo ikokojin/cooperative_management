@@ -267,10 +267,37 @@
                 });
 
                 if (!sendRes.ok) {
-                    const errText = await sendRes.text().catch(() => '');
-                    console.error('OTP send failed — status:', sendRes.status, errText);
-                    alert('Failed to send verification code (' + sendRes.status + '). Please try again or contact support.');
+                    let msg = 'Failed to send verification code. Please try again or contact support.';
+                    let invalidRecipient = false;
+                    try {
+                        const errData = await sendRes.json();
+                        if (errData.errors && errData.errors.email && errData.errors.email[0]) {
+                            msg = errData.errors.email[0];
+                        } else if (errData.message) {
+                            msg = errData.message;
+                        }
+                        invalidRecipient = !!errData.invalid_recipient;
+                    } catch (e) { /* not JSON, use default msg */ }
+
+                    console.error('OTP send failed — status:', sendRes.status, msg);
                     setNextButtonLoading(false);
+
+                    const emailInputEl = document.getElementById('email');
+                    const existingErr = document.getElementById('email-send-error');
+                    if (existingErr) existingErr.remove();
+
+                    if (emailInputEl) {
+                        const errorMsg = document.createElement('small');
+                        errorMsg.id = 'email-send-error';
+                        errorMsg.style.cssText = 'color: #dc2626; font-size: 12.5px; margin-top: 4px; display: block;';
+                        errorMsg.textContent = msg;
+                        emailInputEl.classList.add('is-invalid');
+                        emailInputEl.insertAdjacentElement('afterend', errorMsg);
+                        emailInputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        alert(msg);
+                    }
+
                     return false;
                 }
 
@@ -297,7 +324,7 @@
             const freshConfirm = confirmBtn.cloneNode(true);
             confirmBtn.parentNode.replaceChild(freshConfirm, confirmBtn);
 
-            freshConfirm.onclick = async function () {
+            freshConfirm.addEventListener('click', async function () {
                 const code = input.value.trim();
                 if (!code) {
                     if (error) error.textContent = 'Please enter the code.';
@@ -336,12 +363,12 @@
                     freshConfirm.disabled = false;
                     freshConfirm.textContent = 'Confirm';
                 }
-            };
+            });
 
             // ── Resend ───────────────────────────────────────────────────────
             const currentResendBtn = document.getElementById('otp-resend-btn');
             if (currentResendBtn) {
-                currentResendBtn.onclick = async function () {
+                currentResendBtn.addEventListener('click', async function () {
                     if (error) { error.style.color = ''; error.textContent = ''; }
                     input.value = '';
 
@@ -375,15 +402,15 @@
                     } finally {
                         setResendButtonLoading(currentResendBtn, false);
                     }
-                };
+                });
             }
 
             // ── Cancel ───────────────────────────────────────────────────────
             const currentCancelBtn = document.getElementById('otp-cancel-btn');
-            currentCancelBtn.onclick = function () {
+            currentCancelBtn.addEventListener('click', function () {
                 overlay.style.display = 'none';
                 resolve(false);
-            };
+            });
         });
     }
 
@@ -445,19 +472,11 @@
         }
 
         // ✅ PASSWORD MATCH VALIDATION
-        const passwordInput = currentFormStep.querySelector('#password');
-        const confirmInput = currentFormStep.querySelector('#password_confirmation');
+        const passwordInput = currentFormStep.querySelector('#login-password');
+        const confirmInput = currentFormStep.querySelector('#login-password-2');
         if (passwordInput && confirmInput) {
-            const existingError = currentFormStep.querySelector('#password-match-error');
-            if (existingError) existingError.remove();
-
             if (passwordInput.value !== confirmInput.value) {
-                const errorMsg = document.createElement('small');
-                errorMsg.id = 'password-match-error';
-                errorMsg.style.cssText = 'color: #dc2626; font-size: 12.5px; margin-top: 4px; display: block;';
-                errorMsg.textContent = 'Passwords do not match. Please re-enter.';
                 confirmInput.classList.add('is-invalid');
-                confirmInput.parentElement.insertAdjacentElement('afterend', errorMsg);
                 confirmInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             } else {
@@ -487,23 +506,40 @@
             }
         }
 
-        // ✅ GMAIL ONLY CHECK
-        const emailInput = currentFormStep.querySelector('#email');
-        if (emailInput && emailInput.value) {
-            const existingGmailError = currentFormStep.querySelector('#email-gmail-error');
-            if (existingGmailError) existingGmailError.remove();
-
-            if (!emailInput.value.toLowerCase().endsWith('@gmail.com')) {
-                const errorMsg = document.createElement('small');
-                errorMsg.id = 'email-gmail-error';
-                errorMsg.style.cssText = 'color: #dc2626; font-size: 12.5px; margin-top: 4px; display: block;';
-                errorMsg.textContent = 'Only Gmail addresses are allowed (e.g. example@gmail.com).';
-                emailInput.classList.add('is-invalid');
-                emailInput.insertAdjacentElement('afterend', errorMsg);
-                emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // ✅ CELLPHONE NUMBER VALIDATION — must be 11 digits starting with 09
+        const contactInput = currentFormStep.querySelector('#contact_no');
+        if (contactInput && contactInput.value) {
+            const contactError = document.getElementById('contact_no_error');
+            const isValidPhone = /^09\d{9}$/.test(contactInput.value);
+            if (!isValidPhone) {
+                if (contactError) contactError.textContent = 'Enter a valid 11-digit mobile number (e.g. 09171234567).';
+                contactInput.classList.add('is-invalid');
+                contactInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
+            } else {
+                if (contactError) contactError.textContent = '';
+                contactInput.classList.remove('is-invalid');
             }
         }
+
+        // ✅ GMAIL ONLY CHECK
+        // const emailInput = currentFormStep.querySelector('#email');
+        // if (emailInput && emailInput.value) {
+        //     const existingGmailError = currentFormStep.querySelector('#email-gmail-error');
+        //     if (existingGmailError) existingGmailError.remove();
+
+        //     if (!emailInput.value.toLowerCase().endsWith('@gmail.com')) {
+        //         const errorMsg = document.createElement('small');
+        //         errorMsg.id = 'email-gmail-error';
+        //         errorMsg.style.cssText = 'color: #dc2626; font-size: 12.5px; margin-top: 4px; display: block;';
+        //         errorMsg.textContent = 'Only Gmail addresses are allowed (e.g. example@gmail.com).';
+        //         emailInput.classList.add('is-invalid');
+        //         emailInput.insertAdjacentElement('afterend', errorMsg);
+        //         emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        //         return;
+        //     }
+        // }
+        const emailInput = currentFormStep.querySelector('#email');
 
         // ✅ EMAIL + OTP VERIFICATION — then check if email already exists
         if (emailInput && emailInput.value) {
@@ -597,29 +633,25 @@
     ══════════════════════════════════════ */
     document.addEventListener('input', function (e) {
 
-        if (e.target.id === 'password') {
+        if (e.target.id === 'login-password') {
             const score = parseInt(document.getElementById('strength-bars')?.dataset.score || '0', 10);
             const strengthErr = document.getElementById('password-strength-error');
             if (score >= 4 || e.target.value.length === 0) {
                 e.target.classList.remove('is-invalid');
                 if (strengthErr) strengthErr.remove();
             }
-            const pw = document.getElementById('password');
-            const cpw = document.getElementById('password_confirmation');
-            const matchErr = document.getElementById('password-match-error');
+            const pw = document.getElementById('login-password');
+            const cpw = document.getElementById('login-password-2');
             if (pw && cpw && pw.value === cpw.value) {
                 cpw.classList.remove('is-invalid');
-                if (matchErr) matchErr.remove();
             }
         }
 
-        if (e.target.id === 'password_confirmation') {
-            const pw = document.getElementById('password');
-            const cpw = document.getElementById('password_confirmation');
-            const err = document.getElementById('password-match-error');
+        if (e.target.id === 'login-password-2') {
+            const pw = document.getElementById('login-password');
+            const cpw = document.getElementById('login-password-2');
             if (pw && cpw && pw.value === cpw.value) {
                 cpw.classList.remove('is-invalid');
-                if (err) err.remove();
             }
         }
 
@@ -641,30 +673,48 @@
             }
         }
 
+        if (e.target.id === 'contact_no') {
+            const contactError = document.getElementById('contact_no_error');
+            if (/^09\d{9}$/.test(e.target.value)) {
+                if (contactError) contactError.textContent = '';
+                e.target.classList.remove('is-invalid');
+            }
+        }
+
+        // if (e.target.id === 'email') {
+        //     emailOtpVerified = false;
+        //     otpAlreadySentEmail = null;
+        //     clearOtpVerified(); 
+        //     const emailVal = e.target.value;
+        //     const existsErr = document.getElementById('email-exists-error');
+        //     let gmailErr = document.getElementById('email-gmail-error');
+
+        //     if (existsErr) existsErr.remove();
+        //     e.target.classList.remove('is-invalid');
+
+        //     if (emailVal && !emailVal.toLowerCase().endsWith('@gmail.com')) {
+        //         if (!gmailErr) {
+        //             gmailErr = document.createElement('small');
+        //             gmailErr.id = 'email-gmail-error';
+        //             gmailErr.style.cssText = 'color: #dc2626; font-size: 12.5px; margin-top: 4px; display: block;';
+        //             gmailErr.textContent = 'Only Gmail addresses are allowed (e.g. example@gmail.com).';
+        //             e.target.insertAdjacentElement('afterend', gmailErr);
+        //         }
+        //         e.target.classList.add('is-invalid');
+        //     } else {
+        //         if (gmailErr) gmailErr.remove();
+        //         e.target.classList.remove('is-invalid');
+        //     }
+        // }
         if (e.target.id === 'email') {
             emailOtpVerified = false;
             otpAlreadySentEmail = null;
-            clearOtpVerified(); // ADD
-            const emailVal = e.target.value;
+            clearOtpVerified();
             const existsErr = document.getElementById('email-exists-error');
-            let gmailErr = document.getElementById('email-gmail-error');
-
+            const sendErr = document.getElementById('email-send-error');   // ADD
             if (existsErr) existsErr.remove();
+            if (sendErr) sendErr.remove();                                  // ADD
             e.target.classList.remove('is-invalid');
-
-            if (emailVal && !emailVal.toLowerCase().endsWith('@gmail.com')) {
-                if (!gmailErr) {
-                    gmailErr = document.createElement('small');
-                    gmailErr.id = 'email-gmail-error';
-                    gmailErr.style.cssText = 'color: #dc2626; font-size: 12.5px; margin-top: 4px; display: block;';
-                    gmailErr.textContent = 'Only Gmail addresses are allowed (e.g. example@gmail.com).';
-                    e.target.insertAdjacentElement('afterend', gmailErr);
-                }
-                e.target.classList.add('is-invalid');
-            } else {
-                if (gmailErr) gmailErr.remove();
-                e.target.classList.remove('is-invalid');
-            }
         }
     });
 

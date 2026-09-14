@@ -150,7 +150,7 @@ function buildCards() {
                         min="0" max="99"
                         placeholder="0"
                         value="${existingQty > 0 ? existingQty : ''}"
-                        data-numeric-guard
+                        onkeydown="if(event.key==='e'||event.key==='E'||event.key==='+'||event.key==='-') event.preventDefault();"
                     />
                 </div>
             </div>

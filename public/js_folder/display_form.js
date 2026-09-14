@@ -18,6 +18,7 @@ const spouse_place_birth = document.getElementById("spouse_place_birth");
 const number_son = document.getElementById("number_son");
 const number_daughter = document.getElementById("number_daughter");
 const other_spec = document.getElementById("other_spec");
+const contact_no = document.getElementById("contact_no");
 
 // const uv = document.getElementById("uv");
 // const taxi = document.getElementById("taxi");
@@ -91,6 +92,10 @@ date_birth.addEventListener("input", () => {
     });
 
     document.getElementById("date_birth_display").textContent = readableDate;
+});
+
+contact_no.addEventListener("input", () => {
+    document.getElementById("contact_no_display").textContent = contact_no.value;
 });
 
 place_birth.addEventListener("input", () => {

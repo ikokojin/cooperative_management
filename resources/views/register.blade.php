@@ -7,7 +7,6 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Apply for Membership</title>
     <link rel="icon" href="images/websitelogo.png" type="image/png">
-    <script src="{{ asset('js/csp-events.js') }}"></script>
 
     {{-- css link --}}
     <link rel="stylesheet" href="css_folder/register.css">
@@ -75,7 +74,7 @@
                 </div>
             </div>
 
-            <hr style="margin-top: 5rem; color: #FFFFFF4D;">
+            <hr style="margin-top: 5rem; color: var(--teal);">
 
             <div class="form-acc">
                 <label>Already a member? <a href="{{ route("LoginPage") }}" id="signin-link">Sign in here</a></label>
@@ -233,11 +232,11 @@
 
                             <!-- Buttons -->
                             <div class="actions">
-                                <button type="button" class="btn-prev" data-action="prevStep" style="display:none;">
+                                <button type="button" class="btn-prev" id="btnPrev" style="display:none;">
                                     <i class="fa fa-chevron-left"></i>
                                     <span>Previous</span>
                                 </button>
-                                <button type="button" class="btn-next" data-action="nextStep">
+                                <button type="button" class="btn-next" id="btnNext">
                                     <span>Next Step</span>
                                     <i class="fa fa-chevron-right"></i>
                                 </button>
@@ -272,7 +271,7 @@
 
         select_type.addEventListener("change", function () {
             const driver_operator = document.querySelector(".driver-operator");
-            if (this.value === "Driver" || this.value === "Investor Associate") {
+            if (this.value === "Driver" || this.value === "Allied Workers" || this.value === "Investor Associate") {
                 driver_operator.style.display = "none";
             } else {
                 driver_operator.style.display = "block";
@@ -325,7 +324,8 @@
                             <i class="fa fa-check" style="font-size: 32px; color: #ffffff;"></i>
                         </div>
                         <h4 class="modal-title fw-bold mb-1" style="color: #1a1a1a;">Registration Successful!</h4>
-                        <p class="mb-0" style="opacity: 0.85; font-size: 0.9rem; color: var(--muted)">Your application has been
+                        <p class="mb-0" style="opacity: 0.85; font-size: 0.9rem; color: var(--muted)">Your application has
+                            been
                             submitted</p>
                     </div>
 
@@ -372,6 +372,11 @@
             });
         </script>
     @endif
+
+    <script nonce="{{ csp_nonce() }}">
+        document.getElementById('btnPrev')?.addEventListener('click', prevStep);
+        document.getElementById('btnNext')?.addEventListener('click', nextStep);
+    </script>
 
 </body>
 

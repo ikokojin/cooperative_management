@@ -6,13 +6,16 @@
 
 .overlay {
     position: absolute;
-    width: 100%;
-    height: 100%;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: var(--teal);
+    opacity: 0.55;
+    /* tint strength — tune to taste, 0.4–0.65 usually looks good */
+    border-radius: inherit;
+    /* keep the rounded top corners */
+    pointer-events: none;
 }
 
 .back-to-landing {
@@ -153,7 +156,8 @@ div.container-fluid {
 ══════════════════════════════════════ */
 .container-fluid .form-image {
     /* z-index: 999; */
-    display: flex;
+    /* display: flex; */
+    display: none;
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
@@ -547,15 +551,22 @@ div.container-fluid {
     /* width: 630px;
     height: 100%; */
     /* height: 100vh; */
-    overflow-y: hidden;
-    overflow-y: none;
+    /* overflow-y: hidden; */
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     padding: 2rem;
+    position: relative;
+    /* overflow: hidden; */
     /* background-color: #F5F6FA; */
-    background-color: #FBFBFD;
+    /* background-color: #FBFBFD; */
+    /* background-image: url('../images/loginImage5.jpg');
+    background-position: center;
+    background-size: cover;
+    background-position: no-repeat;
+    position: relative; */
     /* background-color: var(--ice); */
     /* background-color: var(--ice); */
     /* background-color: var(--cyan); */
@@ -572,7 +583,35 @@ div.container-fluid {
     scrollbar-color: rgba(245, 166, 35, .3) transparent; */
 }
 
-.container-fluid .form-box-parent::-webkit-scrollbar{
+/* image layer — fixed to viewport, never scrolls */
+.container-fluid .form-box-parent::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('../images/loginImage4.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* dark tint layer — also fixed, sits above the image */
+.container-fluid .form-box-parent::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.35) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* .container-fluid .form-box-parent .form-sub-box{
+    width: 100%;
+    height: 100%;
+} */
+
+.container-fluid .form-box-parent::-webkit-scrollbar {
     width: 10px;
 }
 
@@ -593,20 +632,26 @@ div.container-fluid {
 .container-fluid .form-parent {
     border-radius: 24px;
     z-index: 10;
-    width: 500px;
-    width: 490px;
-    max-width: 100%;
+    /* width: 500px; */
+    width: 100%;
+    max-width: 480px;
+    /* max-width: 100%; */
     /* width: 530px; */
     /* padding: 52px 48px 48px; */
     /* padding: 48px 48px; */
     position: relative;
     overflow: visible;
     margin: auto 0;
-    animation: slideIn 0.4s ease both;
+    /* animation: slideIn 0.4s ease both; */
     /* box-shadow: 0 32px 80px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .18); */
     /* background: rgba(255, 255, 255, .07);
     border: 1px solid rgba(255, 255, 255, .14); */
-    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04); */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1.5px solid var(--border);
+    background-color: #ffffff;
+    /* padding: 1.5rem; */
+    /* padding: 52px 48px 48px; */
+    /* padding: 45px; */
     /* border: 1.5px solid var(--border);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04); */
     /* box-shadow: var(--shadow); */
@@ -615,6 +660,135 @@ div.container-fluid {
     -webkit-backdrop-filter: blur(28px) saturate(160%); */
     /* background-color: var(--teal); */
     /* margin-top: 5rem; */
+}
+
+/* 
+.form-wave {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 220px;              
+    background-color: var(--teal);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    clip-path: polygon(
+        0% 0%,
+        100% 0%,
+        100% 78%,
+        75% 88%,
+        50% 82%,
+        25% 92%,
+        0% 84%
+    );
+    z-index: 0;
+    pointer-events: none;
+} */
+
+/* .form-wave-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: var(--teal);
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+    clip-path: polygon(
+        0% 100%,
+        100% 100%,
+        100% 22%,
+        75% 12%,
+        50% 18%,
+        25% 8%,
+        0% 16%
+    );
+    z-index: 0;
+    pointer-events: none;
+} */
+
+/* --- Blob 1: big oblong shape, top right --- 
+     Made with border-radius: each value = top-left top-right bottom-right bottom-left
+     Using very different values on each corner gives the "oblong / blob" look */
+.blob-large {
+    position: absolute;
+    /* top: 200px;
+    right: 200px; */
+    top: -60px;
+    right: -80px;
+    /* right: -80px; */
+    width: 320px;
+    height: 320px;
+    background: linear-gradient(135deg, var(--teal), var(--teal));
+    border-radius: 42% 58% 65% 35% / 45% 45% 55% 55%;
+    /* border-radius: 60% 40% 55% 45% / 55% 45% 55% 45%; */
+    z-index: 0;
+}
+
+.blob-small-2 {
+    position: absolute;
+    /* top: 200px;
+    right: 200px; */
+    top: 400px;
+    right: 330px;
+    /* right: -80px; */
+    width: 80px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--teal), var(--teal));
+    border-radius: 42% 58% 65% 35% / 45% 45% 55% 55%;
+    /* border-radius: 60% 40% 55% 45% / 55% 45% 55% 45%; */
+    z-index: 0;
+}
+
+.blob-large-3 {
+    position: absolute;
+    /* top: 200px;
+    right: 200px; */
+    top: 200px;
+    right: 250px;
+    /* right: -80px; */
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, var(--teal), var(--teal));
+    border-radius: 42% 58% 65% 35% / 45% 45% 55% 55%;
+    /* border-radius: 60% 40% 55% 45% / 55% 45% 55% 45%; */
+    z-index: 0;
+}
+
+/* --- Blob 2: small rounded shape, bottom left --- */
+.blob-small {
+    position: absolute;
+    bottom: 70px;
+    left: 60px;
+    width: 70px;
+    height: 60px;
+    background: linear-gradient(135deg, #ff7a3d, #ffb03d);
+    border-radius: 60% 40% 55% 45% / 55% 45% 55% 45%;
+    z-index: 0;
+}
+
+/* --- Blob 3: clip-path version (more irregular, freeform edges) --- */
+.blob-clip {
+    position: absolute;
+    top: 40px;
+    left: -40px;
+    width: 140px;
+    height: 140px;
+    background: linear-gradient(135deg, #ffcf5c, #ff7a3d);
+    clip-path: polygon(40% 0%, 60% 5%, 80% 15%, 95% 35%,
+            100% 60%, 90% 80%, 70% 95%, 45% 100%,
+            20% 90%, 5% 70%, 0% 45%, 15% 15%);
+    z-index: 0;
+    opacity: 0.5;
+}
+
+.container-fluid .form-parent .body-background {
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.container-fluid .form-parent form {
+    padding: 0 45px 45px;
 }
 
 .container-fluid .form-parent::before {
@@ -655,7 +829,11 @@ div.container-fluid {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    /* margin-top: 1rem; */
+    padding: 30px 45px 0;
+    z-index: 1;
+    position: relative;
+    /* padding: 4px 45px 0; */
+    /* z-index: 2; */
 }
 
 .container-fluid .form-parent .nav-form .nav-tag {
@@ -676,11 +854,14 @@ div.container-fluid {
     gap: 1rem;
     text-decoration: none;
     color: none;
+    margin: 0 0 36px;
+    /* margin: 0 0 20px; */
 }
 
 .container-fluid .form-parent .nav-form .nav-tag img {
     width: 45px;
     height: 45px;
+    border-radius: 50%;
 }
 
 .container-fluid .form-parent .nav-form .nav-tag h3 {
@@ -690,6 +871,7 @@ div.container-fluid {
     margin: 0;
     font-weight: 600;
     color: var(--teal);
+    /* color: #ffffff; */
 }
 
 /* .container-fluid .form-parent .nav-form .nav-tag::before {
@@ -701,8 +883,8 @@ div.container-fluid {
 
 .container-fluid .form-parent p {
     width: 100%;
-    font-size: 15.5px;
-    margin: 0px 0px;
+    font-size: 14.5px;
+    margin: 5px 0px;
     /* color: #808080; */
     color: var(--muted);
 }
@@ -710,9 +892,9 @@ div.container-fluid {
 .form-nav-divider {
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, var(--blue), rgba(201, 168, 76, 0.1), transparent);
+    background: linear-gradient(90deg, var(--teal), rgba(201, 168, 76, 0.1), transparent);
     margin-top: 1.5rem;
-    display: none;
+    /* display: none; */
 }
 
 .container-fluid .form-parent .form-divider {
@@ -769,29 +951,34 @@ div.container-fluid {
    SHARED / TYPOGRAPHY
 ══════════════════════════════════════ */
 .container-fluid h1 {
-    font-size: 40px;
+    /* font-size: 40px; */
+    font-size: 34px;
     /* color: #fff; */
     color: var(--teal);
+    /* color: #ffffff; */
     font-weight: 600;
-    width: 350px;
-    margin: 5px 0 0;
     /* width: 350px; */
-    width: 450px;
+    margin: 5px 0 10px;
+    /* width: 350px; */
+    /* width: 450px; */
     margin: 0;
     /* font-family: "Playfair Display"; */
     font-family: Georgia, "Times New Roman", serif;
+    text-align: start;
 }
 
 .container-fluid h1 b {
     /* font-family: "Playfair Display"; */
     font-family: Georgia, "Times New Roman", serif;
     font-style: italic;
-    color: var(--blue);
+    color: var(--teal);
+    /* color: #ffffff; */
     font-weight: 600;
+    text-align: start;
 }
 
 .container-fluid p {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 500;
     margin: 0;
     /* color: rgba(255, 255, 255, .5); */
@@ -800,10 +987,11 @@ div.container-fluid {
     color: rgba(255, 255, 255, 0.75);
     /* color: #808080; */
     /* color: rgba(255, 255, 255, 0.5); */
+    text-align: start;
 }
 
 .container-fluid .form-input label {
-    font-size: 15px;
+    font-size: 14.5px;
     /* text-transform: uppercase; */
     /* letter-spacing: .12em; */
     /* letter-spacing: 0.08em; */
@@ -814,8 +1002,8 @@ div.container-fluid {
 }
 
 .container-fluid .form-input input {
-    font-size: 14px;
-    font-size: 15.5px;
+    /* font-size: 14px; */
+    font-size: 14.5px;
     /* background: rgba(255, 255, 255, .07); */
     /* background-color: var(--border); */
     /* background: #f4fafc; */
@@ -825,14 +1013,13 @@ div.container-fluid {
     border: 1px solid var(--panel-border);
     /* color: #fff; */
     color: var(--teal);
-    padding: 13px 16px 13px 50px;
     background-color: var(--panel-dark);
     border: 1.5px solid var(--line);
     /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04); */
     /* color: #fff; */
     color: var(--teal);
     background-color: #ffffff;
-    padding: 13px 16px 13px 50px;
+    padding: 10px 16px 10px 50px;
     /* background-color: var(--semi-white); */
     width: 100%;
     border-radius: 8px;
@@ -935,6 +1122,39 @@ div.container-fluid {
     filter: brightness(1.05);
 }
 
+.background-form {
+    width: 100%;
+    /* height: 250px; */
+    /* height: 140px; */
+    height: 180px;
+    position: relative;
+    padding: 30px 45px 0;
+    /* padding: 10px 45px 0; */
+    /* padding: 2rem; */
+    /* height: 130px; */
+    /* background-color: var(--teal); */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    background-image: url('../images/login-img1.jpg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    overflow: hidden;
+    display: none;
+}
+
+/* .background-form::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;               
+    background: #ffffff;
+    border-radius: 100% 10% 0 0 / 100% 10% 80% 80%;
+    pointer-events: none;
+} */
+
 .form-forgot {
     display: flex;
     justify-content: end;
@@ -946,11 +1166,11 @@ div.container-fluid {
     color: var(--teal);
     text-decoration: none;
     font-weight: 500;
-    font-size: 15px;
+    font-size: 14.5px;
 }
 
 .form-change {
-    margin: 24px 0;
+    margin: 30px 0 24px;
 }
 
 .form-change label {
@@ -961,7 +1181,7 @@ div.container-fluid {
 .form-change label,
 .form-change a {
     text-transform: none;
-    font-size: 15px;
+    font-size: 14.5px;
 }
 
 .form-change a {
@@ -1082,7 +1302,7 @@ div.container-fluid {
     }
 } */
 
-@media only screen and (min-width: 1450px) {
+/* @media only screen and (min-width: 1450px) {
     .container-fluid .form-box-parent {
         padding: 2rem 4rem 2rem;
     }
@@ -1116,7 +1336,7 @@ div.container-fluid {
     .form-change label {
         font-size: 16px;
     }
-}
+} */
 
 /* @media only screen and (max-width: 1200px) {
     .container-fluid .form-image {
@@ -1191,5 +1411,13 @@ div.container-fluid {
 
     .container-fluid .form-parent {
         padding: 1.3rem;
+    }
+}
+
+@media only screen and (min-height: 800px) {
+    .container-fluid .form-box-parent {
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 }

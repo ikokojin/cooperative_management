@@ -24,7 +24,12 @@ class SetSecurityHeaders
 
         $response->headers->set(
             'Content-Security-Policy',
-            "default-src 'self'; script-src 'self' 'nonce-{$nonce}' blob: https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'"
+            "default-src 'self'; " .
+            "script-src 'self' 'nonce-{$nonce}' blob: http://127.0.0.1:* http://localhost:* https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " .
+            "style-src 'self' 'unsafe-inline' http://127.0.0.1:* http://localhost:* https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; " .
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
+            "img-src 'self' data: blob:; " .
+            "connect-src 'self' ws: wss: http://127.0.0.1:* http://localhost:*;"
         );
 
         if ($request->isSecure()) {

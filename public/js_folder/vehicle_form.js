@@ -76,7 +76,6 @@ function buildCards() {
                         name="${vehicle.qtyName}"
                         min="0" max="99"
                         placeholder="0"
-                        data-numeric-guard
                     />
                 </div>
             </div>
@@ -89,6 +88,8 @@ function buildCards() {
 
         grid.appendChild(card);
 
+
+
         // card.querySelector('.qty-input').addEventListener('input', function () {
         //     const val = parseInt(this.value) || 0;
         //     const clamped = Math.max(0, Math.min(99, val));
@@ -97,6 +98,11 @@ function buildCards() {
         //     saveVehicleState();
         // });
         const qtyInputEl = card.querySelector('.qty-input');
+        qtyInputEl.addEventListener('keydown', function (event) {
+            if (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
+                event.preventDefault();
+            }
+        });
         let shrinkTimer = null;
         const SHRINK_DEBOUNCE_MS = 500;
 
@@ -183,18 +189,18 @@ function renderPlateRows(vehicle, qty) {
         input.value = state[vehicle.qtyName].plates[i] || '';
         if (input.value) input.classList.add('filled');
 
-        input.onkeydown = function (event) {
+        input.addEventListener('keydown', function (event) {
             if (['+', '=', '?', '.', ',', '(', ')'].includes(event.key)) event.preventDefault();
-        };
+        });
 
-        input.oninput = function () {
+        input.addEventListener('input', function () {
             this.value = this.value.toUpperCase();
             state[vehicle.qtyName].plates[i] = this.value;
             this.classList.toggle('filled', this.value.length > 0);
             syncHiddenInputs(vehicle);
             saveVehicleState();
             if (typeof updateVehicleReview === 'function') updateVehicleReview();
-        };
+        });
 
         row.appendChild(idx);
         row.appendChild(input);

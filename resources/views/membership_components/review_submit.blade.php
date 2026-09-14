@@ -41,7 +41,7 @@
         padding-left: 100px;
     }
 
-    #vehicles_review_display{
+    #vehicles_review_display {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
@@ -49,7 +49,7 @@
 
     .review-plate-badge {
         /* background: #f0fdf4; */
-        background-color: var(--blue);
+        background-color: var(--teal);
         /* border: 1px solid #bbf7d0; */
         border: 1px solid var(--line);
         /* color: #166534; */
@@ -137,6 +137,10 @@
                             <div class="review mt-3">
                                 <p>Skills/Expertise:</p>
                                 <p id="skills_display"></p>
+                            </div>
+                            <div class="review mt-3">
+                                <p>Cellphone Number:</p>
+                                <p id="contact_no_display"></p>
                             </div>
                         </div>
                     </div>
@@ -239,11 +243,11 @@
                                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                                 <h5 style="margin:0; font-weight:700; color:#1a4a3a;">Applicant's Signature</h5>
                                 <div style="display:flex; gap:8px;">
-                                    <button type="button" data-action="clearModalSignature"
+                                    <button type="button" id="btn-clear-modal-signature"
                                         style="background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; padding:6px 16px; font-size:13px; cursor:pointer; color:#555;">
                                         <i class="fa fa-trash" style="font-size:11px;"></i> Clear
                                     </button>
-                                    <button type="button" data-action="saveModalSignature"
+                                    <button type="button" id="btn-save-modal-signature"
                                         style="background:#1a4a3a; color:#fff; border:none; border-radius:8px; padding:6px 20px; font-size:13px; font-weight:600; cursor:pointer;">
                                         <i class="fa fa-check"></i> Save Signature
                                     </button>
@@ -259,8 +263,10 @@
 
         <div class="row">
             <div class="col-lg-12 mt-4">
-                <div class="card py-3 px-4" style="background: rgba(245, 166, 35, .18); border: none; border-radius: 10px;">
-                    <p class="m-0" style="font-size: 14.5px; color: var(--gold);"><b>Note:</b> By submitting this application, you authorize
+                <div class="card py-3 px-4"
+                    style="background: rgba(245, 166, 35, .18); border: none; border-radius: 10px;">
+                    <p class="m-0" style="font-size: 14.5px; color: var(--gold);"><b>Note:</b> By submitting this
+                        application, you authorize
                         the cooperative to verify the information provided and to conduct necessary background checks as
                         required by law.</p>
                 </div>
@@ -269,4 +275,13 @@
 
     </div>
 </div>
+
+<script nonce="{{ csp_nonce() }}">
+    document.getElementById('btn-clear-modal-signature')?.addEventListener('click', function () {
+        if (typeof clearModalSignature === 'function') clearModalSignature();
+    });
+    document.getElementById('btn-save-modal-signature')?.addEventListener('click', function () {
+        if (typeof saveModalSignature === 'function') saveModalSignature();
+    });
+</script>
 </div>
