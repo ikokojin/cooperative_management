@@ -209,6 +209,8 @@ Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify')
 //     Route::post('/verify-otp', [OtpController::class, 'verify'])->name('verify.otp');
 // });
 
+Route::post('/change-password', [UsersHandle::class, 'ChangePassword'])->name('ChangePassword');
+
 // Admin routes
 Route::get("/dashboard-admin", [UserController::class, "dashboard_admin"])->name("dashboard")->middleware("admin");
 Route::get("/dashboard-members", [UserController::class, "dashboard_members"])->name("dashboard.members")->middleware("admin");
@@ -252,6 +254,12 @@ Route::post("/roles/store", [UserController::class, "storeRole"])->name("roles.s
 Route::post("/roles/update", [UserController::class, "updateRole"])->name("roles.update")->middleware("admin");
 Route::post("/roles/delete", [UserController::class, "deleteRole"])->name("roles.delete")->middleware("admin");
 
+Route::middleware(['auth'])->group(function () {
+    Route::post('/admin/backups', [App\Http\Controllers\UserController::class, 'createBackup'])->name('admin.backup.create');
+    Route::get('/admin/backups/{filename}/download', [App\Http\Controllers\UserController::class, 'downloadBackup'])->name('admin.backup.download');
+    Route::delete('/admin/backups/{filename}', [App\Http\Controllers\UserController::class, 'deleteBackup'])->name('admin.backup.delete');
+});
+
 // Allied Worker management (GM / Main Admin only; guards enforced in controller)
 Route::get("/allied-workers", [AlliedWorkerController::class, "index"])->name("allied-workers.index")->middleware("admin");
 Route::post("/allied-workers/promote", [AlliedWorkerController::class, "promote"])->name("allied-workers.promote")->middleware("admin");
@@ -284,6 +292,10 @@ Route::get("/dashboard-officers-committees", [UserController::class, "dashboard_
 Route::post("/officers/store", [UserController::class, "storeOfficer"])->name("officers.store")->middleware("admin");
 Route::put("/officers/{id}", [UserController::class, "updateOfficer"])->name("officers.update")->middleware("admin");
 Route::delete("/officers/{id}", [UserController::class, "deleteOfficer"])->name("officers.delete")->middleware("admin");
+
+Route::post('/officer-positions', [UserController::class, 'storeOfficerPosition'])->name('officer-positions.store');
+Route::delete('/officer-positions/{id}', [UserController::class, 'deleteOfficerPosition'])->name('officer-positions.destroy');
+
 // Announcement routes
 Route::post("/announcements", [App\Http\Controllers\AnnouncementController::class, "store"])->name("announcements.store")->middleware("admin");
 Route::post("/announcements/{id}/comment", [App\Http\Controllers\AnnouncementController::class, "storeComment"])->name("announcements.comment")->middleware("auth");

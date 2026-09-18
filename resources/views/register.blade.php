@@ -567,19 +567,18 @@
             // modal's own checkbox → button behaviour.
             if (!modalCheckbox || !agreeBtn) return;
 
-            (function restoreTermsAccepted() {
-                try {
-                    if (sessionStorage.getItem('kpmpcats_terms_accepted') === '1') {
-                        const hiddenInput = document.getElementById('termsAcceptedInput');
-                        if (hiddenInput) hiddenInput.value = '1';
-                    }
-                } catch (e) { }
-            })();
+            // (function restoreTermsAccepted() {
+            //     try {
+            //         if (sessionStorage.getItem('kpmpcats_terms_accepted') === '1') {
+            //             const hiddenInput = document.getElementById('termsAcceptedInput');
+            //             if (hiddenInput) hiddenInput.value = '1';
+            //         }
+            //     } catch (e) { }
+            // })();
 
             function markAccepted() {
                 const hiddenInput = document.getElementById('termsAcceptedInput');
                 if (hiddenInput) hiddenInput.value = '1';
-                try { sessionStorage.setItem('kpmpcats_terms_accepted', '1'); } catch (e) { }
 
                 linkBox?.classList.add('terms-link-accepted');
                 if (linkTitle) linkTitle.textContent = 'Cooperative Terms & Conditions';
@@ -589,6 +588,10 @@
 
                 const termsErr = document.getElementById('terms-error');
                 if (termsErr) termsErr.style.display = 'none';
+
+                if (typeof window.updateNextButtonState === 'function') {
+                    window.updateNextButtonState();
+                }
             }
 
             // Safety net: if a backdrop or the body lock is ever left behind

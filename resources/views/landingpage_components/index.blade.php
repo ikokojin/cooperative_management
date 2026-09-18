@@ -354,8 +354,8 @@
                                 <i class="fa fa-chart-simple"></i>
                             </div>
                             <div class="badge-text">
-                                <span>Credit Score</span>
-                                <small>Track your growth</small>
+                                <span>Savings</span>
+                                <small>Manage and grow</small>
                             </div>
                         </div>
                         <div class="badge-parent badge-4">
@@ -465,7 +465,7 @@
         </div> -->
 
         <section id="section3">
-            <div class="section3-parent">
+            <div class="section3-parent" id="section3-parent">
                 <div class="section-image reveal reveal-delay-1">
                     <!-- <img src="images/benefits.jpg" alt=""> -->
                     <img src="images/about-us.jpg" alt="">
@@ -558,7 +558,7 @@
             </div>
         </section>
 
-        <div class="how-it-works-parent">
+        <div class="how-it-works-parent" id="how-it-works-parent">
             <div class="how-it-works">
                 <div class="how-it-works-header">
                     <div class="how-it-card-tag">How it Works</div>
@@ -1301,6 +1301,41 @@
             </div>
         </section>
 
+        <div class="officers-section">
+            <div class="officers-header">
+                <div class="officers-tag">Officers</div>
+                <h2>Meet the <b>Team</b></h2>
+                <p>The dedicated leaders guiding KPMPCATS toward sustainable growth and member-first service.</p>
+            </div>
+
+            <div class="officers-grid">
+                @forelse($officers as $officer)
+                    @php
+                        $name = trim(($officer->user->first_name ?? '') . ' ' . ($officer->user->last_name ?? ''));
+                    @endphp
+                    <div class="officer-card reveal">
+                        <div class="officer-avatar">
+                            <i class="fa fa-user"></i>
+                        </div>
+
+                        <h4>{{ $name }}</h4>
+                        <span class="officer-position">{{ $officer->position }}</span>
+
+                        @if($officer->term_start || $officer->term_end)
+                            <p class="officer-term">
+                                {{ $officer->term_start ? $officer->term_start->format('Y') : 'Present' }} –
+                                {{ $officer->term_end ? $officer->term_end->format('Y') : 'Present' }}
+                            </p>
+                        @endif
+                    </div>
+                @empty
+                    <div class="officers-empty">
+                        <p>Leadership information coming soon.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
         <section id="section5">
             <h2 class="text-center">Ready to Join <b>Our Community?</b></h2>
 
@@ -1379,7 +1414,7 @@
             current = (idx + total) % total;
             slides[current].classList.add('active');
             dots[current].classList.add('active');
-            track.style.transform = `translateX(-${current * 100}%)`;
+            track.style.transform = translateX(-${current * 100}%);
             slideNum.textContent = String(current + 1).padStart(2, '0');
             progress.style.transition = 'none';
             progress.style.width = '0%';
@@ -1437,7 +1472,7 @@
         let lastScrollY = window.scrollY;
 
         window.addEventListener('scroll', () => {
-            if (lastScrollY < window.scrollY) {
+        if (lastScrollY < window.scrollY) {
                 nav.classList.add('nav-hidden');
             } else {
                 nav.classList.remove('nav-hidden');

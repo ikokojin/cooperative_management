@@ -228,20 +228,43 @@
             updateSteps();
             document.querySelector('.form-box')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-
-        // ✅ TERMS & CONDITIONS VALIDATION
-        const termsInput = currentFormStep.querySelector('#termsAcceptedInput');
-        const termsError = document.getElementById('terms-error');
-        if (termsInput && termsInput.value !== '1') {
-            if (termsError) {
-                termsError.style.display = 'block';
-                termsError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            return;
-        } else if (termsError) {
-            termsError.style.display = 'none';
-        }
     }
+
+    function updateNextButtonState() {
+        if (!document.getElementById('next-btn-disabled-styles')) {
+            const style = document.createElement('style');
+            style.id = 'next-btn-disabled-styles';
+            style.textContent = `
+            .btn-next.btn-disabled {
+                opacity: 0.5 !important;
+                cursor: not-allowed !important;
+                pointer-events: none !important;
+            }
+        `;
+            document.head.appendChild(style);
+        }
+
+        if (currentStep_form !== 0) {
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('btn-disabled');
+            return;
+        }
+
+        const agree1 = document.getElementById('checkboxDefault1');
+        const agree2 = document.getElementById('checkboxDefault2');
+        const termsInput = document.getElementById('termsAcceptedInput');
+
+        const allChecked = agree1?.checked && agree2?.checked && termsInput?.value === '1';
+
+        nextBtn.disabled = !allChecked;
+        nextBtn.classList.toggle('btn-disabled', !allChecked);
+    }
+
+    document.addEventListener('change', function (e) {
+        if (e.target.id === 'checkboxDefault1' || e.target.id === 'checkboxDefault2') {
+            updateNextButtonState();
+        }
+    });
 
     async function sendOtpAndVerify(email) {
 
@@ -429,6 +452,7 @@
 
     // Call on page load to set initial state
     updateSteps();
+    updateNextButtonState();
 
     // ── Helper: compute age from a date string ──────────────────────────────
     function computeAge(dateString) {
@@ -442,6 +466,24 @@
     }
 
     async function nextStep() {
+        // 🔒 Hard safety guard — never allow advancing past Step 1 unless terms are accepted
+        if (currentStep_form === 0) {
+            const step0 = steps_form[0];
+            const agree1 = step0.querySelector('#checkboxDefault1');
+            const agree2 = step0.querySelector('#checkboxDefault2');
+            const termsInputCheck = step0.querySelector('#termsAcceptedInput');
+            const blocked = !(agree1?.checked && agree2?.checked && termsInputCheck?.value === '1');
+            if (blocked) {
+                updateNextButtonState();
+                const termsError = document.getElementById('terms-error');
+                if (termsError) {
+                    termsError.style.display = 'block';
+                    termsError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+        }
+
         const currentFormStep = steps_form[currentStep_form];
         const requiredFields = currentFormStep.querySelectorAll("input[required], select[required]");
 
@@ -449,6 +491,21 @@
             if (!field.checkValidity()) {
                 field.reportValidity();
                 return;
+            }
+        }
+
+        // ✅ TERMS & CONDITIONS MODAL VALIDATION — Step 1 only
+        if (currentStep_form === 0) {
+            const termsInput = currentFormStep.querySelector('#termsAcceptedInput');
+            const termsError = document.getElementById('terms-error');
+            if (termsInput && termsInput.value !== '1') {
+                if (termsError) {
+                    termsError.style.display = 'block';
+                    termsError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            } else if (termsError) {
+                termsError.style.display = 'none';
             }
         }
 
@@ -535,23 +592,6 @@
             }
         }
 
-        // ✅ GMAIL ONLY CHECK
-        // const emailInput = currentFormStep.querySelector('#email');
-        // if (emailInput && emailInput.value) {
-        //     const existingGmailError = currentFormStep.querySelector('#email-gmail-error');
-        //     if (existingGmailError) existingGmailError.remove();
-
-        //     if (!emailInput.value.toLowerCase().endsWith('@gmail.com')) {
-        //         const errorMsg = document.createElement('small');
-        //         errorMsg.id = 'email-gmail-error';
-        //         errorMsg.style.cssText = 'color: #dc2626; font-size: 12.5px; margin-top: 4px; display: block;';
-        //         errorMsg.textContent = 'Only Gmail addresses are allowed (e.g. example@gmail.com).';
-        //         emailInput.classList.add('is-invalid');
-        //         emailInput.insertAdjacentElement('afterend', errorMsg);
-        //         emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        //         return;
-        //     }
-        // }
         const emailInput = currentFormStep.querySelector('#email');
 
         // ✅ EMAIL + OTP VERIFICATION — then check if email already exists
@@ -559,11 +599,9 @@
             const existingEmailError = currentFormStep.querySelector('#email-exists-error');
             if (existingEmailError) existingEmailError.remove();
 
-            // 1️⃣ Verify email via OTP (skipped automatically if already verified)
             const otpVerified = await sendOtpAndVerify(emailInput.value);
-            if (!otpVerified) return;   // user cancelled or OTP failed — stay on this step
+            if (!otpVerified) return;
 
-            // 2️⃣ Check if email already registered
             try {
                 const response = await fetch('/check-email', {
                     method: 'POST',
@@ -593,9 +631,8 @@
                 console.error('Email check failed:', err);
             }
 
-            // ✅ OTP verified + email is free — advance immediately
             goToNextStep();
-            return; // <-- KEY FIX: stop here, don't fall through to signature check
+            return;
         }
 
         // ✅ SIGNATURE VALIDATION (only reached on non-email steps)
@@ -611,7 +648,6 @@
             signatureError.style.display = 'none';
         }
 
-        // ✅ All validations passed — go to next step
         goToNextStep();
     }
 
@@ -830,5 +866,6 @@
     window.openSignatureModal = openSignatureModal;
     window.clearModalSignature = clearModalSignature;
     window.saveModalSignature = saveModalSignature;
+    window.updateNextButtonState = updateNextButtonState;
 
 })();
