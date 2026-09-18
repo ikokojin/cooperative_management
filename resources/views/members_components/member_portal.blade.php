@@ -14,7 +14,6 @@
     {{-- css link --}}
     <link rel="stylesheet" href="css_folder/homepage.css">
     <link rel="stylesheet" href="css_folder/loading.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     {{-- bootstrap and tailwind link --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -1228,26 +1227,6 @@
         })();
     </script>
 
-    <script nonce="{{ csp_nonce() }}">
-
-    {{-- Toast --}}
-    @if (session("message"))
-        <div class="toast-message">
-            <i class="fa fa-check-circle"></i>
-            <div>
-                <p>{{ session("message") }}</p>
-            </div>
-        </div>
-        <script nonce="{{ csp_nonce() }}">
-            setTimeout(() => {
-                const msg = document.querySelector(".toast-message");
-                if (msg) {
-                    msg.classList.add("hide");
-                    msg.addEventListener("animationend", () => msg.remove());
-                }
-            }, 3000);
-        </script>
-    @endif
 
     @if (request('open_standing_modal'))
         <script nonce="{{ csp_nonce() }}">

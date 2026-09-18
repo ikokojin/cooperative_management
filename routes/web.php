@@ -260,6 +260,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/admin/backups/{filename}', [App\Http\Controllers\UserController::class, 'deleteBackup'])->name('admin.backup.delete');
 });
 
+Route::post('/notifications/mark-read', [App\Http\Controllers\UsersHandle::class, 'MarkNotificationRead'])
+    ->name('notifications.markRead');
+
 // Allied Worker management (GM / Main Admin only; guards enforced in controller)
 Route::get("/allied-workers", [AlliedWorkerController::class, "index"])->name("allied-workers.index")->middleware("admin");
 Route::post("/allied-workers/promote", [AlliedWorkerController::class, "promote"])->name("allied-workers.promote")->middleware("admin");

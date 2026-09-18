@@ -1624,15 +1624,10 @@ class UsersHandle extends Controller
             ]);
         }
 
-        // $activeTd = \App\Models\TimeDeposit::where('savings_account_id', $savingsAccount->id)
-        //     ->where('status', 'active')
-        //     ->latest('opened_at')
-        //     ->first();
-
-        // $regularSavingsBalance = (new \App\Http\Controllers\SavingsController)->computeSavingsBalance($savingsAccount->id);
-        // $timeDepositBalance = (float) ($activeTd->balance ?? 0);
-        // $interestAccruedBalance = (float) ($activeTd->interest_accrued_balance ?? 0);
-        // $totalSavingsBalance = $regularSavingsBalance + $timeDepositBalance + $interestAccruedBalance;
+        $regularSavingsBalance = (new \App\Http\Controllers\SavingsController)->computeSavingsBalance($savingsAccount->id);
+        $timeDepositBalance = 0;
+        $interestAccruedBalance = 0;
+        $totalSavingsBalance = $regularSavingsBalance;
 
         $regularSavingsSetting = \App\Models\Savings_settings_tbl::where('savings_type', 'Regular Savings')->first();
         $regularSavingsRate = $regularSavingsSetting->interest_rate ?? 4.00;
@@ -1801,7 +1796,6 @@ class UsersHandle extends Controller
                 'monthsActive',
                 'hasShareCapital',
                 'regularSavingsBalance',
-                'timeDepositBalance',
                 'interestAccruedBalance',
                 'totalSavingsBalance',
                 'regularSavingsRate',
@@ -2490,6 +2484,7 @@ class UsersHandle extends Controller
                     'message' => "{$displayType} was due on {$due->format('M d, Y')}. Please settle to avoid additional late fees.",
                     'time' => $due->diffForHumans(),
                     'sort_at' => $due,
+                    'url' => route('LoanApplication'),
                 ]);
             } elseif ($daysLeft === 0) {
                 $notifications->push([
@@ -2501,6 +2496,7 @@ class UsersHandle extends Controller
                     // Live reminder — use the exact current moment so it's never
                     // outranked by a real past event that happened later today.
                     'sort_at' => $due,
+                    'url' => route('LoanApplication'),
                 ]);
             } elseif ($daysLeft <= 7) {
                 $notifications->push([
@@ -2510,6 +2506,7 @@ class UsersHandle extends Controller
                     'message' => "{$displayType} is due on {$due->format('M d, Y')} (in {$daysLeft} day" . ($daysLeft === 1 ? '' : 's') . ').',
                     'time' => $due->diffForHumans(),
                     'sort_at' => $due,
+                    'url' => route('LoanApplication'),
                 ]);
             }
         }
@@ -2566,6 +2563,7 @@ class UsersHandle extends Controller
                         . ' (Ref: ' . $tx->reference_no . ').',
                     'time' => Carbon::parse($tx->updated_at)->diffForHumans(),
                     'sort_at' => Carbon::parse($tx->updated_at),
+                    'url' => route('Financial', ['tab' => 'share_capital']),
                 ]);
             }
         }
@@ -2592,6 +2590,7 @@ class UsersHandle extends Controller
                         . ' (Ref: ' . $tx->reference_no . ').',
                     'time' => Carbon::parse($tx->updated_at)->diffForHumans(),
                     'sort_at' => Carbon::parse($tx->updated_at),
+                    'url' => route('Financial', ['tab' => 'savings']),
                 ]);
             }
 
@@ -2610,6 +2609,7 @@ class UsersHandle extends Controller
                     'message' => '₱' . number_format($tx->amount, 2) . " patronage refund has been credited to your Savings account (Ref: {$tx->reference_no}).",
                     'time' => Carbon::parse($tx->created_at ?? $tx->transaction_date)->diffForHumans(),
                     'sort_at' => Carbon::parse($tx->created_at ?? $tx->transaction_date),
+                    'url' => route('Financial', ['tab' => 'savings']),
                 ]);
             }
         }
@@ -2648,6 +2648,7 @@ class UsersHandle extends Controller
                     . " · {$deliveryText}.",
                 'time' => $sessionDate->diffForHumans(),
                 'sort_at' => $sessionDate,
+                'url' => route('Seminars'),
             ]);
         }
 
@@ -2678,7 +2679,8 @@ class UsersHandle extends Controller
                 'title' => 'Seminar Not Yet Scheduled',
                 'message' => "{$displayLabel} is still required to complete your membership training. No session has been scheduled yet — check back soon.",
                 'time' => 'Pending',
-                'sort_at' => $today->copy()->addDays(90), // low priority — pushed toward the bottom
+                'sort_at' => $today->copy()->addDays(90),
+                'url' => route('Seminars'),
             ]);
         }
 
@@ -2703,14 +2705,30 @@ class UsersHandle extends Controller
             'distance_seconds' => abs(Carbon::now()->diffInSeconds($n['sort_at'], false)),
         ])->toArray());
 
+        $readIds = session('read_notification_ids', []);
+
         return $notifications
             ->unique(fn($n) => $n['title'] . '|' . $n['message'])
+            ->map(function ($n) {
+                $n['id'] = md5($n['title'] . '|' . $n['message']);
+                return $n;
+            })
+            ->reject(fn($n) => isset($readIds[$n['id']]))
             ->sortBy(function ($n) {
-                // Smallest distance from "now" wins — "16 hours ago" (16h gap)
-                // ranks above "due in 3 days" (72h gap), regardless of past/future.
                 return abs(Carbon::now()->diffInSeconds($n['sort_at'], false));
             })
             ->values();
+    }
+
+    public function MarkNotificationRead(Request $request)
+    {
+        $request->validate(['id' => 'required|string|max:64']);
+
+        $read = session('read_notification_ids', []);
+        $read[$request->id] = true;
+        session(['read_notification_ids' => $read]);
+
+        return response()->json(['success' => true]);
     }
 
     public function logout()
