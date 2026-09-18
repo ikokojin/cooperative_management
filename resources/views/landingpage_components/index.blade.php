@@ -417,7 +417,7 @@
             </div> --}}
         </main>
 
-        <div class="marquee-sub-parent">
+        <!-- <div class="marquee-sub-parent">
             <div class="marquee-parent">
                 <div class="marquee-section-parent">
                     <div class="stat">
@@ -441,7 +441,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- <div class="marquee-bar">
             <div class="marquee-track">

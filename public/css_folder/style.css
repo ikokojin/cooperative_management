@@ -614,6 +614,7 @@ line-height: 25px;
     /* margin-top: 70px; */
     /* margin-top: 4rem; */
     background-color: #ffffff;
+    border-bottom: 1px solid var(--border);
     /* background-color: #EAEDEB; */
     /* background-color: #F7F9F8; */
     /* border-bottom: 1px solid rgba(0, 0, 0, 0.1); */
