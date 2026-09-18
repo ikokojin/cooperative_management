@@ -228,6 +228,19 @@
             updateSteps();
             document.querySelector('.form-box')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+
+        // ✅ TERMS & CONDITIONS VALIDATION
+        const termsInput = currentFormStep.querySelector('#termsAcceptedInput');
+        const termsError = document.getElementById('terms-error');
+        if (termsInput && termsInput.value !== '1') {
+            if (termsError) {
+                termsError.style.display = 'block';
+                termsError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        } else if (termsError) {
+            termsError.style.display = 'none';
+        }
     }
 
     async function sendOtpAndVerify(email) {
@@ -279,7 +292,7 @@
                         invalidRecipient = !!errData.invalid_recipient;
                     } catch (e) { /* not JSON, use default msg */ }
 
-                    console.error('OTP send failed — status:', sendRes.status, msg);
+                    // console.error('OTP send failed — status:', sendRes.status, msg);
                     setNextButtonLoading(false);
 
                     const emailInputEl = document.getElementById('email');

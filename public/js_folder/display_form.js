@@ -221,12 +221,19 @@ document.addEventListener('input', function (e) {
 
     function saveField(el) {
         if (!el || !el.id) return;
-        // don't persist sensitive/binary fields
-        if (el.type === 'password' || el.id === 'signature') return;
+        // Only exclude binary signature data now — passwords are persisted per request
+        if (el.id === 'signature') return;
         const data = getStore();
         data[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
         setStore(data);
     }
+
+    // ✅ ADD THIS — lets fields with custom widgets (no real input event) save directly
+    window.persistFormField = function (id, value) {
+        const data = getStore();
+        data[id] = value;
+        setStore(data);
+    };
 
     // Save on every input/change anywhere in the form (delegated, no need to touch every field)
     document.addEventListener('input', (e) => saveField(e.target));
@@ -237,13 +244,39 @@ document.addEventListener('input', function (e) {
         Object.keys(data).forEach((id) => {
             const el = document.getElementById(id);
             if (!el) return;
+
+            // ── Citizenship autocomplete: restore directly, skip its own
+            // input listener which wipes the hidden confirmed value ──
+            if (id === 'citizenship') {
+                el.value = data[id];
+                const hidden = document.getElementById('citizenship_value');
+                if (hidden) hidden.value = data[id];
+                el.classList.remove('is-invalid');
+                document.getElementById('citizenship_display')?.replaceChildren(
+                    document.createTextNode(data[id])
+                );
+                return;
+            }
+
+            // ── Email: restore directly, skip dispatching input/change —
+            // that native event triggers card_form.js's "user edited email"
+            // handler, which wipes the saved OTP-verified state on every
+            // reload/step-change even though the user didn't actually type anything ──
+            if (id === 'email') {
+                el.value = data[id];
+                document.getElementById('email_display')?.replaceChildren(
+                    document.createTextNode(data[id])
+                );
+                return;
+            }
+
             if (el.type === 'checkbox' || el.type === 'radio') {
                 el.checked = data[id];
             } else {
                 el.value = data[id];
             }
-            // Re-fire events so your existing review-display listeners
-            // (firstname_display, membership_type_display, etc.) update too
+            // Password fields still dispatch input here — that's needed for
+            // checkPasswordStrength()/checkPasswordMatch() to redraw correctly.
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
         });
@@ -256,6 +289,15 @@ document.addEventListener('input', function (e) {
     } else {
         restoreFields();
     }
+
+    // ✅ ADD THIS — expose it so card_form.js's updateSteps() can call it
+    // every time the step changes (including landing directly on Review)
+    window.restoreFormFields = restoreFields;
+
+    // Once the form is actually submitted, clear saved data so the next visit starts fresh
+    document.querySelector('form')?.addEventListener('submit', () => {
+        try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) { }
+    });
 
     // Once the form is actually submitted, clear saved data so the next visit starts fresh
     document.querySelector('form')?.addEventListener('submit', () => {

@@ -3104,7 +3104,7 @@ class UsersHandle extends Controller
                 'profile_picture' => 'nullable|image|max:2048',
                 'date_of_birth' => 'required|date',
                 'place_of_birth' => 'required',
-                'email' => ['required', 'email', "regex:/@gmail\.com$/i", Rule::unique('users_tbls', 'email')],
+                'email' => ['required', 'email', Rule::unique('users_tbls', 'email')],
                 'password' => 'required|string|min:8|confirmed',
                 'membership_category' => 'required',
                 'civil_status' => 'required',

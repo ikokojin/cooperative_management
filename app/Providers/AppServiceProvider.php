@@ -34,6 +34,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('otp-send', function (Request $request) {
+            // Loosen while developing locally; tighten back up before deploying
+            if (app()->environment('local')) {
+                return Limit::perMinute(30)->by($request->ip());
+            }
             return Limit::perMinutes(15, 5)->by($request->ip());
         });
 

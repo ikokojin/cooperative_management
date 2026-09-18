@@ -625,6 +625,13 @@ Rendered here but immediately moved to
                 if (hidden) hidden.value = value;
                 list.style.display = 'none';
                 input.classList.remove('is-invalid');
+
+                // ✅ ADD THIS — persist immediately since no native event fires here
+                if (typeof window.persistFormField === 'function') {
+                    window.persistFormField('citizenship', value);
+                }
+                const disp = document.getElementById('citizenship_display');
+                if (disp) disp.textContent = value;
             }
 
             function closeList() {
@@ -680,11 +687,18 @@ Rendered here but immediately moved to
                         input.value = match;
                         if (hidden) hidden.value = match;
                         input.classList.remove('is-invalid');
+
+                        // ✅ ADD THIS
+                        if (typeof window.persistFormField === 'function') {
+                            window.persistFormField('citizenship', match);
+                        }
+                        const disp = document.getElementById('citizenship_display');
+                        if (disp) disp.textContent = match;
                     } else if (input.value.trim() !== '') {
                         input.classList.add('is-invalid');
                         if (hidden) hidden.value = '';
                     }
-                }, 150); // delay so click on item registers before blur closes list
+                }, 150);
             });
 
             // Close list when clicking outside
