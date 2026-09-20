@@ -969,7 +969,7 @@
             text-transform: uppercase;
             color: var(--teal);
             margin-bottom: 8px;
-            display: flex;
+            display: none;
             align-items: center;
             gap: 6px;
         }
@@ -987,7 +987,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
-            display: block;
+            display: none;
             margin: 0 0 16px;
         }
 

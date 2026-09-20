@@ -230,6 +230,129 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Reactivation request rejected. Member remains inactive.');
     }
 
+    public function approveResignation(Request $request, $id)
+    {
+        $rr = \App\Models\ResignationRequest_tbl::findOrFail($id);
+
+        if ($rr->status !== 'pending') {
+            return redirect()->back()->with('error', 'This resignation request has already been processed.');
+        }
+
+        $rr->status = 'approved';
+        $rr->approved_at = now();
+
+        if ($rr->withdraw_share_capital) {
+            $rr->release_date = now()->addDays(60)->toDateString();
+        }
+
+        $rr->save();
+
+        $user = Users_tbl::find($rr->user_id);
+        if ($user) {
+            $user->status = $rr->withdraw_share_capital ? 'awaiting_release' : 'resigned';
+            $user->save();
+        }
+
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $rr->user_id,
+            'title' => 'Resignation Request Approved',
+            'message' => $rr->withdraw_share_capital
+                ? 'Your resignation has been approved. Your share capital will be released after the 60-day holding period.'
+                : 'Your resignation has been approved. Your share capital will remain with the cooperative.',
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Approved Resignation',
+            "Approved resignation request for {$user?->first_name} {$user?->last_name} (ID: {$rr->user_id})",
+            'resignation',
+            $rr->id
+        );
+
+        return redirect()->back()->with('success', 'Resignation request approved.');
+    }
+
+    public function rejectResignation(Request $request, $id)
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500',
+        ]);
+
+        $rr = \App\Models\ResignationRequest_tbl::findOrFail($id);
+
+        if ($rr->status !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'This resignation request has already been processed.'], 422);
+        }
+
+        $rr->status = 'rejected';
+        $rr->rejection_reason = $request->rejection_reason;
+        $rr->save();
+
+        $user = Users_tbl::find($rr->user_id);
+        if ($user && strtolower((string) $user->status) === 'resignation_pending') {
+            $user->status = 'active';
+            $user->save();
+        }
+
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $rr->user_id,
+            'title' => 'Resignation Request Rejected',
+            'message' => 'Your resignation request was not approved. Reason: ' . $request->rejection_reason,
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Rejected Resignation',
+            "Rejected resignation request for {$user?->first_name} {$user?->last_name} (ID: {$rr->user_id}). Reason: {$request->rejection_reason}",
+            'resignation',
+            $rr->id
+        );
+
+        return response()->json(['success' => true, 'message' => 'Resignation request rejected.']);
+    }
+
+    public function releaseResignationShareCapital(Request $request, $id)
+    {
+        $rr = \App\Models\ResignationRequest_tbl::findOrFail($id);
+
+        if ($rr->status !== 'approved' || !$rr->withdraw_share_capital) {
+            return redirect()->back()->with('error', 'This request is not eligible for share capital release.');
+        }
+
+        if ($rr->is_released) {
+            return redirect()->back()->with('error', 'Share capital has already been released for this request.');
+        }
+
+        $rr->is_released = true;
+        $rr->released_at = now();
+        $rr->save();
+
+        $user = Users_tbl::find($rr->user_id);
+        if ($user) {
+            $user->status = 'inactive';
+            $user->save();
+        }
+
+        \App\Models\Notifications_tbl::create([
+            'user_id' => $rr->user_id,
+            'title' => 'Share Capital Released',
+            'message' => 'Your share capital has been released following your approved resignation.',
+            'category' => 'inbox',
+            'is_important' => true,
+        ]);
+
+        AuditLog::log(
+            'Released Resigned Member Share Capital',
+            "Released share capital for {$user?->first_name} {$user?->last_name} (ID: {$rr->user_id})",
+            'resignation',
+            $rr->id
+        );
+
+        return redirect()->back()->with('success', 'Share capital released successfully.');
+    }
+
     public function updateMember(Request $request)
     {
         try {
@@ -965,6 +1088,16 @@ class UserController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
+        $rejectedResignations = \App\Models\ResignationRequest_tbl::with('user')
+            ->where('status', 'rejected')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $rejectedResignations = \App\Models\ResignationRequest_tbl::with('user')
+            ->where('status', 'rejected')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
         $reactivationRequests = Users_tbl::where('status', 'reactivation_pending')
             ->orderBy('updated_at', 'desc')
             ->get();
@@ -990,6 +1123,11 @@ class UserController extends Controller
         }
 
         $memberIds = $members->pluck('id')->toArray();
+
+        $resignationRequestsByUser = \App\Models\ResignationRequest_tbl::whereIn('user_id', $memberIds)
+            ->orderByDesc('created_at')
+            ->get()
+            ->groupBy('user_id');
 
         $shareCapitals = DB::table('share_capital_account_tbls')
             ->whereIn('user_id', $memberIds)
@@ -1030,7 +1168,7 @@ class UserController extends Controller
             ->get()
             ->groupBy('user_id');
 
-        $members->getCollection()->transform(function ($member) use ($shareCapitals, $otherInfo, $spouseInfo, $govIds, $vehicles, $savingsAccounts, $activeLoans, $paidUpByAccount) {
+        $members->getCollection()->transform(function ($member) use ($shareCapitals, $otherInfo, $spouseInfo, $govIds, $vehicles, $savingsAccounts, $activeLoans, $paidUpByAccount, $resignationRequestsByUser) {
             $sc = $shareCapitals->get($member->id);
             $scLedger = $sc ? ($paidUpByAccount[$sc->id] ?? ['shares' => 0, 'amount' => 0]) : ['shares' => 0, 'amount' => 0];
             $member->sc_total_amount = $scLedger['amount'];
@@ -1082,10 +1220,21 @@ class UserController extends Controller
             })->values()->toArray();
             $member->active_loans_count = $loans->count();
 
+            $latestResignation = $resignationRequestsByUser->get($member->id)?->first();
+            $member->resignation_request = $latestResignation ? [
+                'id' => $latestResignation->id,
+                'status' => $latestResignation->status,
+                'withdraw_share_capital' => (bool) $latestResignation->withdraw_share_capital,
+                'created_at' => $latestResignation->created_at,
+                'release_date' => $latestResignation->release_date,
+                'is_released' => (bool) $latestResignation->is_released,
+                'rejection_reason' => $latestResignation->rejection_reason ?? null,
+            ] : null;
+
             return $member;
         });
 
-        return view('admin_components.members', compact('members', 'pendingRequests', 'adminList', 'memberCategoryCounts', 'adminCategoryCounts', 'resignationRequests', 'inProcessResignations', 'resignees', 'reactivationRequests', 'roles', 'roleCounts'));
+        return view('admin_components.members', compact('members', 'pendingRequests', 'adminList', 'memberCategoryCounts', 'adminCategoryCounts', 'resignationRequests', 'inProcessResignations', 'resignees', 'rejectedResignations', 'reactivationRequests', 'roles', 'roleCounts'));
     }
 
     public function dashboard_savings(Request $request)

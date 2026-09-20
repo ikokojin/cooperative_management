@@ -1153,34 +1153,34 @@
                     <div class="card-box reveal reveal-delay-2">
                         <span>04</span>
 
-                        <i class="fa fa-users"></i>
+                        <i class="fa fa-shield-halved"></i>
 
-                        <h4>Financial Reports</h4>
+                        <h4>Compliance & Governance</h4>
 
-                        <p>Comprehensive member registry with share capital tracking, membership tiers, contribution
-                            history, and automated status notifications for every member lifecycle event.</p>
+                        <p>Built-in CDA compliance tools, tamper-proof audit trails, and digital member governance
+                            features to keep the cooperative transparent and accountable.</p>
                     </div>
 
                     <div class="card-box reveal reveal-delay-1">
-                        <span>04</span>
+                        <span>05</span>
 
-                        <i class="fa fa-users"></i>
+                        <i class="fa fa-coins"></i>
 
-                        <h4>Financial Reports</h4>
+                        <h4>Dividends & Patronage</h4>
 
-                        <p>Comprehensive member registry with share capital tracking, membership tiers, contribution
-                            history, and automated status notifications for every member lifecycle event.</p>
+                        <p>Automatic computation of annual dividends and patronage refunds based on share capital and
+                            member activity, credited straight to your savings account.</p>
                     </div>
 
                     <div class="card-box reveal reveal-delay-2">
-                        <span>04</span>
+                        <span>06</span>
 
-                        <i class="fa fa-users"></i>
+                        <i class="fa fa-bell"></i>
 
-                        <h4>Financial Reports</h4>
+                        <h4>Member Portal & Alerts</h4>
 
-                        <p>Comprehensive member registry with share capital tracking, membership tiers, contribution
-                            history, and automated status notifications for every member lifecycle event.</p>
+                        <p>A dedicated member portal with real-time notifications, announcements, polls, and seminar
+                            tracking — everything you need to stay engaged and informed.</p>
                     </div>
                 </div>
             </div>
@@ -1472,7 +1472,7 @@
         let lastScrollY = window.scrollY;
 
         window.addEventListener('scroll', () => {
-        if (lastScrollY < window.scrollY) {
+            if (lastScrollY < window.scrollY) {
                 nav.classList.add('nav-hidden');
             } else {
                 nav.classList.remove('nav-hidden');

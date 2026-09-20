@@ -1285,7 +1285,7 @@ select.form-select{
 
 .sm-btn:hover {
     /* background: #2A5C4E; */
-    background-color: var(--blue);
+    background-color: var(--teal);
 }
 
 /* ── Upload Cards ─────────────────────────────────────── */

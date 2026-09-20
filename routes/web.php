@@ -221,6 +221,10 @@ Route::delete("/dashboard-members/decline/{id}", [UserController::class, "declin
 Route::redirect("/dashboard-savings", "/dashboard-financial-activity?tab=savings")->name("savings")->middleware("admin");
 Route::get("/dashboard-lendings", [UserController::class, "dashboard_lendings"])->name("lendings")->middleware("admin");
 
+Route::post('/resignation/{id}/approve', [UserController::class, 'approveResignation'])->name('resignation.approve');
+Route::post('/resignation/{id}/reject', [UserController::class, 'rejectResignation'])->name('resignation.reject');
+Route::post('/resignation/{id}/release', [UserController::class, 'releaseResignationShareCapital'])->name('resignation.release');
+
 // API to get payment count for a loan
 Route::get('/loan/{id}/payments-count', function ($id) {
     $count = \DB::table('lending_repayments_tbls')->where('lending_id', $id)->count();

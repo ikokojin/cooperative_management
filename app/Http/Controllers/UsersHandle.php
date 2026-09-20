@@ -2511,6 +2511,47 @@ class UsersHandle extends Controller
             }
         }
 
+        // ── Resignation Request status ─────────────────────────────────
+        $resignationRequest = \App\Models\ResignationRequest_tbl::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($resignationRequest) {
+            if ($resignationRequest->status === 'pending') {
+                $notifications->push([
+                    'icon' => 'fa-file-signature',
+                    'color' => 'gold',
+                    'title' => 'Resignation Request Submitted',
+                    'message' => 'Your resignation request has been submitted and is awaiting admin review.',
+                    'time' => $resignationRequest->created_at->diffForHumans(),
+                    'sort_at' => $resignationRequest->created_at,
+                    'url' => route('ProfileMember'),
+                ]);
+            } elseif ($resignationRequest->status === 'approved' && $resignationRequest->updated_at >= $today->copy()->subDays(30)) {
+                $notifications->push([
+                    'icon' => 'fa-circle-check',
+                    'color' => 'mint',
+                    'title' => 'Resignation Request Approved',
+                    'message' => $resignationRequest->withdraw_share_capital
+                        ? 'Your resignation has been approved. Your share capital will be released after the 60-day holding period.'
+                        : 'Your resignation has been approved. Your share capital will remain with the cooperative.',
+                    'time' => $resignationRequest->updated_at->diffForHumans(),
+                    'sort_at' => $resignationRequest->updated_at,
+                    'url' => route('ProfileMember'),
+                ]);
+            } elseif ($resignationRequest->status === 'rejected' && $resignationRequest->updated_at >= $today->copy()->subDays(30)) {
+                $notifications->push([
+                    'icon' => 'fa-triangle-exclamation',
+                    'color' => 'red',
+                    'title' => 'Resignation Request Rejected',
+                    'message' => 'Your resignation request was not approved. Reason: ' . ($resignationRequest->rejection_reason ?? 'No reason provided.'),
+                    'time' => $resignationRequest->updated_at->diffForHumans(),
+                    'sort_at' => $resignationRequest->updated_at,
+                    'url' => route('ProfileMember'),
+                ]);
+            }
+        }
+
         // ── 2) Share Capital — 2-year CBU subscription deadline ─────────
         $scAccount = DB::table('share_capital_account_tbls')->where('user_id', $userId)->first();
 

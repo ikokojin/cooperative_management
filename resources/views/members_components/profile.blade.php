@@ -885,8 +885,7 @@
             const data = await response.json();
 
             if (data.success) {
-                const modalEl = document.getElementById('resetPasswordModal');
-                bootstrap.Modal.getInstance(modalEl)?.hide();
+                document.querySelector('#resetPasswordModal [data-bs-dismiss="modal"]')?.click();
                 document.getElementById('resetPasswordForm').reset();
                 showProfileToast(data.message || 'Password updated successfully.');
             } else {
@@ -917,6 +916,38 @@
     }
 </script>
 
+{{-- Resignation Confirm Modal --}}
+<div class="modal fade" id="resignConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-body" style="padding: 28px 24px 24px; text-align: center;">
+                <div style="width:56px; height:56px; border-radius:50%; background:#fef2f2; display:flex; align-items:center; justify-content:center; margin: 0 auto 16px;">
+                    <i class="fa fa-triangle-exclamation" style="color:#dc2626; font-size:22px;"></i>
+                </div>
+                <h5 style="font-weight:700; color:#111827; margin-bottom:8px;">Submit Resignation Request?</h5>
+                <p style="font-size:14px; color:#6b7280; margin-bottom:0;">
+                    This action will be reviewed by admin. Are you sure you want to proceed?
+                </p>
+            </div>
+            <div style="padding: 0 24px 24px; display:flex; gap:12px;">
+                <button type="button" data-bs-dismiss="modal"
+                    style="flex:1; padding:12px; background:#f3f4f6; color:#374151; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size: 14.5px;">
+                    Cancel
+                </button>
+                <button type="button" id="resignConfirmOkBtn"
+                    style="flex:1; padding:12px; background:#dc2626; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size: 14.5px;">
+                    Yes, Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Hidden trigger: lets JS open the confirm modal via Bootstrap's own
+     data-API, without needing a global `bootstrap` object --}}
+<button type="button" id="openResignConfirmTrigger" data-bs-toggle="modal"
+    data-bs-target="#resignConfirmModal" style="display:none;"></button>
+
 {{-- Resignation Modal --}}
 <div class="modal fade" id="profileResignModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -925,7 +956,7 @@
                 <h5 class="modal-title" style="font-weight: 700; color: #111827;">Request Resignation</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="POST" action="{{ route('resignation.request') }}" style="padding: 24px;">
+            <form id="resignationForm" style="padding: 24px;">
                 @csrf
                 <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Please select your preference for your
                     share capital:</p>
@@ -952,12 +983,12 @@
                         </div>
                     </label>
                 </div>
+                <small class="sm-error-text" id="resignation_error"></small>
                 <div style="display:flex; gap:12px;">
                     <button type="button" data-bs-dismiss="modal"
-                        style="flex:1; padding:12px; background:#f3f4f6; color:#374151; border:none; border-radius:8px; cursor:pointer; font-weight:600;">Cancel</button>
-                    <button type="submit"
-                        style="flex:1; padding:12px; background:#dc2626; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;"
-                        onclick="return confirm('Are you sure you want to submit a resignation request? This action will be reviewed by admin.');">
+                        style="flex:1; padding:12px; background:#f3f4f6; color:#374151; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size: 14.5px;">Cancel</button>
+                    <button type="submit" id="resignationSubmitBtn"
+                        style="flex:1; padding:12px; background:#dc2626; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size: 14.5px;">
                         Submit Request
                     </button>
                 </div>
@@ -965,6 +996,65 @@
         </div>
     </div>
 </div>
+
+<script nonce="{{ csp_nonce() }}">
+    let pendingResignationForm = null;
+
+    document.getElementById('resignationForm')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const errorEl = document.getElementById('resignation_error');
+        errorEl.textContent = '';
+
+        pendingResignationForm = e.target;
+
+        // Open the confirm modal via Bootstrap's own data-API (click a real
+        // trigger) instead of calling `bootstrap.Modal...` directly.
+        document.getElementById('openResignConfirmTrigger').click();
+    });
+
+    document.getElementById('resignConfirmOkBtn')?.addEventListener('click', async function () {
+        if (!pendingResignationForm) return;
+
+        // Close the confirm modal by clicking its own dismiss button.
+        document.querySelector('#resignConfirmModal [data-bs-dismiss="modal"]')?.click();
+
+        const form = pendingResignationForm;
+        const errorEl = document.getElementById('resignation_error');
+        const formData = new FormData(form);
+        const submitBtn = document.getElementById('resignationSubmitBtn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+
+        try {
+            const response = await fetch('{{ route('resignation.request') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success !== false) {
+                document.querySelector('#profileResignModal [data-bs-dismiss="modal"]')?.click();
+                form.reset();
+                showProfileToast(data.message || 'Resignation request submitted successfully.');
+            } else {
+                errorEl.textContent = data.message || 'Something went wrong. Please try again.';
+            }
+        } catch (err) {
+            errorEl.textContent = 'Something went wrong. Please try again.';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            pendingResignationForm = null;
+        }
+    });
+</script>
 
 @if (session('success'))
     <div class="toast-message" id="profileToast">

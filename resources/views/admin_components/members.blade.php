@@ -55,27 +55,29 @@
                 <form action="{{ route('dashboard.members') }}" method="GET">
                     <div class="relative">
                         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                        <input type="text" name="search" placeholder="Search by name, ID, or email..." class="input pl-10 w-full" value="{{ request('search') }}">
+                        <input type="text" name="search" placeholder="Search by name, ID, or email..."
+                            class="input pl-10 w-full" value="{{ request('search') }}">
                     </div>
                 </form>
             </div>
             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                <a href="{{ route('dashboard.members', ['filter' => 'all']) }}" 
+                <a href="{{ route('dashboard.members', ['filter' => 'all']) }}"
                     class="px-4 py-2 text-sm font-medium rounded-md transition-all {{ request('filter', 'all') === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     All
                 </a>
-                <a href="{{ route('dashboard.members', ['filter' => 'active']) }}" 
+                <a href="{{ route('dashboard.members', ['filter' => 'active']) }}"
                     class="px-4 py-2 text-sm font-medium rounded-md transition-all {{ request('filter') === 'active' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Active
                 </a>
-                <a href="{{ route('dashboard.members', ['filter' => 'pending']) }}" 
+                <a href="{{ route('dashboard.members', ['filter' => 'pending']) }}"
                     class="px-4 py-2 text-sm font-medium rounded-md transition-all {{ request('filter') === 'pending' ? 'bg-white text-yellow-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Pending
                     @if($pendingRequests->count() > 0)
-                        <span class="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">{{ $pendingRequests->count() }}</span>
+                        <span
+                            class="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">{{ $pendingRequests->count() }}</span>
                     @endif
                 </a>
-                <a href="{{ route('dashboard.members', ['filter' => 'inactive']) }}" 
+                <a href="{{ route('dashboard.members', ['filter' => 'inactive']) }}"
                     class="px-4 py-2 text-sm font-medium rounded-md transition-all {{ request('filter') === 'inactive' ? 'bg-white text-gray-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Inactive
                 </a>
@@ -83,9 +85,10 @@
         </div>
     </div>
 
-<!-- Category Cards -->
+    <!-- Category Cards -->
     <div class="grid grid-cols-2 gap-6 mb-6">
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group" data-action="open-member-category-modal">
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group"
+            data-action="open-member-category-modal">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Members</p>
@@ -95,13 +98,15 @@
                         Click to view breakdown
                     </p>
                 </div>
-                <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                <div
+                    class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center group-hover:bg-primary-200 transition-colors">
                     <i data-lucide="users" class="w-6 h-6 text-primary-600"></i>
                 </div>
             </div>
         </div>
 
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-blue-200 transition-all group" data-action="openAdminCategoryModal">
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-blue-200 transition-all group"
+            data-action="openAdminCategoryModal">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Admins</p>
@@ -111,7 +116,8 @@
                         Click to view breakdown
                     </p>
                 </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                <div
+                    class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                     <i data-lucide="shield" class="w-6 h-6 text-blue-600"></i>
                 </div>
             </div>
@@ -136,71 +142,82 @@
                 </thead>
                 <tbody>
                     @forelse($members as $member)
-                    @php
-                        $isStaff = !in_array(strtolower($member->role ?? ''), ['member', 'pending', 'inactive']);
-                        $roleName = $isStaff ? ($roles->firstWhere('slug', $member->role)?->name ?? ucfirst($member->role)) : null;
-                        $adminArr = $adminList->firstWhere('id', $member->id);
-                    @endphp
-                    <tr class="cursor-pointer hover:bg-gray-50 transition-colors" data-action="{{ strtolower($member->role ?? '') === 'pending' ? 'openMemberReviewModal' : 'openMemberDetailModal' }}" data-arg='[{{ $member->id }}]'>
-                        <td class="text-sm font-medium text-gray-900">{{ $isStaff ? 'ADM-' : 'MEM-' }}{{ str_pad($member->id, 4, '0', STR_PAD_LEFT) }}</td>
-                        <td>
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full {{ $member->role === 'pending' ? 'bg-gradient-to-br from-yellow-400 to-orange-400' : 'bg-gradient-to-br from-primary-400 to-primary-600' }} flex items-center justify-center">
-                                    <span class="text-white font-bold text-sm">
-                                        {{ strtoupper(substr($member->first_name, 0, 1)) }}{{ strtoupper(substr($member->last_name ?? '', 0, 1)) }}
-                                    </span>
+                        @php
+                            $isStaff = !in_array(strtolower($member->role ?? ''), ['member', 'pending', 'inactive']);
+                            $roleName = $isStaff ? ($roles->firstWhere('slug', $member->role)?->name ?? ucfirst($member->role)) : null;
+                            $adminArr = $adminList->firstWhere('id', $member->id);
+                        @endphp
+                        <tr class="cursor-pointer hover:bg-gray-50 transition-colors"
+                            data-action="{{ strtolower($member->role ?? '') === 'pending' ? 'openMemberReviewModal' : 'openMemberDetailModal' }}"
+                            data-arg='[{{ $member->id }}]'>
+                            <td class="text-sm font-medium text-gray-900">
+                                {{ $isStaff ? 'ADM-' : 'MEM-' }}{{ str_pad($member->id, 4, '0', STR_PAD_LEFT) }}
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-10 h-10 rounded-full {{ $member->role === 'pending' ? 'bg-gradient-to-br from-yellow-400 to-orange-400' : 'bg-gradient-to-br from-primary-400 to-primary-600' }} flex items-center justify-center">
+                                        <span class="text-white font-bold text-sm">
+                                            {{ strtoupper(substr($member->first_name, 0, 1)) }}{{ strtoupper(substr($member->last_name ?? '', 0, 1)) }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-900">{{ $member->first_name }}
+                                            {{ $member->last_name }}</span>
+                                        @if($isStaff)
+                                            <p class="text-xs text-gray-400">{{ $member->username }}</p>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-900">{{ $member->first_name }} {{ $member->last_name }}</span>
-                                    @if($isStaff)
-                                        <p class="text-xs text-gray-400">{{ $member->username }}</p>
-                                    @endif
-                                </div>
-                            </div>
-                        </td>
-                        <td class="text-sm text-gray-600">{{ $member->email }}</td>
-                        <td class="text-sm text-gray-600">{{ $isStaff ? 'Allied Workers' : ($member->membership_category ?? 'Investor Associate') }}</td>
-                        <td>
-                            @if($isStaff)
-                                <span class="badge badge-info">{{ $roleName }}</span>
-                            @elseif($member->role === 'pending' || $member->role === 'Pending')
-                                <span class="text-sm text-gray-600">Pending</span>
-                            @elseif($member->role === 'inactive' || $member->status === 'inactive')
-                                <span class="text-sm text-gray-600">Inactive</span>
-                            @else
-                                <span class="text-sm text-gray-600">Member</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($member->status === 'reactivation_pending')
-                                <span class="badge badge-warning">Reactivation Pending</span>
-                            @elseif($member->status === 'resignation_pending')
-                                <span class="badge badge-warning">Resignation Pending</span>
-                            @elseif($member->status === 'resigned')
-                                <span class="badge badge-gray">Resigned</span>
-                            @elseif($isStaff)
-                                <span class="badge {{ ($member->status ?? 'active') === 'active' ? 'badge-success' : 'badge-gray' }}">{{ ucfirst($member->status ?? 'Active') }}</span>
-                            @elseif($member->status === 'inactive' || $member->role === 'inactive')
-                                <span class="badge badge-gray">Inactive</span>
-                            @elseif($member->role === 'member' || $member->role === 'active' || $member->role === 'Member')
-                                <span class="badge badge-success">Active</span>
-                            @elseif($member->role === 'pending' || $member->role === 'Pending')
-                                <span class="badge badge-warning">Pending</span>
-                            @else
-                                <span class="badge badge-gray">{{ ucfirst($member->role) }}</span>
-                            @endif
-                        </td>
-                    </tr>
+                            </td>
+                            <td class="text-sm text-gray-600">{{ $member->email }}</td>
+                            <td class="text-sm text-gray-600">
+                                {{ $isStaff ? 'Allied Workers' : ($member->membership_category ?? 'Investor Associate') }}
+                            </td>
+                            <td>
+                                @if($isStaff)
+                                    <span class="badge badge-info">{{ $roleName }}</span>
+                                @elseif($member->role === 'pending' || $member->role === 'Pending')
+                                    <span class="text-sm text-gray-600">Pending</span>
+                                @elseif($member->role === 'inactive' || $member->status === 'inactive')
+                                    <span class="text-sm text-gray-600">Inactive</span>
+                                @else
+                                    <span class="text-sm text-gray-600">Member</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($member->status === 'reactivation_pending')
+                                    <span class="badge badge-warning">Reactivation Pending</span>
+                                @elseif($member->status === 'awaiting_release')
+                                    <span
+                                        class="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase rounded-full border border-blue-100">Awaiting
+                                        Release</span>
+                                @elseif($member->status === 'resigned')
+                                    <span class="badge badge-gray">Resigned</span>
+                                @elseif($isStaff)
+                                    <span
+                                        class="badge {{ ($member->status ?? 'active') === 'active' ? 'badge-success' : 'badge-gray' }}">{{ ucfirst($member->status ?? 'Active') }}</span>
+                                @elseif($member->status === 'inactive' || $member->role === 'inactive')
+                                    <span class="badge badge-gray">Inactive</span>
+                                @elseif($member->role === 'member' || $member->role === 'active' || $member->role === 'Member')
+                                    <span class="badge badge-success">Active</span>
+                                @elseif($member->role === 'pending' || $member->role === 'Pending')
+                                    <span class="badge badge-warning">Pending</span>
+                                @else
+                                    <span class="badge badge-gray">{{ ucfirst($member->role) }}</span>
+                                @endif
+                            </td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-12">
-                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                                <i data-lucide="users" class="w-8 h-8 text-gray-300"></i>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-1">No members found</h3>
-                            <p class="text-sm text-gray-500">Try adjusting your search or filter.</p>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td colspan="6" class="text-center py-12">
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <i data-lucide="users" class="w-8 h-8 text-gray-300"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-1">No members found</h3>
+                                <p class="text-sm text-gray-500">Try adjusting your search or filter.</p>
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -209,65 +226,70 @@
 
     <!-- Pagination -->
     @if($members->hasPages())
-    <div class="flex items-center justify-between mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <p class="text-sm text-gray-500">
-            Showing {{ $members->firstItem() ?? 1 }} to {{ $members->lastItem() ?? $members->count() }} of {{ $members->total() }} accounts
-        </p>
-        <div class="flex items-center gap-1">
-            @if($members->onFirstPage())
-                <button class="p-2 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed" disabled>
-                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                </button>
-            @else
-                <a href="{{ $members->previousPageUrl() }}" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
-                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                </a>
-            @endif
-
-            @foreach($members->getUrlRange(max(1, $members->currentPage() - 2), min($members->lastPage(), $members->currentPage() + 2)) as $page => $url)
-                @if($page == $members->currentPage())
-                    <span class="px-4 py-2 rounded-lg bg-primary-600 text-white font-medium">{{ $page }}</span>
+        <div class="flex items-center justify-between mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-sm text-gray-500">
+                Showing {{ $members->firstItem() ?? 1 }} to {{ $members->lastItem() ?? $members->count() }} of
+                {{ $members->total() }} accounts
+            </p>
+            <div class="flex items-center gap-1">
+                @if($members->onFirstPage())
+                    <button class="p-2 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed" disabled>
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
                 @else
-                    <a href="{{ $url }}" class="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">{{ $page }}</a>
+                    <a href="{{ $members->previousPageUrl() }}"
+                        class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </a>
                 @endif
-            @endforeach
 
-            @if($members->hasMorePages())
-                <a href="{{ $members->nextPageUrl() }}" class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
-                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                </a>
-            @else
-                <button class="p-2 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed" disabled>
-                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                </button>
-            @endif
+                @foreach($members->getUrlRange(max(1, $members->currentPage() - 2), min($members->lastPage(), $members->currentPage() + 2)) as $page => $url)
+                    @if($page == $members->currentPage())
+                        <span class="px-4 py-2 rounded-lg bg-primary-600 text-white font-medium">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}"
+                            class="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">{{ $page }}</a>
+                    @endif
+                @endforeach
+
+                @if($members->hasMorePages())
+                    <a href="{{ $members->nextPageUrl() }}"
+                        class="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </a>
+                @else
+                    <button class="p-2 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed" disabled>
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                @endif
+            </div>
         </div>
-    </div>
     @endif
 
     <!-- Edit Admin Modal -->
     @if(auth()->user()?->isMainAdmin())
-    <div id="editAdminModal" class="modal-overlay hidden" style="display:none">
-        <div class="modal max-w-2xl">
-            <div class="p-6 border-b border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                            <i data-lucide="user-cog" class="w-5 h-5 text-primary-600"></i>
+        <div id="editAdminModal" class="modal-overlay hidden" style="display:none">
+            <div class="modal max-w-2xl">
+                <div class="p-6 border-b border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                                <i data-lucide="user-cog" class="w-5 h-5 text-primary-600"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">Edit Admin Account</h2>
+                                <p class="text-xs text-gray-500">Update role, permissions, and account details</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-900">Edit Admin Account</h2>
-                            <p class="text-xs text-gray-500">Update role, permissions, and account details</p>
-                        </div>
+                        <button data-action="closeModal" data-arg='["editAdminModal"]'
+                            class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
+                        </button>
                     </div>
-                    <button data-action="closeModal" data-arg='["editAdminModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
-                    </button>
                 </div>
-            </div>
-            <form id="editAdminForm" method="POST">
-                @csrf
-                <input type="hidden" name="id" id="edit_admin_id">
+                <form id="editAdminForm" method="POST">
+                    @csrf
+                    <input type="hidden" name="id" id="edit_admin_id">
                     <div class="p-6 max-h-[60vh] overflow-y-auto">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
@@ -286,7 +308,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                                 <select name="role" id="edit_role" class="input" required>
                                     @foreach($roles as $role)
-                                    <option value="{{ $role->slug }}">{{ $role->name }}</option>
+                                        <option value="{{ $role->slug }}">{{ $role->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -294,292 +316,357 @@
 
                         <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                             <h3 class="text-sm font-semibold text-gray-800 mb-1">Sidebar Access Permissions</h3>
-                            <p class="text-xs text-gray-500">Sidebar permissions are inherited from the selected role. Edit the role to change permissions.</p>
+                            <p class="text-xs text-gray-500">Sidebar permissions are inherited from the selected role. Edit the
+                                role to change permissions.</p>
                             <div class="mt-2 flex flex-wrap gap-1" id="edit_role_perms_display"></div>
                         </div>
                     </div>
+                    <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
+                        <button type="button" data-action="closeModal" data-arg='["editAdminModal"]'
+                            class="btn btn-outline">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script type="application/json" id="admin-list-data">
+                                                                                                                                {!! json_encode($adminList, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
+                                                                                                                            </script>
+        <script type="application/json" id="roles-data">
+                                                                                                                                {!! json_encode($roles->map(fn($r) => ['slug' => $r->slug, 'name' => $r->name, 'sidebar_permissions' => $r->sidebar_permissions]), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
+                                                                                                                            </script>
+    @endif
+
+    <!-- Resignation Requests -->
+    @if($resignationRequests->count() > 0)
+        <div class="mt-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i data-lucide="log-out" class="w-5 h-5 text-orange-500"></i>
+                Resignation Requests
+                <span
+                    class="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">{{ $resignationRequests->count() }}</span>
+            </h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Requested</th>
+                                <th>Withdraw Share Capital</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($resignationRequests as $rr)
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center">
+                                                <span
+                                                    class="text-white font-bold text-sm">{{ strtoupper(substr($rr->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($rr->user->last_name ?? '', 0, 1)) }}</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }}
+                                                {{ $rr->user->last_name ?? '' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-sm text-gray-600">{{ $rr->created_at->format('M d, Y g:i A') }}</td>
+                                    <td>
+                                        @if($rr->withdraw_share_capital)
+                                            <span class="badge badge-warning">Yes (withdraw)</span>
+                                        @else
+                                            <span class="badge badge-info">No (leave Share Capital)</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <form method="POST" action="{{ route('resignation.approve', $rr->id) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success btn-xs px-2 py-1">
+                                                    <i data-lucide="check" class="w-3 h-3"></i>
+                                                    Approve
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-xs px-2 py-1 js-reject-resign-btn"
+                                                data-resign-id="{{ $rr->id }}">
+                                                <i data-lucide="x" class="w-3 h-3"></i>
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <div id="rejectResignModal" class="modal-overlay hidden z-[9999]" style="display:none">
+        <div class="modal max-w-md">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                            <i data-lucide="x-circle" class="w-5 h-5 text-red-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900">Reject Resignation Request</h2>
+                            <p class="text-xs text-gray-500">Please give a reason — the member will see this.</p>
+                        </div>
+                    </div>
+                    <button data-action="closeModal" data-arg='["rejectResignModal"]'
+                        class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="rejectResignForm">
+                @csrf
+                <input type="hidden" name="id" id="reject_resign_id">
+                <div class="pe-6 pt-6 ps-6 pb-0">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason for Rejection <span
+                            class="text-red-500">*</span></label>
+
+                    <select id="reject_resign_select" class="input">
+                        <option value="">Select a reason...</option>
+                        <option value="Outstanding loan balance must be settled first">Outstanding loan balance must be
+                            settled first</option>
+                        <option value="Member is a guarantor or co-maker on an active loan">Member is a guarantor or
+                            co-maker on an active loan</option>
+                        <option value="Incomplete or missing requirements">Incomplete or missing requirements</option>
+                        <option value="Unpaid contributions or dues">Unpaid contributions or dues</option>
+                        <option value="Other">Other</option>
+                    </select>
+
+                    <div id="reject_resign_other_wrap" class="hidden mt-3">
+                        <textarea name="rejection_reason" id="reject_resign_reason" class="input" rows="3" maxlength="500"
+                            placeholder="Please specify the reason..."></textarea>
+                    </div>
+
+                    <p id="reject_resign_error" class="text-xs text-red-600 mt-1 hidden"></p>
+                </div>
                 <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                    <button type="button" data-action="closeModal" data-arg='["editAdminModal"]' class="btn btn-outline">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Save Changes
+                    <button type="button" data-action="closeModal" data-arg='["rejectResignModal"]'
+                        class="btn btn-outline">Cancel</button>
+                    <button type="submit" id="rejectResignSubmitBtn" class="btn btn-danger">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                        Confirm Rejection
                     </button>
                 </div>
             </form>
         </div>
     </div>
-    <script type="application/json" id="admin-list-data">
-        {!! json_encode($adminList, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
-    </script>
-    <script type="application/json" id="roles-data">
-        {!! json_encode($roles->map(fn($r) => ['slug' => $r->slug, 'name' => $r->name, 'sidebar_permissions' => $r->sidebar_permissions]), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
-    </script>
-    @endif
-
-    <!-- Resignation Requests -->
-    @if($resignationRequests->count() > 0)
-    <div class="mt-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i data-lucide="log-out" class="w-5 h-5 text-orange-500"></i>
-            Resignation Requests
-            <span class="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">{{ $resignationRequests->count() }}</span>
-        </h2>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Member</th>
-                            <th>Requested</th>
-                            <th>Withdraw Share Capital</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($resignationRequests as $rr)
-                        <tr>
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center">
-                                        <span class="text-white font-bold text-sm">{{ strtoupper(substr($rr->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($rr->user->last_name ?? '', 0, 1)) }}</span>
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }} {{ $rr->user->last_name ?? '' }}</span>
-                                </div>
-                            </td>
-                            <td class="text-sm text-gray-600">{{ $rr->created_at->format('M d, Y g:i A') }}</td>
-                            <td>
-                                @if($rr->withdraw_share_capital)
-                                    <span class="badge badge-warning">Yes (withdraw)</span>
-                                @else
-                                    <span class="badge badge-info">No (leave Share Capital)</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <form method="POST" action="{{ route('resignation.approve', $rr->id) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success btn-xs px-2 py-1">
-                                            <i data-lucide="check" class="w-3 h-3"></i>
-                                            Approve
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('resignation.reject', $rr->id) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger btn-xs px-2 py-1" data-action="stop-propagation" data-confirm="Reject this resignation request?">
-                                            <i data-lucide="x" class="w-3 h-3"></i>
-                                            Reject
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    @endif
 
     <!-- In-Process Resignations -->
     @if($inProcessResignations->count() > 0)
-    <div class="mt-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i data-lucide="clock" class="w-5 h-5 text-blue-500"></i>
-            In-Process Resignations
-            <span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">{{ $inProcessResignations->count() }}</span>
-        </h2>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Member</th>
-                            <th>Approved</th>
-                            <th>Release Date</th>
-                            <th>Days Remaining</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($inProcessResignations as $rr)
-                        <tr>
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center">
-                                        <span class="text-white font-bold text-sm">{{ strtoupper(substr($rr->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($rr->user->last_name ?? '', 0, 1)) }}</span>
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }} {{ $rr->user->last_name ?? '' }}</span>
-                                </div>
-                            </td>
-                            <td class="text-sm text-gray-600">{{ $rr->approved_at ? $rr->approved_at->format('M d, Y') : 'N/A' }}</td>
-                            <td class="text-sm text-gray-600">{{ $rr->release_date ? $rr->release_date->format('M d, Y') : 'N/A' }}</td>
-                            <td>
-                                @php
-                                    $daysLeft = $rr->release_date ? now()->startOfDay()->diffInDays($rr->release_date, false) : 0;
-                                @endphp
-                                @if($daysLeft > 0)
-                                    <span class="badge badge-warning">{{ $daysLeft }} days</span>
-                                @elseif($daysLeft === 0)
-                                    <span class="badge badge-success">Ready for release</span>
-                                @else
-                                    <span class="badge badge-success">Overdue</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    @if($rr->withdraw_share_capital && !$rr->is_released && $daysLeft <= 0)
-                                    <form method="POST" action="{{ route('resignation.release', $rr->id) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success btn-xs px-2 py-1">
-                                            <i data-lucide="check" class="w-3 h-3"></i>
-                                            Release SC
-                                        </button>
-                                    </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <div class="mt-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i data-lucide="clock" class="w-5 h-5 text-blue-500"></i>
+                In-Process Resignations
+                <span
+                    class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">{{ $inProcessResignations->count() }}</span>
+            </h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Approved</th>
+                                <th>Release Date</th>
+                                <th>Days Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($inProcessResignations as $rr)
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center">
+                                                <span
+                                                    class="text-white font-bold text-sm">{{ strtoupper(substr($rr->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($rr->user->last_name ?? '', 0, 1)) }}</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }}
+                                                {{ $rr->user->last_name ?? '' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-sm text-gray-600">
+                                        {{ $rr->approved_at ? $rr->approved_at->format('M d, Y') : 'N/A' }}
+                                    </td>
+                                    <td class="text-sm text-gray-600">
+                                        {{ $rr->release_date ? $rr->release_date->format('M d, Y') : 'N/A' }}
+                                    </td>
+                                    <td>
+                                        @php
+                                            $daysLeft = $rr->release_date ? now()->startOfDay()->diffInDays($rr->release_date, false) : 0;
+                                        @endphp
+                                        @if($daysLeft > 0)
+                                            <span class="badge badge-warning">{{ $daysLeft }} days</span>
+                                        @elseif($daysLeft === 0)
+                                            <span class="badge badge-success">Ready for release</span>
+                                        @else
+                                            <span class="badge badge-success">Overdue</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
     @endif
 
     <!-- Reactivation Requests -->
     @php $reactivationRequests = $reactivationRequests ?? collect(); @endphp
     @if($reactivationRequests->count() > 0)
-    <div class="mt-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i data-lucide="refresh-cw" class="w-5 h-5 text-amber-500"></i>
-            Reactivation Requests
-            <span class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">{{ $reactivationRequests->count() }}</span>
-        </h2>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Member</th>
-                            <th>Requested</th>
-                            <th>Share Capital</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($reactivationRequests as $reqUser)
-                        <tr>
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center">
-                                        <span class="text-white font-bold text-sm">{{ strtoupper(substr($reqUser->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($reqUser->last_name ?? '', 0, 1)) }}</span>
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-900">{{ $reqUser->first_name ?? '' }} {{ $reqUser->last_name ?? '' }}</span>
-                                </div>
-                            </td>
-                            <td class="text-sm text-gray-600">
-                                @if($reqUser->updated_at)
-                                    {{ $reqUser->updated_at->format('M d, Y g:i A') }}
-                                @else
-                                    <span class="text-gray-400">—</span>
-                                @endif
-                            </td>
-                            <td class="text-sm text-gray-600">
-                                @php
-                                    $reqScRow = \App\Models\share_capital_account_tbl::where('user_id', $reqUser->id)->first();
-                                    $reqScStats = $reqScRow ? \App\Http\Controllers\ShareCapital::paidUpForAccount($reqScRow->id) : null;
-                                @endphp
-                                @if($reqScStats && $reqScStats['amount'] > 0)
-                                    ₱{{ number_format($reqScStats['amount'], 2) }} ({{ $reqScStats['shares'] }} shares)
-                                @else
-                                    <span class="text-gray-400">No remaining share capital</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <form method="POST" action="{{ route('member.reactivation.approve', $reqUser->id) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success btn-xs px-2 py-1">
-                                            <i data-lucide="check" class="w-3 h-3"></i>
-                                            Approve
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('member.reactivation.reject', $reqUser->id) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger btn-xs px-2 py-1" data-action="stop-propagation" data-confirm="Reject this reactivation request?">
-                                            <i data-lucide="x" class="w-3 h-3"></i>
-                                            Reject
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <div class="mt-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-5 h-5 text-amber-500"></i>
+                Reactivation Requests
+                <span
+                    class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">{{ $reactivationRequests->count() }}</span>
+            </h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Requested</th>
+                                <th>Share Capital</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($reactivationRequests as $reqUser)
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center">
+                                                <span
+                                                    class="text-white font-bold text-sm">{{ strtoupper(substr($reqUser->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($reqUser->last_name ?? '', 0, 1)) }}</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-900">{{ $reqUser->first_name ?? '' }}
+                                                {{ $reqUser->last_name ?? '' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-sm text-gray-600">
+                                        @if($reqUser->updated_at)
+                                            {{ $reqUser->updated_at->format('M d, Y g:i A') }}
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-sm text-gray-600">
+                                        @php
+                                            $reqScRow = \App\Models\share_capital_account_tbl::where('user_id', $reqUser->id)->first();
+                                            $reqScStats = $reqScRow ? \App\Http\Controllers\ShareCapital::paidUpForAccount($reqScRow->id) : null;
+                                        @endphp
+                                        @if($reqScStats && $reqScStats['amount'] > 0)
+                                            ₱{{ number_format($reqScStats['amount'], 2) }} ({{ $reqScStats['shares'] }} shares)
+                                        @else
+                                            <span class="text-gray-400">No remaining share capital</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <form method="POST" action="{{ route('member.reactivation.approve', $reqUser->id) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success btn-xs px-2 py-1">
+                                                    <i data-lucide="check" class="w-3 h-3"></i>
+                                                    Approve
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ route('member.reactivation.reject', $reqUser->id) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-danger btn-xs px-2 py-1"
+                                                    data-action="stop-propagation" data-confirm="Reject this reactivation request?">
+                                                    <i data-lucide="x" class="w-3 h-3"></i>
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
     @endif
 
     <!-- Resignees -->
     @if($resignees->count() > 0)
-    <div class="mt-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i data-lucide="user-x" class="w-5 h-5 text-gray-500"></i>
-            Resignees
-            <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{{ $resignees->count() }}</span>
-        </h2>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Member</th>
-                            <th>Processed</th>
-                            <th>Share Capital</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($resignees as $rr)
-                        <tr>
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-                                        <span class="text-white font-bold text-sm">{{ strtoupper(substr($rr->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($rr->user->last_name ?? '', 0, 1)) }}</span>
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }} {{ $rr->user->last_name ?? '' }}</span>
-                                </div>
-                            </td>
-                            <td class="text-sm text-gray-600">{{ $rr->updated_at ? $rr->updated_at->format('M d, Y') : 'N/A' }}</td>
-                            <td>
-                                @if($rr->withdraw_share_capital)
-                                    @if($rr->is_released)
-                                        <span class="badge badge-gray">Released</span>
-                                    @else
-                                        <span class="badge badge-warning">Pending Release</span>
-                                    @endif
-                                @else
-                                    <span class="badge badge-info">Retained</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($rr->is_released || ($rr->status === 'approved' && !$rr->withdraw_share_capital))
-                                    <span class="badge badge-gray">Resigned</span>
-                                @else
-                                    <span class="badge badge-warning">{{ ucfirst($rr->status) }}</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <div class="mt-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i data-lucide="user-x" class="w-5 h-5 text-gray-500"></i>
+                Resignees
+                <span
+                    class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{{ $resignees->count() }}</span>
+            </h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Processed</th>
+                                <th>Share Capital</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($resignees as $rr)
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
+                                                <span
+                                                    class="text-white font-bold text-sm">{{ strtoupper(substr($rr->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($rr->user->last_name ?? '', 0, 1)) }}</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }}
+                                                {{ $rr->user->last_name ?? '' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-sm text-gray-600">
+                                        {{ $rr->updated_at ? $rr->updated_at->format('M d, Y') : 'N/A' }}
+                                    </td>
+                                    <td>
+                                        @if($rr->withdraw_share_capital)
+                                            @if($rr->is_released)
+                                                <span class="badge badge-gray">Released</span>
+                                            @else
+                                                <span class="badge badge-warning">Pending Release</span>
+                                            @endif
+                                        @else
+                                            <span class="badge badge-info">Retained</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($rr->is_released || ($rr->status === 'approved' && !$rr->withdraw_share_capital))
+                                            <span class="badge badge-gray">Resigned</span>
+                                        @else
+                                            <span class="badge badge-warning">{{ ucfirst($rr->status) }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
     @endif
 
     <!-- Member Category Modal -->
@@ -596,7 +683,8 @@
                             <p class="text-xs text-gray-500">Category breakdown</p>
                         </div>
                     </div>
-                    <button data-action="hide-modal" data-target="memberCategoryModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button data-action="hide-modal" data-target="memberCategoryModal"
+                        class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                     </button>
                 </div>
@@ -604,7 +692,8 @@
             <div class="p-6 space-y-3">
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-sm font-medium text-gray-900">Investor Associate</span>
-                    <span class="text-sm font-bold text-primary-600">{{ $memberCategoryCounts['Investor Associate'] ?? 0 }}</span>
+                    <span
+                        class="text-sm font-bold text-primary-600">{{ $memberCategoryCounts['Investor Associate'] ?? 0 }}</span>
                 </div>
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-sm font-medium text-gray-900">Driver</span>
@@ -616,15 +705,18 @@
                 </div>
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-sm font-medium text-gray-900">Driver-Operator</span>
-                    <span class="text-sm font-bold text-primary-600">{{ $memberCategoryCounts['Driver-Operator'] ?? 0 }}</span>
+                    <span
+                        class="text-sm font-bold text-primary-600">{{ $memberCategoryCounts['Driver-Operator'] ?? 0 }}</span>
                 </div>
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-sm font-medium text-gray-900">Allied Worker</span>
-                    <span class="text-sm font-bold text-primary-600">{{ $memberCategoryCounts['Allied Worker'] ?? 0 }}</span>
+                    <span
+                        class="text-sm font-bold text-primary-600">{{ $memberCategoryCounts['Allied Worker'] ?? 0 }}</span>
                 </div>
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-sm font-medium text-gray-900">Transport Entrepreneur</span>
-                    <span class="text-sm font-bold text-primary-600">{{ $memberCategoryCounts['Transport Entrepreneur'] ?? 0 }}</span>
+                    <span
+                        class="text-sm font-bold text-primary-600">{{ $memberCategoryCounts['Transport Entrepreneur'] ?? 0 }}</span>
                 </div>
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-sm font-medium text-gray-900">Operator</span>
@@ -632,7 +724,8 @@
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 flex justify-end">
-                <button data-action="hide-modal" data-target="memberCategoryModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                <button data-action="hide-modal" data-target="memberCategoryModal"
+                    class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
             </div>
         </div>
     </div>
@@ -645,15 +738,18 @@
             <div style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <div
+                            style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="user-plus" class="w-5 h-5" style="color: #fff;"></i>
                         </div>
                         <div>
                             <h2 class="text-xl font-bold" style="color: #fff; margin: 0;">Add New Member</h2>
-                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a new cooperative member</p>
+                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a new
+                                cooperative member</p>
                         </div>
                     </div>
-                    <button data-action="closeModal" data-arg='["addMemberModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button data-action="closeModal" data-arg='["addMemberModal"]'
+                        style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                     </button>
                 </div>
@@ -667,7 +763,8 @@
                     </h3>
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span
+                                    class="text-red-500">*</span></label>
                             <input type="text" name="first_name" class="input" required>
                         </div>
                         <div>
@@ -675,21 +772,25 @@
                             <input type="text" name="middle_name" class="input">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name <span
+                                    class="text-red-500">*</span></label>
                             <input type="text" name="last_name" class="input" required>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-4 mt-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Username <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Username <span
+                                    class="text-red-500">*</span></label>
                             <input type="text" name="username" class="input" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email <span
+                                    class="text-red-500">*</span></label>
                             <input type="email" name="email" class="input" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password <span
+                                    class="text-red-500">*</span></label>
                             <input type="password" name="password" class="input" required>
                         </div>
                     </div>
@@ -702,7 +803,8 @@
                     </h3>
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Membership Category <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Membership Category <span
+                                    class="text-red-500">*</span></label>
                             <select name="membership_category" class="input" required>
                                 <option value="">Select...</option>
                                 <option value="Operator">Operator</option>
@@ -714,7 +816,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth <span
+                                    class="text-red-500">*</span></label>
                             <input type="date" name="date_of_birth" class="input" required>
                         </div>
                         <div>
@@ -732,7 +835,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Civil Status <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Civil Status <span
+                                    class="text-red-500">*</span></label>
                             <select name="civil_status" class="input" required>
                                 <option value="">Select...</option>
                                 <option value="Single">Single</option>
@@ -983,8 +1087,10 @@
                 </div>
 
                 <div class="border-t border-gray-200 pt-6 flex justify-end gap-3">
-                    <button type="button" data-action="closeModal" data-arg='["addMemberModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
-                    <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
+                    <button type="button" data-action="closeModal" data-arg='["addMemberModal"]'
+                        class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                         <i data-lucide="user-plus" class="w-4 h-4"></i>
                         Add Member
                     </button>
@@ -994,27 +1100,34 @@
     </div>
 
     <!-- Member Detail Modal -->
-    <div id="memberDetailModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto hidden">
-        <div class="bg-slate-50 rounded-3xl w-full max-w-5xl my-auto shadow-2xl border border-slate-200 flex flex-col max-h-[94vh] overflow-hidden">
+    <div id="memberDetailModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto hidden">
+        <div
+            class="bg-slate-50 rounded-3xl w-full max-w-5xl my-auto shadow-2xl border border-slate-200 flex flex-col max-h-[94vh] overflow-hidden">
 
             <!-- Top Header Bar -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
+                    <div
+                        class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
                         <i data-lucide="user" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Member Profile & Accounts</h2>
+                        <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Member Profile & Accounts
+                        </h2>
                         <p class="text-[10px] text-slate-400 font-medium">Cooperative member management</p>
                     </div>
-                    <span id="detail-member-id" class="ml-2 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-mono font-bold rounded-lg border border-slate-200">--</span>
+                    <span id="detail-member-id"
+                        class="ml-2 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-mono font-bold rounded-lg border border-slate-200">--</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button data-action="printMemberSOA" class="px-3 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                    <button data-action="printMemberSOA"
+                        class="px-3 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors flex items-center gap-1.5">
                         <i data-lucide="printer" class="w-3.5 h-3.5"></i>
                         Print SOA
                     </button>
-                    <button data-action="closeModal" data-arg='["memberDetailModal"]' class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <button data-action="closeModal" data-arg='["memberDetailModal"]'
+                        class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
                     </button>
                 </div>
@@ -1026,15 +1139,18 @@
                 <!-- Hero Banner -->
                 <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-800 text-white font-extrabold text-xl shadow-lg ring-2 ring-indigo-500/20 flex items-center justify-center overflow-hidden shrink-0">
+                        <div
+                            class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-800 text-white font-extrabold text-xl shadow-lg ring-2 ring-indigo-500/20 flex items-center justify-center overflow-hidden shrink-0">
                             <img id="detail-profile-pic" src="" alt="" class="w-full h-full object-cover hidden">
                             <span id="detail-avatar">--</span>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex flex-wrap items-center gap-2 mb-1">
                                 <h3 id="detail-name" class="text-xl font-extrabold text-slate-900">--</h3>
-                                <span id="detail-status" class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
-                                <span id="detail-category" class="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
+                                <span id="detail-status"
+                                    class="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
+                                <span id="detail-category"
+                                    class="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
                             </div>
                             <p id="detail-middle-name" class="text-xs text-slate-400 mb-2">--</p>
                             <p id="detail-join-date" class="text-[10px] text-slate-400 font-medium mb-3">--</p>
@@ -1042,14 +1158,16 @@
                                 <div class="flex items-center gap-1.5 text-xs text-slate-600">
                                     <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i>
                                     <span id="detail-email" class="font-medium">--</span>
-                                    <button data-action="copy-prev" class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy email">
+                                    <button data-action="copy-prev"
+                                        class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy email">
                                         <i data-lucide="copy" class="w-3 h-3 text-slate-400"></i>
                                     </button>
                                 </div>
                                 <div class="flex items-center gap-1.5 text-xs text-slate-600">
                                     <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i>
                                     <span id="detail-phone" class="font-medium">--</span>
-                                    <button data-action="copy-prev" class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy phone">
+                                    <button data-action="copy-prev"
+                                        class="p-0.5 hover:bg-slate-100 rounded transition-colors" title="Copy phone">
                                         <i data-lucide="copy" class="w-3 h-3 text-slate-400"></i>
                                     </button>
                                 </div>
@@ -1057,67 +1175,99 @@
                         </div>
                     </div>
 
-                <!-- Balance Cards -->
-                <div class="space-y-4">
-                    <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
-                        <button data-action="filterBalanceCards" data-arg='["all"]' class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors bg-slate-900 text-white" data-filter="all">All Balances</button>
-                        <button data-action="filterBalanceCards" data-arg='["share"]' class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50" data-filter="share">Share Capital</button>
-                        <button data-action="filterBalanceCards" data-arg='["savings"]' class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50" data-filter="savings">Savings</button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Share Capital Card -->
-                        <div id="balance-card-share" class="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100 flex flex-col justify-between min-h-[220px] relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <i data-lucide="coins" class="w-4 h-4 text-indigo-200"></i>
-                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-200">Share Capital</span>
-                                </div>
-                                <p id="detail-sc-amount" class="font-mono text-3xl sm:text-4xl font-bold mt-2">₱0.00</p>
-                                <p class="text-xs text-indigo-200 mt-1"><span id="detail-sc-shares">0</span> Shares</p>
-                                <div class="mt-2">
-                                    <span id="detail-sc-status" class="inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full">No Account</span>
-                                </div>
-                            </div>
-                            <div class="mt-4">
-                                <a id="detail-sc-see-more" href="#" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-white transition-colors">
-                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                                    Ledger Details
-                                </a>
-                            </div>
+                    <!-- Balance Cards -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+                            <button data-action="filterBalanceCards" data-arg='["all"]'
+                                class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors bg-slate-900 text-white"
+                                data-filter="all">All Balances</button>
+                            <button data-action="filterBalanceCards" data-arg='["share"]'
+                                class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50"
+                                data-filter="share">Share Capital</button>
+                            <button data-action="filterBalanceCards" data-arg='["savings"]'
+                                class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors text-slate-500 hover:bg-slate-50"
+                                data-filter="savings">Savings</button>
                         </div>
 
-                        <!-- Savings Card -->
-                        <div id="balance-card-savings" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between min-h-[220px]">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <i data-lucide="landmark" class="w-4 h-4 text-slate-400"></i>
-                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Regular Savings</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Share Capital Card -->
+                            <div id="balance-card-share"
+                                class="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100 flex flex-col justify-between min-h-[220px] relative overflow-hidden">
+                                <div
+                                    class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2">
                                 </div>
-                                <p id="detail-savings-amount" class="font-mono text-3xl sm:text-4xl font-bold text-slate-800 mt-2">₱0.00</p>
-                                <p id="detail-savings-status" class="text-xs text-slate-400 mt-1">No savings account linked</p>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i data-lucide="coins" class="w-4 h-4 text-indigo-200"></i>
+                                        <span
+                                            class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-200">Share
+                                            Capital</span>
+                                    </div>
+                                    <p id="detail-sc-amount" class="font-mono text-3xl sm:text-4xl font-bold mt-2">₱0.00</p>
+                                    <p class="text-xs text-indigo-200 mt-1"><span id="detail-sc-shares">0</span> Shares</p>
+                                    <div class="mt-2">
+                                        <span id="detail-sc-status"
+                                            class="inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full">No
+                                            Account</span>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <a id="detail-sc-see-more" href="#" target="_blank"
+                                        class="inline-flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-white transition-colors">
+                                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                        Ledger Details
+                                    </a>
+                                </div>
                             </div>
-                            <div class="mt-4">
-                                <a id="detail-savings-see-more" href="#" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">
-                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                                    Transaction History
-                                </a>
+
+                            <!-- Savings Card -->
+                            <div id="balance-card-savings"
+                                class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between min-h-[220px]">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i data-lucide="landmark" class="w-4 h-4 text-slate-400"></i>
+                                        <span
+                                            class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Regular
+                                            Savings</span>
+                                    </div>
+                                    <p id="detail-savings-amount"
+                                        class="font-mono text-3xl sm:text-4xl font-bold text-slate-800 mt-2">₱0.00</p>
+                                    <p id="detail-savings-status" class="text-xs text-slate-400 mt-1">No savings account
+                                        linked</p>
+                                </div>
+                                <div class="mt-4">
+                                    <a id="detail-savings-see-more" href="#"
+                                        class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">
+                                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                        Transaction History
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 </div>
 
                 <!-- Tab Navigation -->
                 <div class="border-b border-slate-200">
                     <div class="flex gap-0 overflow-x-auto">
-                        <button data-action="switchMemberTab" data-arg='["overview"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-indigo-600 text-indigo-600 bg-white" data-tab="overview">Overview</button>
-                        <button data-action="switchMemberTab" data-arg='["financials"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="financials">Financials & Balances</button>
-                        <button data-action="switchMemberTab" data-arg='["personal"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="personal">Personal & Family</button>
-                        <button data-action="switchMemberTab" data-arg='["govids"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="govids">Government IDs</button>
-                        <button data-action="switchMemberTab" data-arg='["vehicles"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="vehicles">Vehicles & Fleet</button>
-                        <button data-action="switchMemberTab" data-arg='["settings"]' class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600" data-tab="settings">Account Settings</button>
+                        <button data-action="switchMemberTab" data-arg='["overview"]'
+                            class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-indigo-600 text-indigo-600 bg-white"
+                            data-tab="overview">Overview</button>
+                        <button data-action="switchMemberTab" data-arg='["financials"]'
+                            class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                            data-tab="financials">Financials & Balances</button>
+                        <button data-action="switchMemberTab" data-arg='["personal"]'
+                            class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                            data-tab="personal">Personal & Family</button>
+                        <button data-action="switchMemberTab" data-arg='["govids"]'
+                            class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                            data-tab="govids">Government IDs</button>
+                        <button data-action="switchMemberTab" data-arg='["vehicles"]'
+                            class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                            data-tab="vehicles">Vehicles & Fleet</button>
+                        <button data-action="switchMemberTab" data-arg='["settings"]'
+                            class="member-tab-btn px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                            data-tab="settings">Account Settings</button>
                     </div>
                 </div>
 
@@ -1126,8 +1276,10 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Primary Bio -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i data-lucide="user" class="w-3.5 h-3.5 text-indigo-600"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i
+                                        data-lucide="user" class="w-3.5 h-3.5 text-indigo-600"></i></div>
                                 Personal Details
                             </h4>
                             <div class="space-y-2.5">
@@ -1149,15 +1301,18 @@
                                 </div>
                                 <div class="flex justify-between items-center py-1.5">
                                     <span class="text-xs text-slate-400">Address</span>
-                                    <span id="detail-address" class="text-xs font-semibold text-slate-800 text-right max-w-[200px]">--</span>
+                                    <span id="detail-address"
+                                        class="text-xs font-semibold text-slate-800 text-right max-w-[200px]">--</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Account Info -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="credit-card" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i
+                                        data-lucide="credit-card" class="w-3.5 h-3.5 text-slate-600"></i></div>
                                 Account Details
                             </h4>
                             <div class="space-y-2.5">
@@ -1186,22 +1341,34 @@
 
                         <!-- Gov IDs Quick View -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center"><i data-lucide="id-card" class="w-3.5 h-3.5 text-blue-600"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center"><i
+                                        data-lucide="id-card" class="w-3.5 h-3.5 text-blue-600"></i></div>
                                 Verified IDs
                             </h4>
                             <div class="flex flex-wrap gap-2">
-                                <span class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600" data-field="sss">SSS: <span id="detail-sss-id">--</span></span>
-                                <span class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600" data-field="philhealth">PH: <span id="detail-philhealth-id">--</span></span>
-                                <span class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600" data-field="pagibig">PAG: <span id="detail-pagibig-id">--</span></span>
-                                <span class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600" data-field="tin">TIN: <span id="detail-tin-id">--</span></span>
+                                <span
+                                    class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600"
+                                    data-field="sss">SSS: <span id="detail-sss-id">--</span></span>
+                                <span
+                                    class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600"
+                                    data-field="philhealth">PH: <span id="detail-philhealth-id">--</span></span>
+                                <span
+                                    class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600"
+                                    data-field="pagibig">PAG: <span id="detail-pagibig-id">--</span></span>
+                                <span
+                                    class="detail-id-chip inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600"
+                                    data-field="tin">TIN: <span id="detail-tin-id">--</span></span>
                             </div>
                         </div>
 
                         <!-- Family Summary -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center"><i data-lucide="heart" class="w-3.5 h-3.5 text-pink-500"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center"><i
+                                        data-lucide="heart" class="w-3.5 h-3.5 text-pink-500"></i></div>
                                 Family Summary
                             </h4>
                             <div class="space-y-2.5">
@@ -1211,7 +1378,8 @@
                                 </div>
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-xs text-slate-400">Children</span>
-                                    <span class="text-xs font-semibold text-slate-800"><span id="detail-number-son">0</span> sons, <span id="detail-number-daughter">0</span> daughters</span>
+                                    <span class="text-xs font-semibold text-slate-800"><span id="detail-number-son">0</span>
+                                        sons, <span id="detail-number-daughter">0</span> daughters</span>
                                 </div>
                             </div>
                         </div>
@@ -1224,8 +1392,10 @@
 
                         <!-- Share Capital Summary -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i data-lucide="coins" class="w-3.5 h-3.5 text-indigo-600"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i
+                                        data-lucide="coins" class="w-3.5 h-3.5 text-indigo-600"></i></div>
                                 Share Capital
                             </h4>
                             <div class="space-y-2.5 mt-3">
@@ -1239,10 +1409,13 @@
                                 </div>
                                 <div class="flex justify-between items-center py-1.5">
                                     <span class="text-xs text-slate-400">Status</span>
-                                    <span id="fin-sc-status" class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">No Account</span>
+                                    <span id="fin-sc-status"
+                                        class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">No
+                                        Account</span>
                                 </div>
                             </div>
-                            <a id="fin-sc-link" href="#" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+                            <a id="fin-sc-link" href="#"
+                                class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
                                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                                 View Ledger
                             </a>
@@ -1250,25 +1423,32 @@
 
                         <!-- Savings Summary -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center"><i data-lucide="landmark" class="w-3.5 h-3.5 text-emerald-600"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center"><i
+                                        data-lucide="landmark" class="w-3.5 h-3.5 text-emerald-600"></i></div>
                                 Regular Savings
                             </h4>
                             <div class="space-y-2.5 mt-3">
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-xs text-slate-400">Current Balance</span>
-                                    <span id="fin-savings-amount" class="text-sm font-mono font-bold text-slate-800">₱0.00</span>
+                                    <span id="fin-savings-amount"
+                                        class="text-sm font-mono font-bold text-slate-800">₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-xs text-slate-400">Interest Accrued</span>
-                                    <span id="fin-savings-interest" class="text-sm font-mono font-bold text-emerald-600">₱0.00</span>
+                                    <span id="fin-savings-interest"
+                                        class="text-sm font-mono font-bold text-emerald-600">₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center py-1.5">
                                     <span class="text-xs text-slate-400">Status</span>
-                                    <span id="fin-savings-status" class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">No Account</span>
+                                    <span id="fin-savings-status"
+                                        class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">No
+                                        Account</span>
                                 </div>
                             </div>
-                            <a id="fin-savings-link" href="#" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-800 transition-colors">
+                            <a id="fin-savings-link" href="#"
+                                class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-800 transition-colors">
                                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                                 View Transactions
                             </a>
@@ -1277,24 +1457,45 @@
 
                     <!-- Active Loans -->
                     <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm mt-6">
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
-                            <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><i data-lucide="hand-coins" class="w-3.5 h-3.5 text-amber-600"></i></div>
+                        <h4
+                            class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><i
+                                    data-lucide="hand-coins" class="w-3.5 h-3.5 text-amber-600"></i></div>
                             Active Loans
-                            <span id="fin-loans-count" class="ml-auto px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-extrabold rounded-full">0</span>
+                            <span id="fin-loans-count"
+                                class="ml-auto px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-extrabold rounded-full">0</span>
                         </h4>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
                                 <thead>
                                     <tr class="border-b border-slate-200">
-                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Reference</th>
-                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Type</th>
-                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">Loan Amount</th>
-                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">Monthly</th>
-                                        <th class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">Total Payable</th>
+                                        <th
+                                            class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                            Reference</th>
+                                        <th
+                                            class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                            Type</th>
+                                        <th
+                                            class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">
+                                            Loan Amount</th>
+                                        <th
+                                            class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">
+                                            Monthly</th>
+                                        <th
+                                            class="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 text-right">
+                                            Total Payable</th>
                                     </tr>
                                 </thead>
                                 <tbody id="fin-loans-body">
-                                    <tr><td colspan="5" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No active loans</p></td></tr>
+                                    <tr>
+                                        <td colspan="5" class="px-5 py-10 text-center">
+                                            <div
+                                                class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center">
+                                                <i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i>
+                                            </div>
+                                            <p class="text-xs font-semibold text-slate-400">No active loans</p>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1306,8 +1507,10 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Personal Info -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i data-lucide="user" class="w-3.5 h-3.5 text-indigo-600"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center"><i
+                                        data-lucide="user" class="w-3.5 h-3.5 text-indigo-600"></i></div>
                                 Personal Information
                             </h4>
                             <div class="space-y-2.5">
@@ -1348,14 +1551,17 @@
 
                         <!-- Address & Contact -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i
+                                        data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-600"></i></div>
                                 Address & Contact
                             </h4>
                             <div class="space-y-2.5">
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-xs text-slate-400">Address</span>
-                                    <span id="detail-address-2" class="text-xs font-semibold text-slate-800 text-right max-w-[220px]">--</span>
+                                    <span id="detail-address-2"
+                                        class="text-xs font-semibold text-slate-800 text-right max-w-[220px]">--</span>
                                 </div>
                                 <div class="flex justify-between items-center py-1.5">
                                     <span class="text-xs text-slate-400">Phone</span>
@@ -1366,8 +1572,10 @@
 
                         <!-- Family -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center"><i data-lucide="heart" class="w-3.5 h-3.5 text-pink-500"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center"><i
+                                        data-lucide="heart" class="w-3.5 h-3.5 text-pink-500"></i></div>
                                 Family Information
                             </h4>
                             <div class="space-y-2.5">
@@ -1385,15 +1593,18 @@
                                 </div>
                                 <div class="flex justify-between items-center py-1.5">
                                     <span class="text-xs text-slate-400">Daughters</span>
-                                    <span id="detail-number-daughter-2" class="text-xs font-semibold text-slate-800">0</span>
+                                    <span id="detail-number-daughter-2"
+                                        class="text-xs font-semibold text-slate-800">0</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Skills -->
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><i data-lucide="star" class="w-3.5 h-3.5 text-amber-500"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><i
+                                        data-lucide="star" class="w-3.5 h-3.5 text-amber-500"></i></div>
                                 Skills & Expertise
                             </h4>
                             <div id="detail-skills-container" class="flex flex-wrap gap-1.5">
@@ -1414,7 +1625,8 @@
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">SSS ID</p>
                                 <p id="detail-sss-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
                             </div>
-                            <button data-action="copy-target" data-target="detail-sss-id-2" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                            <button data-action="copy-target" data-target="detail-sss-id-2"
+                                class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
                                 <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
                             </button>
                         </div>
@@ -1424,9 +1636,11 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PhilHealth ID</p>
-                                <p id="detail-philhealth-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
+                                <p id="detail-philhealth-id-2" class="text-sm font-bold text-slate-800 truncate">Not
+                                    provided</p>
                             </div>
-                            <button data-action="copy-target" data-target="detail-philhealth-id-2" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                            <button data-action="copy-target" data-target="detail-philhealth-id-2"
+                                class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
                                 <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
                             </button>
                         </div>
@@ -1436,9 +1650,11 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PAG-IBIG ID</p>
-                                <p id="detail-pagibig-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
+                                <p id="detail-pagibig-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided
+                                </p>
                             </div>
-                            <button data-action="copy-target" data-target="detail-pagibig-id-2" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                            <button data-action="copy-target" data-target="detail-pagibig-id-2"
+                                class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
                                 <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
                             </button>
                         </div>
@@ -1450,7 +1666,8 @@
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">TIN ID</p>
                                 <p id="detail-tin-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
                             </div>
-                            <button data-action="copy-target" data-target="detail-tin-id-2" class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
+                            <button data-action="copy-target" data-target="detail-tin-id-2"
+                                class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
                                 <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
                             </button>
                         </div>
@@ -1461,8 +1678,10 @@
                 <div id="tab-vehicles" class="member-tab-panel hidden">
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                         <div class="px-5 py-4 border-b border-slate-100">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center"><i data-lucide="car" class="w-3.5 h-3.5 text-emerald-600"></i></div>
+                            <h4
+                                class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center"><i
+                                        data-lucide="car" class="w-3.5 h-3.5 text-emerald-600"></i></div>
                                 Registered Vehicles
                             </h4>
                         </div>
@@ -1470,15 +1689,22 @@
                             <table class="w-full">
                                 <thead class="bg-slate-50">
                                     <tr>
-                                        <th class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Vehicle Type</th>
-                                        <th class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Plate Number</th>
-                                        <th class="px-5 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Qty</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                            Vehicle Type</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                            Plate Number</th>
+                                        <th
+                                            class="px-5 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                            Qty</th>
                                     </tr>
                                 </thead>
                                 <tbody id="detail-vehicles-body">
                                     <tr>
                                         <td colspan="3" class="px-5 py-10 text-center">
-                                            <div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center">
+                                            <div
+                                                class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center">
                                                 <i data-lucide="car" class="w-6 h-6 text-slate-300"></i>
                                             </div>
                                             <p class="text-xs font-semibold text-slate-400">No vehicles registered</p>
@@ -1494,20 +1720,85 @@
                 <div id="tab-settings" class="member-tab-panel hidden">
                     <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
                         <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="settings" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                            <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i
+                                    data-lucide="settings" class="w-3.5 h-3.5 text-slate-600"></i></div>
                             Administrative Controls
                         </h4>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Account Status</label>
-                                <select name="role" id="detail-role" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
+                                <label
+                                    class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Account
+                                    Status</label>
+                                <select name="role" id="detail-role"
+                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
                                     <option value="Pending">Pending</option>
                                     <option value="Member">Member</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Resignation Request Panel -->
+                    <div id="detail-resignation-card"
+                        class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4 mt-6 hidden">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center"><i
+                                    data-lucide="log-out" class="w-3.5 h-3.5 text-orange-500"></i></div>
+                            Resignation Request
+                            <span id="detail-resign-status-badge"
+                                class="ml-auto px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full">--</span>
+                        </h4>
+
+                        <div class="space-y-2.5">
+                            <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                <span class="text-xs text-slate-400">Requested On</span>
+                                <span id="detail-resign-requested" class="text-xs font-semibold text-slate-800">--</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                <span class="text-xs text-slate-400">Share Capital Preference</span>
+                                <span id="detail-resign-preference" class="text-xs font-semibold text-slate-800">--</span>
+                            </div>
+                            <div id="detail-resign-release-row"
+                                class="flex justify-between items-center py-1.5 border-b border-slate-100 hidden">
+                                <span class="text-xs text-slate-400">Release Date</span>
+                                <span id="detail-resign-release-date" class="text-xs font-semibold text-slate-800">--</span>
+                            </div>
+                            <div id="detail-resign-reason-row" class="py-1.5 hidden">
+                                <span class="text-xs text-slate-400 block mb-1">Rejection Reason</span>
+                                <span id="detail-resign-reason" class="text-xs font-semibold text-slate-800">--</span>
+                            </div>
                         </div>
+
+                        <!-- Pending: Approve / Reject -->
+                        <div id="detail-resign-pending-actions" class="flex items-center gap-3 hidden">
+                            <form id="detail-resign-approve-form" method="POST" class="flex-1">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-colors flex items-center justify-center gap-2">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                    Approve
+                                </button>
+                            </form>
+                            <button type="button" id="detail-resign-reject-btn"
+                                class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                                Reject
+                            </button>
+                        </div>
+
+                        <!-- Approved + withdraw + not yet released: Release button -->
+                        <div id="detail-resign-release-actions" class="hidden">
+                            <form id="detail-resign-release-form" method="POST">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full px-4 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-colors flex items-center justify-center gap-2">
+                                    <i data-lucide="unlock" class="w-4 h-4"></i>
+                                    Release Share Capital
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1515,8 +1806,10 @@
             <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-white shrink-0">
                 <span class="text-[10px] text-slate-400 font-medium">Cooperative Member Records &bull; CDA Compliant</span>
                 <div class="flex items-center gap-3">
-                    <button data-action="closeModal" data-arg='["memberDetailModal"]' class="px-5 py-2.5 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-colors">Close</button>
-                    <button id="detail-save-btn" class="px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-colors flex items-center gap-2">
+                    <button data-action="closeModal" data-arg='["memberDetailModal"]'
+                        class="px-5 py-2.5 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-colors">Close</button>
+                    <button id="detail-save-btn"
+                        class="px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-colors flex items-center gap-2">
                         <i data-lucide="save" class="w-4 h-4"></i>
                         Save & Confirm Changes
                     </button>
@@ -1526,23 +1819,29 @@
     </div>
 
     <!-- Pending Application Review Modal -->
-    <div id="pendingDetailModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto hidden">
-        <div class="bg-slate-50 rounded-3xl w-full max-w-4xl my-auto shadow-2xl border border-slate-200 flex flex-col max-h-[94vh] overflow-hidden">
+    <div id="pendingDetailModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto hidden">
+        <div
+            class="bg-slate-50 rounded-3xl w-full max-w-4xl my-auto shadow-2xl border border-slate-200 flex flex-col max-h-[94vh] overflow-hidden">
 
             <!-- Top Header Bar -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center">
+                    <div
+                        class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center">
                         <i data-lucide="file-text" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Pending Application Review</h2>
+                        <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Pending Application
+                            Review</h2>
                         <p class="text-[10px] text-slate-400 font-medium">Details submitted in the member application</p>
                     </div>
-                    <span id="review-member-id" class="ml-2 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-mono font-bold rounded-lg border border-slate-200">--</span>
+                    <span id="review-member-id"
+                        class="ml-2 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-mono font-bold rounded-lg border border-slate-200">--</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button data-action="closeModal" data-arg='["pendingDetailModal"]' class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <button data-action="closeModal" data-arg='["pendingDetailModal"]'
+                        class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                         <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
                     </button>
                 </div>
@@ -1554,14 +1853,16 @@
                 <!-- Hero Banner -->
                 <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-5">
-                        <div id="review-avatar-circle" class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-extrabold text-xl shadow-lg ring-2 ring-amber-500/20 flex items-center justify-center overflow-hidden shrink-0">
+                        <div id="review-avatar-circle"
+                            class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-extrabold text-xl shadow-lg ring-2 ring-amber-500/20 flex items-center justify-center overflow-hidden shrink-0">
                             <img id="review-profile-pic" src="" alt="" class="w-full h-full object-cover hidden">
                             <span id="review-avatar">--</span>
                         </div>
                         <div class="flex-1 min-w-0">
                             <h3 id="review-name" class="text-xl font-extrabold text-slate-900">--</h3>
                             <div class="flex flex-wrap items-center gap-2 mt-1">
-                                <span id="review-category" class="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
+                                <span id="review-category"
+                                    class="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-extrabold uppercase rounded-full">--</span>
                             </div>
                             <p id="review-applied" class="text-[10px] text-slate-400 font-medium mt-1.5">--</p>
                         </div>
@@ -1571,74 +1872,156 @@
                 <!-- Personal Information -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                     <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
-                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="user" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="user"
+                                class="w-3.5 h-3.5 text-slate-600"></i></div>
                         Personal Information
                     </h4>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Date of Birth</label><p id="review-dob" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Sex</label><p id="review-sex" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Civil Status</label><p id="review-civil-status" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Citizenship</label><p id="review-citizenship" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Place of Birth</label><p id="review-pob" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Blood Type</label><p id="review-blood-type" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Height</label><p id="review-height" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Weight</label><p id="review-weight" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Date
+                                of Birth</label>
+                            <p id="review-dob" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Sex</label>
+                            <p id="review-sex" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Civil
+                                Status</label>
+                            <p id="review-civil-status" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Citizenship</label>
+                            <p id="review-citizenship" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Place
+                                of Birth</label>
+                            <p id="review-pob" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Blood
+                                Type</label>
+                            <p id="review-blood-type" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Height</label>
+                            <p id="review-height" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Weight</label>
+                            <p id="review-weight" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Contact Information -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                     <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
-                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="mail" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="mail"
+                                class="w-3.5 h-3.5 text-slate-600"></i></div>
                         Contact Information
                     </h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Email</label><p id="review-email" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Contact Number</label><p id="review-phone" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Present Address</label><p id="review-address" class="text-xs font-semibold text-slate-800">--</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Permanent Address</label><p id="review-permanent-address" class="text-xs font-semibold text-slate-800">--</p></div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Email</label>
+                            <p id="review-email" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Contact
+                                Number</label>
+                            <p id="review-phone" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Present
+                                Address</label>
+                            <p id="review-address" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Permanent
+                                Address</label>
+                            <p id="review-permanent-address" class="text-xs font-semibold text-slate-800">--</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Government IDs -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                     <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
-                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="id-card" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i
+                                data-lucide="id-card" class="w-3.5 h-3.5 text-slate-600"></i></div>
                         Government IDs
                     </h4>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">SSS ID</label><p id="review-sss" class="text-xs font-semibold text-slate-800">Not provided</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PhilHealth ID</label><p id="review-philhealth" class="text-xs font-semibold text-slate-800">Not provided</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Pag-IBIG ID</label><p id="review-pagibig" class="text-xs font-semibold text-slate-800">Not provided</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">TIN ID</label><p id="review-tin" class="text-xs font-semibold text-slate-800">Not provided</p></div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">SSS
+                                ID</label>
+                            <p id="review-sss" class="text-xs font-semibold text-slate-800">Not provided</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PhilHealth
+                                ID</label>
+                            <p id="review-philhealth" class="text-xs font-semibold text-slate-800">Not provided</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Pag-IBIG
+                                ID</label>
+                            <p id="review-pagibig" class="text-xs font-semibold text-slate-800">Not provided</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">TIN
+                                ID</label>
+                            <p id="review-tin" class="text-xs font-semibold text-slate-800">Not provided</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Family -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                     <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
-                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="users" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="users"
+                                class="w-3.5 h-3.5 text-slate-600"></i></div>
                         Family
                     </h4>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Spouse Name</label><p id="review-spouse" class="text-xs font-semibold text-slate-800">Not specified</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Number of Sons</label><p id="review-sons" class="text-xs font-semibold text-slate-800">0</p></div>
-                        <div><label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Number of Daughters</label><p id="review-daughters" class="text-xs font-semibold text-slate-800">0</p></div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Spouse
+                                Name</label>
+                            <p id="review-spouse" class="text-xs font-semibold text-slate-800">Not specified</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Number
+                                of Sons</label>
+                            <p id="review-sons" class="text-xs font-semibold text-slate-800">0</p>
+                        </div>
+                        <div><label
+                                class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Number
+                                of Daughters</label>
+                            <p id="review-daughters" class="text-xs font-semibold text-slate-800">0</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Registered Vehicles -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                     <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
-                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="car" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="car"
+                                class="w-3.5 h-3.5 text-slate-600"></i></div>
                         Registered Vehicles
                     </h4>
                     <table class="w-full">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Vehicle Type</th>
-                                <th class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Plate Number</th>
-                                <th class="px-5 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Qty</th>
+                                <th
+                                    class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                    Vehicle Type</th>
+                                <th
+                                    class="px-5 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                    Plate Number</th>
+                                <th
+                                    class="px-5 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                    Qty</th>
                             </tr>
                         </thead>
                         <tbody id="review-vehicles-body">
@@ -1654,7 +2037,8 @@
                 <!-- Skills -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                     <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
-                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-slate-600"></i></div>
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><i
+                                data-lucide="sparkles" class="w-3.5 h-3.5 text-slate-600"></i></div>
                         Skills
                     </h4>
                     <p id="review-skills" class="text-xs font-semibold text-slate-800">No skills specified</p>
@@ -1665,11 +2049,13 @@
             <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-white shrink-0">
                 <span class="text-[10px] text-slate-400 font-medium">Review the application before approving</span>
                 <div class="flex items-center gap-3">
-                    <button data-action="closeModal" data-arg='["pendingDetailModal"]' class="px-5 py-2.5 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-colors">Close</button>
+                    <button data-action="closeModal" data-arg='["pendingDetailModal"]'
+                        class="px-5 py-2.5 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-colors">Close</button>
                     <form id="review-decline-form" method="POST">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" data-action="stop-propagation" data-confirm="Are you sure you want to decline this application? The member record will be removed."
+                        <button type="submit" data-action="stop-propagation"
+                            data-confirm="Are you sure you want to decline this application? The member record will be removed."
                             class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors border border-red-200 text-red-600 bg-white hover:bg-red-50 flex items-center gap-2">
                             <i data-lucide="x" class="w-4 h-4"></i>
                             Decline
@@ -1677,7 +2063,8 @@
                     </form>
                     <form id="review-accept-form" method="POST">
                         @csrf
-                        <button type="submit" class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2">
+                        <button type="submit"
+                            class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4"></i>
                             Accept Application
                         </button>
@@ -1688,380 +2075,567 @@
     </div>
 
     <script type="application/json" id="members-data">
-        {!! json_encode($members, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
-    </script>
-    
+                                                                    {!! json_encode($members, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
+                                                                </script>
+
+
+
+    @php $rejectedResignations = $rejectedResignations ?? collect(); @endphp
+    @if($rejectedResignations->count() > 0)
+        <div class="mt-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>
+                Rejected Resignation Requests
+                <span
+                    class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">{{ $rejectedResignations->count() }}</span>
+            </h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Requested</th>
+                                <th>Rejected On</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($rejectedResignations as $rr)
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-10 h-10 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center">
+                                                <span
+                                                    class="text-white font-bold text-sm">{{ strtoupper(substr($rr->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($rr->user->last_name ?? '', 0, 1)) }}</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }}
+                                                {{ $rr->user->last_name ?? '' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-sm text-gray-600">{{ $rr->created_at->format('M d, Y') }}</td>
+                                    <td class="text-sm text-gray-600">{{ $rr->updated_at->format('M d, Y') }}</td>
+                                    <td class="text-sm text-gray-700 max-w-xs">{{ $rr->rejection_reason ?? '—' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <script nonce="{{ csp_nonce() }}">
-        (function () {
-            var A = window.CSP_actions;
-            if (!A) return;
-            A.register('open-member-category-modal', function (e, el) {
-                var m=document.getElementById('memberCategoryModal');m.classList.remove('hidden');m.style.display='flex';
+        document.querySelectorAll('.js-reject-resign-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const id = this.dataset.resignId;
+                document.getElementById('reject_resign_id').value = id;
+                document.getElementById('reject_resign_reason').value = '';
+                document.getElementById('reject_resign_error').classList.add('hidden');
+                openModal('rejectResignModal');
             });
-            A.register('open-edit-admin', function (e, el) {
-                e.stopPropagation(); openEditAdminModal({{ $member->id }});
+        });
+
+
+
+        function resetRejectResignForm(id) {
+            document.getElementById('reject_resign_id').value = id;
+            document.getElementById('reject_resign_select').value = '';
+            document.getElementById('reject_resign_reason').value = '';
+            document.getElementById('reject_resign_other_wrap').classList.add('hidden');
+            document.getElementById('reject_resign_error').classList.add('hidden');
+        }
+
+        document.querySelectorAll('.js-reject-resign-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                resetRejectResignForm(this.dataset.resignId);
+                openModal('rejectResignModal');
             });
-            A.register('copy-prev', function (e, el) {
-                copyToClipboard(el.previousElementSibling);
-            });
-            A.register('copy-target', function (e, el) {
-                copyToClipboard(document.getElementById(el.getAttribute('data-target')));
-            });
-        })();
+        });
+
+        // Show the textarea only when "Other" is selected
+        document.getElementById('reject_resign_select')?.addEventListener('change', function () {
+            const wrap = document.getElementById('reject_resign_other_wrap');
+            const textarea = document.getElementById('reject_resign_reason');
+            const isOther = this.value === 'Other';
+
+            wrap.classList.toggle('hidden', !isOther);
+            if (isOther) {
+                textarea.focus();
+            } else {
+                textarea.value = '';
+            }
+        });
+
+        document.getElementById('rejectResignForm')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const id = document.getElementById('reject_resign_id').value;
+            const selected = document.getElementById('reject_resign_select').value;
+            const typed = document.getElementById('reject_resign_reason').value.trim();
+            const reason = selected === 'Other' ? typed : selected;
+            const errorEl = document.getElementById('reject_resign_error');
+            const btn = document.getElementById('rejectResignSubmitBtn');
+
+            if (!reason) {
+                errorEl.textContent = selected === 'Other'
+                    ? 'Please type the reason.'
+                    : 'Please select a reason.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = 'Submitting...';
+
+            fetch('/resignation/' + id + '/reject', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ rejection_reason: reason }),
+            })
+                .then(async r => {
+                    const data = await r.json().catch(() => ({}));
+                    if (!r.ok || data.success !== true) {
+                        const validationMsg = data.errors ? Object.values(data.errors)[0][0] : null;
+                        throw new Error(validationMsg || data.message || 'Something went wrong.');
+                    }
+                    return data;
+                })
+                .then(() => location.reload())
+                .catch(err => {
+                    errorEl.textContent = err.message;
+                    errorEl.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
+        });
 
         const membersData = {{ Js::from($members->items()) }};
         const adminsData = {{ Js::from($adminList) }};
-        
+
         function closeAllDropdowns() {
             document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.add('hidden'));
         }
-        
-        document.addEventListener('click', function(e) {
+
+        document.addEventListener('click', function (e) {
             if (!e.target.closest('.dropdown')) {
                 closeAllDropdowns();
             }
         });
 
         @if(auth()->user()?->isMainAdmin())
-        // Admin Edit Form Handler
-        document.getElementById('editAdminForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const formData = new FormData(form);
+            // Admin Edit Form Handler
+            document.getElementById('editAdminForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const form = this;
+                const formData = new FormData(form);
 
-            fetch('{{ route('admin.update') }}', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Success', data.message, 'success');
-                    closeModal('editAdminModal');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showToast('Error', data.message, 'error');
-                }
-            })
-            .catch(() => showToast('Error', 'Failed to update admin account', 'error'));
-        });
-
-        function openEditAdminModal(id) {
-            const adminList = JSON.parse(document.getElementById('admin-list-data').textContent);
-            const rolesData = JSON.parse(document.getElementById('roles-data').textContent);
-            const admin = adminList.find(a => a.id === id);
-            if (!admin) return;
-
-            document.getElementById('edit_admin_id').value = admin.id;
-            document.getElementById('edit_first_name').value = admin.first_name;
-            document.getElementById('edit_last_name').value = admin.last_name;
-            document.getElementById('edit_email').value = admin.email || '';
-            document.getElementById('edit_role').value = admin.role;
-
-            updateEditRolePerms(admin.role, rolesData);
-
-            document.getElementById('edit_role').onchange = function() {
-                updateEditRolePerms(this.value, rolesData);
-            };
-
-            openModal('editAdminModal');
-        }
-
-        function updateEditRolePerms(slug, rolesData) {
-            const container = document.getElementById('edit_role_perms_display');
-            const role = rolesData.find(r => r.slug === slug);
-            container.innerHTML = '';
-            if (!role || !role.sidebar_permissions) {
-                container.innerHTML = '<span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Full Access</span>';
-                return;
-            }
-            if (role.sidebar_permissions.length === 0) {
-                container.innerHTML = '<span class="text-xs font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded-full">No Access</span>';
-                return;
-            }
-            role.sidebar_permissions.forEach(p => {
-                const span = document.createElement('span');
-                span.className = 'text-xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded';
-                span.textContent = p;
-                container.appendChild(span);
+                fetch('{{ route('admin.update') }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Success', data.message, 'success');
+                            closeModal('editAdminModal');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            showToast('Error', data.message, 'error');
+                        }
+                    })
+                    .catch(() => showToast('Error', 'Failed to update admin account', 'error'));
             });
-        }
 
-        function confirmDeleteAdmin(id, name) {
-            if (!confirm(`Are you sure you want to deactivate "${name}"? They will lose access to the system.`)) return;
+            function openEditAdminModal(id) {
+                const adminList = JSON.parse(document.getElementById('admin-list-data').textContent);
+                const rolesData = JSON.parse(document.getElementById('roles-data').textContent);
+                const admin = adminList.find(a => a.id === id);
+                if (!admin) return;
 
-            const formData = new FormData();
-            formData.append('id', id);
+                document.getElementById('edit_admin_id').value = admin.id;
+                document.getElementById('edit_first_name').value = admin.first_name;
+                document.getElementById('edit_last_name').value = admin.last_name;
+                document.getElementById('edit_email').value = admin.email || '';
+                document.getElementById('edit_role').value = admin.role;
 
-            fetch('{{ route('admin.delete') }}', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Success', data.message, 'success');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showToast('Error', data.message, 'error');
+                updateEditRolePerms(admin.role, rolesData);
+
+                document.getElementById('edit_role').onchange = function () {
+                    updateEditRolePerms(this.value, rolesData);
+                };
+
+                openModal('editAdminModal');
+            }
+
+            function updateEditRolePerms(slug, rolesData) {
+                const container = document.getElementById('edit_role_perms_display');
+                const role = rolesData.find(r => r.slug === slug);
+                container.innerHTML = '';
+                if (!role || !role.sidebar_permissions) {
+                    container.innerHTML = '<span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Full Access</span>';
+                    return;
                 }
-            })
-            .catch(() => showToast('Error', 'Failed to deactivate admin account', 'error'));
-        }
+                if (role.sidebar_permissions.length === 0) {
+                    container.innerHTML = '<span class="text-xs font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded-full">No Access</span>';
+                    return;
+                }
+                role.sidebar_permissions.forEach(p => {
+                    const span = document.createElement('span');
+                    span.className = 'text-xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded';
+                    span.textContent = p;
+                    container.appendChild(span);
+                });
+            }
 
-        document.querySelectorAll('.js-confirm-delete-admin').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                confirmDeleteAdmin(Number(this.dataset.memberId), this.dataset.memberName);
+            function confirmDeleteAdmin(id, name) {
+                if (!confirm(`Are you sure you want to deactivate "${name}"? They will lose access to the system.`)) return;
+
+                const formData = new FormData();
+                formData.append('id', id);
+
+                fetch('{{ route('admin.delete') }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Success', data.message, 'success');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            showToast('Error', data.message, 'error');
+                        }
+                    })
+                    .catch(() => showToast('Error', 'Failed to deactivate admin account', 'error'));
+            }
+
+            document.querySelectorAll('.js-confirm-delete-admin').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    confirmDeleteAdmin(Number(this.dataset.memberId), this.dataset.memberName);
+                });
             });
-        });
         @endif
-        
-        function openMemberDetailModal(memberId) {
-            let member = membersData.find(m => m.id === memberId);
-            if (!member) {
-                member = adminsData.find(m => m.id === memberId);
-            }
-            if (!member) return;
 
-            const initials = (member.first_name?.charAt(0) || '') + (member.last_name?.charAt(0) || '');
-            const fullName = (member.first_name || '') + ' ' + (member.last_name || '');
+            function openMemberDetailModal(memberId) {
+                let member = membersData.find(m => m.id === memberId);
+                if (!member) {
+                    member = adminsData.find(m => m.id === memberId);
+                }
+                if (!member) return;
 
-            document.getElementById('detail-avatar').textContent = initials.toUpperCase();
-            document.getElementById('detail-name').textContent = fullName;
-            document.getElementById('detail-middle-name').textContent = member.middle_name ? member.middle_name : '';
-            const isAdmin = !['member', 'pending', 'inactive'].includes(String(member.role || '').toLowerCase());
-            document.getElementById('detail-member-id').textContent = (isAdmin ? 'ADM-' : 'MEM-') + String(member.id).padStart(4, '0');
-            document.getElementById('detail-email').textContent = member.email || 'N/A';
-            document.getElementById('detail-phone').textContent = member.contact_no || 'N/A';
-            document.getElementById('detail-dob').textContent = member.date_of_birth || 'N/A';
-            document.getElementById('detail-sex').textContent = member.sex || 'N/A';
-            document.getElementById('detail-civil-status').textContent = member.civil_status || 'N/A';
-            document.getElementById('detail-address').textContent = member.present_address || 'N/A';
-            document.getElementById('detail-membership').textContent = isAdmin ? 'Allied Workers' : (member.membership_category || 'N/A');
-            document.getElementById('detail-citizenship').textContent = member.citizenship || 'N/A';
-            document.getElementById('detail-pob').textContent = member.place_of_birth || 'N/A';
-            document.getElementById('detail-blood-type').textContent = member.blood_type || 'N/A';
-            document.getElementById('detail-height').textContent = member.height || 'N/A';
-            document.getElementById('detail-weight').textContent = member.weight || 'N/A';
+                const initials = (member.first_name?.charAt(0) || '') + (member.last_name?.charAt(0) || '');
+                const fullName = (member.first_name || '') + ' ' + (member.last_name || '');
 
-            // Duplicate fields in Personal & Family tab
-            document.getElementById('detail-dob-2').textContent = member.date_of_birth || 'N/A';
-            document.getElementById('detail-sex-2').textContent = member.sex || 'N/A';
-            document.getElementById('detail-civil-status-2').textContent = member.civil_status || 'N/A';
-            document.getElementById('detail-citizenship-2').textContent = member.citizenship || 'N/A';
-            document.getElementById('detail-pob-2').textContent = member.place_of_birth || 'N/A';
-            document.getElementById('detail-blood-type-2').textContent = member.blood_type || 'N/A';
-            document.getElementById('detail-height-2').textContent = member.height || 'N/A';
-            document.getElementById('detail-weight-2').textContent = member.weight || 'N/A';
-            document.getElementById('detail-address-2').textContent = member.present_address || 'N/A';
-            document.getElementById('detail-phone-2').textContent = member.contact_no || 'N/A';
+                document.getElementById('detail-avatar').textContent = initials.toUpperCase();
+                document.getElementById('detail-name').textContent = fullName;
+                document.getElementById('detail-middle-name').textContent = member.middle_name ? member.middle_name : '';
+                const isAdmin = !['member', 'pending', 'inactive'].includes(String(member.role || '').toLowerCase());
+                document.getElementById('detail-member-id').textContent = (isAdmin ? 'ADM-' : 'MEM-') + String(member.id).padStart(4, '0');
+                document.getElementById('detail-email').textContent = member.email || 'N/A';
+                document.getElementById('detail-phone').textContent = member.contact_no || 'N/A';
+                document.getElementById('detail-dob').textContent = member.date_of_birth || 'N/A';
+                document.getElementById('detail-sex').textContent = member.sex || 'N/A';
+                document.getElementById('detail-civil-status').textContent = member.civil_status || 'N/A';
+                document.getElementById('detail-address').textContent = member.present_address || 'N/A';
+                document.getElementById('detail-membership').textContent = isAdmin ? 'Allied Workers' : (member.membership_category || 'N/A');
+                document.getElementById('detail-citizenship').textContent = member.citizenship || 'N/A';
+                document.getElementById('detail-pob').textContent = member.place_of_birth || 'N/A';
+                document.getElementById('detail-blood-type').textContent = member.blood_type || 'N/A';
+                document.getElementById('detail-height').textContent = member.height || 'N/A';
+                document.getElementById('detail-weight').textContent = member.weight || 'N/A';
 
-            // Profile pic
-            const profilePic = document.getElementById('detail-profile-pic');
-            const avatar = document.getElementById('detail-avatar');
-            if (member.profile_picture) {
-                profilePic.src = '/' + member.profile_picture;
-                profilePic.classList.remove('hidden');
-                avatar.classList.add('hidden');
-            } else {
-                profilePic.classList.add('hidden');
-                avatar.classList.remove('hidden');
-            }
+                // Duplicate fields in Personal & Family tab
+                document.getElementById('detail-dob-2').textContent = member.date_of_birth || 'N/A';
+                document.getElementById('detail-sex-2').textContent = member.sex || 'N/A';
+                document.getElementById('detail-civil-status-2').textContent = member.civil_status || 'N/A';
+                document.getElementById('detail-citizenship-2').textContent = member.citizenship || 'N/A';
+                document.getElementById('detail-pob-2').textContent = member.place_of_birth || 'N/A';
+                document.getElementById('detail-blood-type-2').textContent = member.blood_type || 'N/A';
+                document.getElementById('detail-height-2').textContent = member.height || 'N/A';
+                document.getElementById('detail-weight-2').textContent = member.weight || 'N/A';
+                document.getElementById('detail-address-2').textContent = member.present_address || 'N/A';
+                document.getElementById('detail-phone-2').textContent = member.contact_no || 'N/A';
 
-            // Join date
-            const joinDate = member.created_at;
-            document.getElementById('detail-join-date').textContent = joinDate ? 'Member since ' + new Date(joinDate).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) : '';
+                // Profile pic
+                const profilePic = document.getElementById('detail-profile-pic');
+                const avatar = document.getElementById('detail-avatar');
+                if (member.profile_picture) {
+                    profilePic.src = '/' + member.profile_picture;
+                    profilePic.classList.remove('hidden');
+                    avatar.classList.add('hidden');
+                } else {
+                    profilePic.classList.add('hidden');
+                    avatar.classList.remove('hidden');
+                }
 
-            // Family (Overview tab)
-            document.getElementById('detail-spouse-name').textContent = member.spouse_name || 'Not specified';
-            document.getElementById('detail-number-son').textContent = member.number_son || 0;
-            document.getElementById('detail-number-daughter').textContent = member.number_daughter || 0;
-            // Family (Personal tab)
-            document.getElementById('detail-spouse-name-2').textContent = member.spouse_name || 'Not specified';
-            document.getElementById('detail-spouse-dob-2').textContent = member.spouse_date_birth || 'Not specified';
-            document.getElementById('detail-number-son-2').textContent = member.number_son || 0;
-            document.getElementById('detail-number-daughter-2').textContent = member.number_daughter || 0;
+                // Join date
+                const joinDate = member.created_at;
+                document.getElementById('detail-join-date').textContent = joinDate ? 'Member since ' + new Date(joinDate).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) : '';
 
-            // Skills
-            const skillsEl = document.getElementById('detail-skills');
-            if (member.skills && member.skills.trim()) {
-                const skillsArray = member.skills.split(',').map(s => s.trim()).filter(s => s);
-                if (skillsArray.length > 0) {
-                    skillsEl.innerHTML = skillsArray.map(skill =>
-                        `<span class="inline-block px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-bold rounded-lg">${skill}</span>`
-                    ).join('');
+                // Family (Overview tab)
+                document.getElementById('detail-spouse-name').textContent = member.spouse_name || 'Not specified';
+                document.getElementById('detail-number-son').textContent = member.number_son || 0;
+                document.getElementById('detail-number-daughter').textContent = member.number_daughter || 0;
+                // Family (Personal tab)
+                document.getElementById('detail-spouse-name-2').textContent = member.spouse_name || 'Not specified';
+                document.getElementById('detail-spouse-dob-2').textContent = member.spouse_date_birth || 'Not specified';
+                document.getElementById('detail-number-son-2').textContent = member.number_son || 0;
+                document.getElementById('detail-number-daughter-2').textContent = member.number_daughter || 0;
+
+                // Skills
+                const skillsEl = document.getElementById('detail-skills');
+                if (member.skills && member.skills.trim()) {
+                    const skillsArray = member.skills.split(',').map(s => s.trim()).filter(s => s);
+                    if (skillsArray.length > 0) {
+                        skillsEl.innerHTML = skillsArray.map(skill =>
+                            `<span class="inline-block px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-bold rounded-lg">${skill}</span>`
+                        ).join('');
+                    } else {
+                        skillsEl.textContent = 'No skills specified';
+                    }
                 } else {
                     skillsEl.textContent = 'No skills specified';
                 }
-            } else {
-                skillsEl.textContent = 'No skills specified';
-            }
 
-            // Gov IDs — primary
-            document.getElementById('detail-sss-id').textContent = member.sss_id || 'Not provided';
-            document.getElementById('detail-philhealth-id').textContent = member.philhealth_id || 'Not provided';
-            document.getElementById('detail-pagibig-id').textContent = member.pagibig_id || 'Not provided';
-            document.getElementById('detail-tin-id').textContent = member.tin_id || 'Not provided';
-            // Gov IDs — duplicate tab
-            document.getElementById('detail-sss-id-2').textContent = member.sss_id || 'Not provided';
-            document.getElementById('detail-philhealth-id-2').textContent = member.philhealth_id || 'Not provided';
-            document.getElementById('detail-pagibig-id-2').textContent = member.pagibig_id || 'Not provided';
-            document.getElementById('detail-tin-id-2').textContent = member.tin_id || 'Not provided';
+                // Gov IDs — primary
+                document.getElementById('detail-sss-id').textContent = member.sss_id || 'Not provided';
+                document.getElementById('detail-philhealth-id').textContent = member.philhealth_id || 'Not provided';
+                document.getElementById('detail-pagibig-id').textContent = member.pagibig_id || 'Not provided';
+                document.getElementById('detail-tin-id').textContent = member.tin_id || 'Not provided';
+                // Gov IDs — duplicate tab
+                document.getElementById('detail-sss-id-2').textContent = member.sss_id || 'Not provided';
+                document.getElementById('detail-philhealth-id-2').textContent = member.philhealth_id || 'Not provided';
+                document.getElementById('detail-pagibig-id-2').textContent = member.pagibig_id || 'Not provided';
+                document.getElementById('detail-tin-id-2').textContent = member.tin_id || 'Not provided';
 
-            // Vehicles
-            const vehiclesBody = document.getElementById('detail-vehicles-body');
-            const esc = (value) => {
-                const div = document.createElement('div');
-                div.textContent = value;
-                return div.innerHTML;
-            };
-            if (member.vehicles && member.vehicles.length > 0) {
-                vehiclesBody.innerHTML = member.vehicles.map(v => `
-                    <tr class="border-t border-slate-100">
-                        <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
-                        <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
-                        <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
-                    </tr>
-                `).join('');
-            } else {
-                vehiclesBody.innerHTML = '<tr><td colspan="3" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="car" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No vehicles registered</p></td></tr>';
-            }
-
-            // Status badge
-            const statusEl = document.getElementById('detail-status');
-            if (['admin', 'general-manager'].includes(member.role)) {
-                statusEl.className = 'px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-extrabold uppercase rounded-full';
-                statusEl.textContent = 'Admin';
-            } else if (member.role === 'Member' || member.role === 'member' || member.role === 'active') {
-                statusEl.className = 'px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-extrabold uppercase rounded-full';
-                statusEl.textContent = 'Active';
-            } else if (member.role === 'pending' || member.role === 'Pending') {
-                statusEl.className = 'px-2.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-extrabold uppercase rounded-full';
-                statusEl.textContent = 'Pending';
-            } else {
-                statusEl.className = 'px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-extrabold uppercase rounded-full';
-                statusEl.textContent = member.role || 'N/A';
-            }
-
-            document.getElementById('detail-category').textContent = isAdmin ? 'Allied Workers' : (member.membership_category || 'N/A');
-
-            // Share Capital
-            document.getElementById('detail-sc-amount').textContent = '₱' + (member.sc_total_amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
-            document.getElementById('detail-sc-shares').textContent = member.sc_total_shares || 0;
-
-            const scStatusEl = document.getElementById('detail-sc-status');
-            if (member.sc_status === 'Active') {
-                scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full';
-                scStatusEl.textContent = 'Active';
-            } else if (member.sc_status === 'No Account') {
-                scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white/60 text-[10px] font-extrabold uppercase rounded-full';
-                scStatusEl.textContent = 'No Account';
-            } else {
-                scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full';
-                scStatusEl.textContent = member.sc_status || 'Inactive';
-            }
-
-            document.getElementById('detail-sc-see-more').href = '/dashboard-sharecapitals?member=' + member.id;
-
-            // Savings Card (hero balance cards)
-            document.getElementById('detail-savings-amount').textContent = '₱' + (member.savings_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
-            const savingsStatusEl = document.getElementById('detail-savings-status');
-            if (member.savings_status === 'Active') {
-                savingsStatusEl.textContent = 'Savings account active';
-                savingsStatusEl.className = 'text-xs text-emerald-500 mt-1';
-            } else if (member.savings_status === 'No Account') {
-                savingsStatusEl.textContent = 'No savings account linked';
-                savingsStatusEl.className = 'text-xs text-slate-400 mt-1';
-            } else {
-                savingsStatusEl.textContent = member.savings_status || 'No savings account linked';
-                savingsStatusEl.className = 'text-xs text-slate-400 mt-1';
-            }
-            document.getElementById('detail-savings-see-more').href = '/dashboard-savings?member=' + member.id;
-
-            // Financials tab — Share Capital
-            document.getElementById('fin-sc-amount').textContent = '₱' + (member.sc_total_amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
-            document.getElementById('fin-sc-shares').textContent = member.sc_total_shares || 0;
-            const finScStatusEl = document.getElementById('fin-sc-status');
-            if (member.sc_status === 'Active') {
-                finScStatusEl.textContent = 'Active';
-                finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600';
-            } else if (member.sc_status === 'No Account') {
-                finScStatusEl.textContent = 'No Account';
-                finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
-            } else {
-                finScStatusEl.textContent = member.sc_status || 'Inactive';
-                finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
-            }
-            document.getElementById('fin-sc-link').href = '/dashboard-sharecapitals?member=' + member.id;
-
-            // Financials tab — Savings
-            document.getElementById('fin-savings-amount').textContent = '₱' + (member.savings_balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
-            document.getElementById('fin-savings-interest').textContent = '₱' + (member.savings_interest || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
-            const finSaStatusEl = document.getElementById('fin-savings-status');
-            if (member.savings_status === 'Active') {
-                finSaStatusEl.textContent = 'Active';
-                finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600';
-            } else if (member.savings_status === 'No Account') {
-                finSaStatusEl.textContent = 'No Account';
-                finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
-            } else {
-                finSaStatusEl.textContent = member.savings_status || 'Inactive';
-                finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
-            }
-            document.getElementById('fin-savings-link').href = '/dashboard-savings?member=' + member.id;
-
-            // Financials tab — Active Loans
-            document.getElementById('fin-loans-count').textContent = member.active_loans_count || 0;
-            const loansBody = document.getElementById('fin-loans-body');
-            if (member.active_loans && member.active_loans.length > 0) {
-                loansBody.innerHTML = member.active_loans.map(l => `
-                    <tr class="border-t border-slate-100 hover:bg-slate-50">
-                        <td class="px-4 py-3 text-xs font-mono font-bold text-indigo-600">${l.reference_no || 'N/A'}</td>
-                        <td class="px-4 py-3 text-xs font-semibold text-slate-800">${l.lending_type || 'N/A'}</td>
-                        <td class="px-4 py-3 text-xs font-mono font-bold text-slate-800 text-right">₱${(l.lending_amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
-                        <td class="px-4 py-3 text-xs font-mono font-semibold text-slate-600 text-right">₱${(l.monthly_payment || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
-                        <td class="px-4 py-3 text-xs font-mono font-bold text-amber-600 text-right">₱${(l.total_payment || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
-                    </tr>
-                `).join('');
-            } else {
-                loansBody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No active loans</p></td></tr>';
-            }
-
-            const roleSelect = document.getElementById('detail-role');
-            const ROLES = ['Pending', 'Member', 'inactive'];
-            Array.from(roleSelect.options).forEach(o => { if (!ROLES.includes(o.value)) o.remove(); });
-            roleSelect.disabled = false;
-
-            if (isAdmin) {
-                let opt = Array.from(roleSelect.options).find(o => o.value === (member.role || 'Admin'));
-                if (!opt) {
-                    opt = document.createElement('option');
-                    opt.value = member.role || 'Admin';
-                    opt.textContent = member.role || 'Admin';
-                    roleSelect.appendChild(opt);
+                // Vehicles
+                const vehiclesBody = document.getElementById('detail-vehicles-body');
+                const esc = (value) => {
+                    const div = document.createElement('div');
+                    div.textContent = value;
+                    return div.innerHTML;
+                };
+                if (member.vehicles && member.vehicles.length > 0) {
+                    vehiclesBody.innerHTML = member.vehicles.map(v => `
+                                                                                <tr class="border-t border-slate-100">
+                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
+                                                                                    <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
+                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
+                                                                                </tr>
+                                                                            `).join('');
+                } else {
+                    vehiclesBody.innerHTML = '<tr><td colspan="3" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="car" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No vehicles registered</p></td></tr>';
                 }
-                roleSelect.value = opt.value;
-                roleSelect.disabled = true;
-            } else {
-                const roleValue = { member: 'Member', active: 'Member', pending: 'Pending', inactive: 'inactive' }[String(member.role || 'member').toLowerCase()] || '';
-                roleSelect.value = roleValue;
+
+                // Status badge
+                const statusEl = document.getElementById('detail-status');
+                if (['admin', 'general-manager'].includes(member.role)) {
+                    statusEl.className = 'px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-extrabold uppercase rounded-full';
+                    statusEl.textContent = 'Admin';
+                } else if (member.role === 'Member' || member.role === 'member' || member.role === 'active') {
+                    statusEl.className = 'px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-extrabold uppercase rounded-full';
+                    statusEl.textContent = 'Active';
+                } else if (member.role === 'pending' || member.role === 'Pending') {
+                    statusEl.className = 'px-2.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-extrabold uppercase rounded-full';
+                    statusEl.textContent = 'Pending';
+                } else {
+                    statusEl.className = 'px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-extrabold uppercase rounded-full';
+                    statusEl.textContent = member.role || 'N/A';
+                }
+
+                document.getElementById('detail-category').textContent = isAdmin ? 'Allied Workers' : (member.membership_category || 'N/A');
+
+                // Share Capital
+                document.getElementById('detail-sc-amount').textContent = '₱' + (member.sc_total_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+                document.getElementById('detail-sc-shares').textContent = member.sc_total_shares || 0;
+
+                const scStatusEl = document.getElementById('detail-sc-status');
+                if (member.sc_status === 'Active') {
+                    scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full';
+                    scStatusEl.textContent = 'Active';
+                } else if (member.sc_status === 'No Account') {
+                    scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white/60 text-[10px] font-extrabold uppercase rounded-full';
+                    scStatusEl.textContent = 'No Account';
+                } else {
+                    scStatusEl.className = 'inline-block px-2 py-0.5 bg-white/15 text-white text-[10px] font-extrabold uppercase rounded-full';
+                    scStatusEl.textContent = member.sc_status || 'Inactive';
+                }
+
+                document.getElementById('detail-sc-see-more').href = '/dashboard-sharecapitals?member=' + member.id;
+
+                // Savings Card (hero balance cards)
+                document.getElementById('detail-savings-amount').textContent = '₱' + (member.savings_balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+                const savingsStatusEl = document.getElementById('detail-savings-status');
+                if (member.savings_status === 'Active') {
+                    savingsStatusEl.textContent = 'Savings account active';
+                    savingsStatusEl.className = 'text-xs text-emerald-500 mt-1';
+                } else if (member.savings_status === 'No Account') {
+                    savingsStatusEl.textContent = 'No savings account linked';
+                    savingsStatusEl.className = 'text-xs text-slate-400 mt-1';
+                } else {
+                    savingsStatusEl.textContent = member.savings_status || 'No savings account linked';
+                    savingsStatusEl.className = 'text-xs text-slate-400 mt-1';
+                }
+                document.getElementById('detail-savings-see-more').href = '/dashboard-savings?member=' + member.id;
+
+                // Financials tab — Share Capital
+                document.getElementById('fin-sc-amount').textContent = '₱' + (member.sc_total_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+                document.getElementById('fin-sc-shares').textContent = member.sc_total_shares || 0;
+                const finScStatusEl = document.getElementById('fin-sc-status');
+                if (member.sc_status === 'Active') {
+                    finScStatusEl.textContent = 'Active';
+                    finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600';
+                } else if (member.sc_status === 'No Account') {
+                    finScStatusEl.textContent = 'No Account';
+                    finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+                } else {
+                    finScStatusEl.textContent = member.sc_status || 'Inactive';
+                    finScStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+                }
+                document.getElementById('fin-sc-link').href = '/dashboard-sharecapitals?member=' + member.id;
+
+                // Financials tab — Savings
+                document.getElementById('fin-savings-amount').textContent = '₱' + (member.savings_balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+                document.getElementById('fin-savings-interest').textContent = '₱' + (member.savings_interest || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+                const finSaStatusEl = document.getElementById('fin-savings-status');
+                if (member.savings_status === 'Active') {
+                    finSaStatusEl.textContent = 'Active';
+                    finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600';
+                } else if (member.savings_status === 'No Account') {
+                    finSaStatusEl.textContent = 'No Account';
+                    finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+                } else {
+                    finSaStatusEl.textContent = member.savings_status || 'Inactive';
+                    finSaStatusEl.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+                }
+                document.getElementById('fin-savings-link').href = '/dashboard-savings?member=' + member.id;
+
+                // Financials tab — Active Loans
+                document.getElementById('fin-loans-count').textContent = member.active_loans_count || 0;
+                const loansBody = document.getElementById('fin-loans-body');
+                if (member.active_loans && member.active_loans.length > 0) {
+                    loansBody.innerHTML = member.active_loans.map(l => `
+                                                                                <tr class="border-t border-slate-100 hover:bg-slate-50">
+                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-indigo-600">${l.reference_no || 'N/A'}</td>
+                                                                                    <td class="px-4 py-3 text-xs font-semibold text-slate-800">${l.lending_type || 'N/A'}</td>
+                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-slate-800 text-right">₱${(l.lending_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                                                                    <td class="px-4 py-3 text-xs font-mono font-semibold text-slate-600 text-right">₱${(l.monthly_payment || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-amber-600 text-right">₱${(l.total_payment || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                                                                </tr>
+                                                                            `).join('');
+                } else {
+                    loansBody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No active loans</p></td></tr>';
+                }
+
+                const roleSelect = document.getElementById('detail-role');
+                const ROLES = ['Pending', 'Member', 'inactive'];
+                Array.from(roleSelect.options).forEach(o => { if (!ROLES.includes(o.value)) o.remove(); });
+                roleSelect.disabled = false;
+
+                if (isAdmin) {
+                    let opt = Array.from(roleSelect.options).find(o => o.value === (member.role || 'Admin'));
+                    if (!opt) {
+                        opt = document.createElement('option');
+                        opt.value = member.role || 'Admin';
+                        opt.textContent = member.role || 'Admin';
+                        roleSelect.appendChild(opt);
+                    }
+                    roleSelect.value = opt.value;
+                    roleSelect.disabled = true;
+                } else {
+                    const roleValue = { member: 'Member', active: 'Member', pending: 'Pending', inactive: 'inactive' }[String(member.role || 'member').toLowerCase()] || '';
+                    roleSelect.value = roleValue;
+                }
+
+                // Reset to Overview tab
+                // Resignation Request panel
+                const resignCard = document.getElementById('detail-resignation-card');
+                const rr = member.resignation_request;
+
+                if (!rr) {
+                    resignCard.classList.add('hidden');
+                } else {
+                    resignCard.classList.remove('hidden');
+
+                    document.getElementById('detail-resign-requested').textContent = rr.created_at
+                        ? new Date(rr.created_at).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
+                        : '--';
+                    document.getElementById('detail-resign-preference').textContent = rr.withdraw_share_capital
+                        ? 'Withdraw after 60 days'
+                        : 'Leave with cooperative';
+
+                    const badge = document.getElementById('detail-resign-status-badge');
+                    const pendingActions = document.getElementById('detail-resign-pending-actions');
+                    const releaseActions = document.getElementById('detail-resign-release-actions');
+                    const releaseRow = document.getElementById('detail-resign-release-row');
+                    const reasonRow = document.getElementById('detail-resign-reason-row');
+
+                    pendingActions.classList.add('hidden');
+                    releaseActions.classList.add('hidden');
+                    releaseRow.classList.add('hidden');
+                    reasonRow.classList.add('hidden');
+
+                    if (rr.status === 'pending') {
+                        badge.className = 'ml-auto px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-600 border border-amber-100';
+                        badge.textContent = 'Pending';
+                        pendingActions.classList.remove('hidden');
+
+                        document.getElementById('detail-resign-approve-form').action = '/resignation/' + rr.id + '/approve';
+                        document.getElementById('detail-resign-reject-btn').onclick = function () {
+                            resetRejectResignForm(rr.id);
+                            openModal('rejectResignModal');
+                        };
+                    } else if (rr.status === 'approved') {
+                        if (rr.withdraw_share_capital && !rr.is_released) {
+                            badge.className = 'ml-auto px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-600 border border-blue-100';
+                            badge.textContent = 'Awaiting Release';
+                            releaseRow.classList.remove('hidden');
+                            document.getElementById('detail-resign-release-date').textContent = rr.release_date
+                                ? new Date(rr.release_date).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
+                                : '--';
+
+                            const daysLeft = rr.release_date ? Math.ceil((new Date(rr.release_date) - new Date()) / 86400000) : 0;
+                            if (daysLeft <= 0) {
+                                releaseActions.classList.remove('hidden');
+                                document.getElementById('detail-resign-release-form').action = '/resignation/' + rr.id + '/release';
+                            }
+                        } else {
+                            badge.className = 'ml-auto px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-slate-100 text-slate-500 border border-slate-200';
+                            badge.textContent = 'Resigned';
+                        }
+                    } else if (rr.status === 'rejected') {
+                        badge.className = 'ml-auto px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-red-50 text-red-600 border border-red-100';
+                        badge.textContent = 'Rejected';
+                        reasonRow.classList.remove('hidden');
+                        document.getElementById('detail-resign-reason').textContent = rr.rejection_reason || '--';
+                    }
+                }
+
+                // Reset to Overview tab
+                switchMemberTab('overview');
+                filterBalanceCards('all');
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+
+                openModal('memberDetailModal');
+                window.currentMemberId = member.id;
+                window.currentMember = member;
             }
-
-            // Reset to Overview tab
-            switchMemberTab('overview');
-            filterBalanceCards('all');
-
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-
-            openModal('memberDetailModal');
-            window.currentMemberId = member.id;
-            window.currentMember = member;
-        }
 
         function openMemberReviewModal(memberId) {
             const member = membersData.find(m => m.id === memberId);
@@ -2120,12 +2694,12 @@
             };
             if (member.vehicles && member.vehicles.length > 0) {
                 recordVehiclesBody.innerHTML = member.vehicles.map(v => `
-                    <tr class="border-t border-slate-100">
-                        <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
-                        <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
-                        <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
-                    </tr>
-                `).join('');
+                                                                                <tr class="border-t border-slate-100">
+                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
+                                                                                    <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
+                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
+                                                                                </tr>
+                                                                            `).join('');
             } else {
                 recordVehiclesBody.innerHTML = '<tr><td colspan="3" class="px-5 py-6 text-center"><p class="text-xs font-semibold text-slate-400">No vehicles registered</p></td></tr>';
             }
@@ -2194,7 +2768,7 @@
                 setTimeout(() => toast.remove(), 1500);
             });
         }
-        
+
         function printMemberSOA() {
             const member = window.currentMember || membersData.find(m => m.id === window.currentMemberId);
             if (!member) {
@@ -2217,13 +2791,13 @@
             const loans = Array.isArray(member.active_loans) ? member.active_loans : [];
             const loanRows = loans.length > 0
                 ? loans.map(l => `
-                    <tr>
-                        <td>${soaEsc(l.reference_no || '—')}</td>
-                        <td>${soaEsc(l.lending_type || '—')}</td>
-                        <td class="num">${fmt(l.lending_amount)}</td>
-                        <td class="num">${fmt(l.monthly_payment)}</td>
-                        <td class="num">${fmt(l.total_payment)}</td>
-                    </tr>`).join('')
+                                                                                <tr>
+                                                                                    <td>${soaEsc(l.reference_no || '—')}</td>
+                                                                                    <td>${soaEsc(l.lending_type || '—')}</td>
+                                                                                    <td class="num">${fmt(l.lending_amount)}</td>
+                                                                                    <td class="num">${fmt(l.monthly_payment)}</td>
+                                                                                    <td class="num">${fmt(l.total_payment)}</td>
+                                                                                </tr>`).join('')
                 : '<tr><td colspan="5">No active loans</td></tr>';
 
             const scAmount = Number(member.sc_total_amount) || 0;
@@ -2231,114 +2805,114 @@
             const scrOpen = '<scr' + 'ipt>';
 
             const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Statement of Account - ${fullName}</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000; padding: 15px 20px; background: #fff; }
-        .header { margin-bottom: 18px; text-align: center; }
-        .header .coop-name { font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-        .header .title { font-size: 13px; font-weight: 700; margin-top: 4px; }
-        .header .subtitle { font-size: 10px; color: #333; margin-top: 2px; }
-        table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 16px; }
-        thead th { background: #e0e0e0; border: 1px solid #000; padding: 5px 8px; font-weight: 700; text-align: center; text-transform: uppercase; font-size: 9px; }
-        tbody td { border: 1px solid #000; padding: 4px 8px; }
-        .num { text-align: right; font-family: 'Courier New', Courier, monospace; }
-        .totals-row td { font-weight: 700; background: #e8e8e8; border-top: 2px solid #000; }
-        .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 14px 0 4px; letter-spacing: 0.5px; }
-        .toolbar { margin-bottom: 12px; }
-        .toolbar button { padding: 6px 18px; font-size: 12px; cursor: pointer; background: #1E2A4A; color: #fff; border: none; border-radius: 4px; margin-right: 6px; }
-        .toolbar .close { background: #6c757d; }
-        .footer { margin-top: 14px; padding-top: 6px; border-top: 1px solid #000; display: flex; justify-content: space-between; font-size: 8px; color: #555; }
-        @@media print {
-            body { padding: 10px 15px; font-size: 9px; }
-            thead th { font-size: 8px; padding: 4px 6px; }
-            tbody td { padding: 3px 6px; }
-            .toolbar { display: none !important; }
-        }
-        @@page { size: portrait; margin: 15mm; }
-    </style>
-</head>
-<body>
-    <div class="toolbar">
-        <button id="btn-print">Print / Save as PDF</button>
-        <button id="btn-close" class="close">Close</button>
-    </div>
+                                                            <html lang="en">
+                                                            <head>
+                                                                <meta charset="UTF-8">
+                                                                <title>Statement of Account - ${fullName}</title>
+                                                                <style>
+                                                                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                                                                    body { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000; padding: 15px 20px; background: #fff; }
+                                                                    .header { margin-bottom: 18px; text-align: center; }
+                                                                    .header .coop-name { font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+                                                                    .header .title { font-size: 13px; font-weight: 700; margin-top: 4px; }
+                                                                    .header .subtitle { font-size: 10px; color: #333; margin-top: 2px; }
+                                                                    table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 16px; }
+                                                                    thead th { background: #e0e0e0; border: 1px solid #000; padding: 5px 8px; font-weight: 700; text-align: center; text-transform: uppercase; font-size: 9px; }
+                                                                    tbody td { border: 1px solid #000; padding: 4px 8px; }
+                                                                    .num { text-align: right; font-family: 'Courier New', Courier, monospace; }
+                                                                    .totals-row td { font-weight: 700; background: #e8e8e8; border-top: 2px solid #000; }
+                                                                    .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 14px 0 4px; letter-spacing: 0.5px; }
+                                                                    .toolbar { margin-bottom: 12px; }
+                                                                    .toolbar button { padding: 6px 18px; font-size: 12px; cursor: pointer; background: #1E2A4A; color: #fff; border: none; border-radius: 4px; margin-right: 6px; }
+                                                                    .toolbar .close { background: #6c757d; }
+                                                                    .footer { margin-top: 14px; padding-top: 6px; border-top: 1px solid #000; display: flex; justify-content: space-between; font-size: 8px; color: #555; }
+                                                                    @@media print {
+                                                                        body { padding: 10px 15px; font-size: 9px; }
+                                                                        thead th { font-size: 8px; padding: 4px 6px; }
+                                                                        tbody td { padding: 3px 6px; }
+                                                                        .toolbar { display: none !important; }
+                                                                    }
+                                                                    @@page { size: portrait; margin: 15mm; }
+                                                                </style>
+                                                            </head>
+                                                            <body>
+                                                                <div class="toolbar">
+                                                                    <button id="btn-print">Print / Save as PDF</button>
+                                                                    <button id="btn-close" class="close">Close</button>
+                                                                </div>
 
-    <div class="header">
-        <div class="coop-name">Kingsland Pala-Pala Multi-Purpose Cooperative</div>
-        <div class="title">STATEMENT OF ACCOUNT</div>
-        <div class="subtitle">${fullName} &middot; ${memberId} &middot; As of ${asOf}</div>
-    </div>
+                                                                <div class="header">
+                                                                    <div class="coop-name">Kingsland Pala-Pala Multi-Purpose Cooperative</div>
+                                                                    <div class="title">STATEMENT OF ACCOUNT</div>
+                                                                    <div class="subtitle">${fullName} &middot; ${memberId} &middot; As of ${asOf}</div>
+                                                                </div>
 
-    <table>
-        <tbody>
-            <tr><td><strong>MEMBER NAME</strong></td><td>${fullName}</td></tr>
-            <tr><td><strong>MEMBERSHIP NO.</strong></td><td>${memberId}</td></tr>
-            <tr><td><strong>MEMBERSHIP CATEGORY</strong></td><td>${soaEsc(member.membership_category || 'Investor Associate')}</td></tr>
-            <tr><td><strong>EMAIL</strong></td><td>${soaEsc(member.email)}</td></tr>
-            <tr><td><strong>CONTACT NO.</strong></td><td>${soaEsc(member.contact_no)}</td></tr>
-            <tr><td><strong>PRESENT ADDRESS</strong></td><td>${soaEsc(member.present_address)}</td></tr>
-            <tr><td><strong>MEMBER SINCE</strong></td><td>${memberSince}</td></tr>
-            <tr><td><strong>STATEMENT DATE</strong></td><td>${asOf}</td></tr>
-        </tbody>
-    </table>
+                                                                <table>
+                                                                    <tbody>
+                                                                        <tr><td><strong>MEMBER NAME</strong></td><td>${fullName}</td></tr>
+                                                                        <tr><td><strong>MEMBERSHIP NO.</strong></td><td>${memberId}</td></tr>
+                                                                        <tr><td><strong>MEMBERSHIP CATEGORY</strong></td><td>${soaEsc(member.membership_category || 'Investor Associate')}</td></tr>
+                                                                        <tr><td><strong>EMAIL</strong></td><td>${soaEsc(member.email)}</td></tr>
+                                                                        <tr><td><strong>CONTACT NO.</strong></td><td>${soaEsc(member.contact_no)}</td></tr>
+                                                                        <tr><td><strong>PRESENT ADDRESS</strong></td><td>${soaEsc(member.present_address)}</td></tr>
+                                                                        <tr><td><strong>MEMBER SINCE</strong></td><td>${memberSince}</td></tr>
+                                                                        <tr><td><strong>STATEMENT DATE</strong></td><td>${asOf}</td></tr>
+                                                                    </tbody>
+                                                                </table>
 
-    <div class="section-label">Account Balances</div>
-    <table>
-        <thead>
-            <tr><th>Account</th><th>Details</th><th>Status</th><th>Amount</th></tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Share Capital</td>
-                <td>${Number(member.sc_total_shares) || 0} shares</td>
-                <td>${soaEsc(member.sc_status || 'No Account')}</td>
-                <td class="num">${fmt(scAmount)}</td>
-            </tr>
-            <tr>
-                <td>Regular Savings</td>
-                <td>Current balance</td>
-                <td>${soaEsc(member.savings_status || 'No Account')}</td>
-                <td class="num">${fmt(savingsBalance)}</td>
-            </tr>
-            <tr>
-                <td>Savings Interest Accrued</td>
-                <td>&mdash;</td>
-                <td>&mdash;</td>
-                <td class="num">${fmt(member.savings_interest)}</td>
-            </tr>
-            <tr class="totals-row">
-                <td colspan="3">TOTAL EQUITY (Share Capital + Savings)</td>
-                <td class="num">${fmt(scAmount + savingsBalance)}</td>
-            </tr>
-        </tbody>
-    </table>
+                                                                <div class="section-label">Account Balances</div>
+                                                                <table>
+                                                                    <thead>
+                                                                        <tr><th>Account</th><th>Details</th><th>Status</th><th>Amount</th></tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td>Share Capital</td>
+                                                                            <td>${Number(member.sc_total_shares) || 0} shares</td>
+                                                                            <td>${soaEsc(member.sc_status || 'No Account')}</td>
+                                                                            <td class="num">${fmt(scAmount)}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>Regular Savings</td>
+                                                                            <td>Current balance</td>
+                                                                            <td>${soaEsc(member.savings_status || 'No Account')}</td>
+                                                                            <td class="num">${fmt(savingsBalance)}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>Savings Interest Accrued</td>
+                                                                            <td>&mdash;</td>
+                                                                            <td>&mdash;</td>
+                                                                            <td class="num">${fmt(member.savings_interest)}</td>
+                                                                        </tr>
+                                                                        <tr class="totals-row">
+                                                                            <td colspan="3">TOTAL EQUITY (Share Capital + Savings)</td>
+                                                                            <td class="num">${fmt(scAmount + savingsBalance)}</td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
 
-    <div class="section-label">Active Loans</div>
-    <table>
-        <thead>
-            <tr><th>Reference</th><th>Type</th><th class="num">Loan Amount</th><th class="num">Monthly</th><th class="num">Total Payable</th></tr>
-        </thead>
-        <tbody>${loanRows}</tbody>
-    </table>
+                                                                <div class="section-label">Active Loans</div>
+                                                                <table>
+                                                                    <thead>
+                                                                        <tr><th>Reference</th><th>Type</th><th class="num">Loan Amount</th><th class="num">Monthly</th><th class="num">Total Payable</th></tr>
+                                                                    </thead>
+                                                                    <tbody>${loanRows}</tbody>
+                                                                </table>
 
-    <div class="footer">
-        <span>Generated on ${asOf}</span>
-        <span>Kingsland Pala-Pala Multi-Purpose Cooperative</span>
-    </div>
+                                                                <div class="footer">
+                                                                    <span>Generated on ${asOf}</span>
+                                                                    <span>Kingsland Pala-Pala Multi-Purpose Cooperative</span>
+                                                                </div>
 
-    ${scrOpen}
-        setTimeout(function () { window.print(); }, 300);
-        document.addEventListener('click', function (e) {
-            if (e.target.id === 'btn-print') window.print();
-            if (e.target.id === 'btn-close') window.close();
-        });
-    <\/script>
-</body>
-</html>`;
+                                                                ${scrOpen}
+                                                                    setTimeout(function () { window.print(); }, 300);
+                                                                    document.addEventListener('click', function (e) {
+                                                                        if (e.target.id === 'btn-print') window.print();
+                                                                        if (e.target.id === 'btn-close') window.close();
+                                                                    });
+                                                                <\/script>
+                                                            </body>
+                                                            </html>`;
 
             const w = window.open('', '_blank', 'width=900,height=760');
             if (!w) {
@@ -2351,10 +2925,10 @@
             w.focus();
         }
 
-        document.getElementById('detail-save-btn').addEventListener('click', function() {
+        document.getElementById('detail-save-btn').addEventListener('click', function () {
             const memberId = window.currentMemberId;
             const role = document.getElementById('detail-role').value;
-            
+
             fetch('/dashboard-members/update', {
                 method: 'PUT',
                 headers: {
@@ -2368,20 +2942,33 @@
                     role: role
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Success', 'Member updated successfully');
-                    closeModal('memberDetailModal');
-                    location.reload();
-                } else {
-                    showToast('Error', data.message || 'Failed to update member');
-                }
-            })
-            .catch(error => {
-                console.error('Update error:', error);
-                showToast('Error', 'Failed to update member');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Success', 'Member updated successfully');
+                        closeModal('memberDetailModal');
+                        location.reload();
+                    } else {
+                        showToast('Error', data.message || 'Failed to update member');
+                    }
+                })
+                .catch(error => {
+                    console.error('Update error:', error);
+                    showToast('Error', 'Failed to update member');
+                });
         });
     </script>
+
+    <!-- <script nonce="{{ csp_nonce() }}">
+                                            fetch('/resignation/' + id + '/reject', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                                                        ?? document.querySelector('input[name="_token"]')?.value,
+                                                    'Accept': 'application/json',
+                                                },
+                                                body: JSON.stringify({ rejection_reason: reason }),
+                                            })
+                                        </script> -->
 @endsection
