@@ -322,3 +322,62 @@
     @endif
 
 </nav>
+
+@auth
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            const PING_URL = "{{ route('member.statusPing') }}";
+            const INACTIVE_URL = "{{ route('member.inactive') }}";
+            const INTERVAL = 8000;
+            let baseline = null, timer = null, acting = false;
+
+            function go(url, text) {
+                acting = true;
+                clearInterval(timer);
+                const d = document.createElement('div');
+                d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;padding:14px;' +
+                    'background:#1f2937;color:#fff;text-align:center;font-weight:600';
+                d.textContent = (text || 'Your account status has changed.') + ' Redirecting…';
+                document.body.appendChild(d);
+                setTimeout(function () { window.location.href = url; }, 1000);
+            }
+
+            function ping() {
+                if (acting || document.hidden) return;
+
+                fetch(PING_URL, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    cache: 'no-store',
+                    credentials: 'same-origin'
+                })
+                    .then(function (res) {
+                        // Middleware bounced us somewhere — that IS the status change.
+                        if (res.redirected) { go(res.url, 'Your account status has changed.'); return null; }
+                        if (res.status === 401 || res.status === 419) { go("{{ route('login') }}", 'Your session ended.'); return null; }
+                        if (!res.ok) return null;
+
+                        const ct = res.headers.get('content-type') || '';
+                        if (ct.indexOf('application/json') === -1) { go(INACTIVE_URL, 'Your account status has changed.'); return null; }
+
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        if (!data || acting) return;
+
+                        if (!data.authenticated) { go(data.redirect, 'Your session ended.'); return; }
+                        if (data.redirect) { go(data.redirect, data.message); return; }
+
+                        if (baseline === null) { baseline = data.fingerprint; return; }
+                        if (baseline !== data.fingerprint) { go(window.location.href, 'Your account was updated.'); }
+                    })
+                    .catch(function () { /* offline — retry next tick */ });
+            }
+
+            ping();
+            timer = setInterval(ping, INTERVAL);
+            document.addEventListener('visibilitychange', function () { if (!document.hidden) ping(); });
+        })();
+    </script>
+@endauth
+
+@include('components.reset_password_modal')

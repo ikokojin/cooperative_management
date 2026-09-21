@@ -86,12 +86,12 @@ class ResignationController extends Controller
                 $resignation->release_date = now()->addDays(60);
                 $resignation->save();
 
-                $user->status = 'resignation_pending';
+                $user->status = 'awaiting_release';
                 $user->save();
 
                 $message = 'Resignation approved. 60-day holding period started. Release date: '.$resignation->release_date->format('M d, Y');
             } else {
-                $user->status = 'inactive';
+                $user->status = 'resigned';
                 $user->save();
 
                 $scAccount = share_capital_account_tbl::where('user_id', $user->id)->first();

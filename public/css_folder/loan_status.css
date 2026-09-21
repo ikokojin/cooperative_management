@@ -2714,6 +2714,11 @@ div.status-alert-text {
 }
 
 @media only screen and (max-width: 500px) {
+    .container-fluid main .parent-main {
+        padding: 1.5rem 1.5rem 7rem;
+    }
+
+
     .container-fluid main .parent-main .loan-hero {
         padding: 30px 25px;
         margin-top: 1rem;
@@ -2756,11 +2761,11 @@ div.status-alert-text {
         align-items: center;
     }
 
-    .lsc-progress-bar{
+    .lsc-progress-bar {
         margin: 0 0 10px;
     }
 
-    .lsc-progress .amount-to-paid{
+    .lsc-progress .amount-to-paid {
         display: flex;
         justify-content: space-between;
         align-items: center;

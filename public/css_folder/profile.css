@@ -926,6 +926,32 @@ textarea.sm-input {
     margin-top: 0.6rem;
 }
 
+.main-personal-card-resign {
+    margin-top: 1.5rem;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.main-personal-card-resign .resign-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.main-perosnal-card-resign .resign-body .resign-sub-body {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
 /* @media only screen and (max-width: 1200px) {
 
     html {
@@ -983,6 +1009,58 @@ textarea.sm-input {
         padding: 0;
     }
 
+}
+
+@media only screen and (max-width: 780px) {
+    .container-fluid .rightbar .main-parent .parent-information {
+        /* grid-template-columns: repeat(2, 1fr); */
+        grid-template-columns: 1fr;
+    }
+}
+
+@media only screen and (max-width: 711px) {
+    .container-fluid .rightbar .main-parent {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media only screen and (max-width: 703px) {
+    .container-fluid .rightbar {
+        width: 100%;
+        margin-left: 0;
+    }
+
+}
+
+@media only screen and (max-width: 630px) {
+    .main-personal-card-resign .resign-body {
+        flex-direction: column;
+    }
+
+    .main-perosnal-card-resign .resign-body .resign-sub-body {
+        flex-direction: column;
+    }
+
+    .main-personal-card-resign {
+        flex-direction: column;
+    }
+}
+
+@media only screen and (max-width: 530px) {
+    .container-fluid .rightbar .main-parent .main-personal-card .personal-header .active {
+        padding: 5px;
+    }
+
+    .container-fluid .rightbar .main-parent .main-personal-card .personal-header .active span {
+        display: none;
+    }
+
+}
+
+@media only screen and (max-width: 500px) {
+    .container-fluid .rightbar .main-parent {
+        padding: 1.5rem 1.5rem 7rem;
+    }
 }
 
 /* @media only screen and (max-width: 703px) {

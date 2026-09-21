@@ -25,6 +25,70 @@ use Illuminate\Validation\Rule;
 
 class UsersHandle extends Controller
 {
+    private function isLockedOutStatus($user): bool
+    {
+        return in_array(strtolower((string) $user->status), ['inactive', 'awaiting_release', 'resigned'], true)
+            || strtolower((string) $user->role) === 'inactive';
+    }
+
+    public function AccountStatusPing(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'authenticated' => false,
+                'redirect' => route('login'),
+            ]);
+        }
+
+        // Always read fresh from the DB — the session copy is stale.
+        $user = Users_tbl::find(Auth::id());
+
+        if (!$user) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'authenticated' => false,
+                'redirect' => route('login'),
+            ]);
+        }
+
+        $rr = \App\Models\ResignationRequest_tbl::where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->first();
+
+        $state = [
+            'status' => strtolower((string) $user->status),
+            'role' => strtolower((string) $user->role),
+            'rr_status' => $rr->status ?? null,
+            'rr_released' => (bool) ($rr->is_released ?? false),
+            'rr_release_d' => $rr->release_date ?? null,
+        ];
+
+        $redirect = null;
+        $message = null;
+
+        if (strtolower((string) $user->status) === 'reactivation_pending') {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            $redirect = route('login');
+            $message = 'Your reactivation request is under review.';
+        } elseif ($this->isLockedOutStatus($user)) {
+            // resigned / awaiting_release / inactive → read-only page
+            $redirect = route('member.inactive');
+            $message = 'Your resignation has been approved.';
+        }
+
+        return response()->json([
+            'authenticated' => true,
+            'fingerprint' => md5(json_encode($state)),
+            'redirect' => $redirect,
+            'message' => $message,
+        ]);
+    }
+
     public function applicationFormButton(Request $request, $id)
     {
         try {
@@ -1207,6 +1271,10 @@ class UsersHandle extends Controller
         $search = trim((string) $request->query('search', ''));
         $date = $request->query('date', '');
         $status = strtolower(trim((string) $request->query('status', 'all'))); // all | pending | completed | released | locked | credited | rejected | approved
+
+        // if ($status === 'awaiting_release') {
+        //     return redirect()->route('member.inactive');
+        // }
         $page = max(1, (int) $request->query('page', 1));
         $perPage = 10;
 
@@ -2807,7 +2875,7 @@ class UsersHandle extends Controller
                     ->withErrors(['login' => 'Your reactivation request is still under review.']);
             }
 
-            if (strtolower((string) $user->status) === 'inactive' || strtolower((string) $user->role) === 'inactive') {
+            if ($this->isLockedOutStatus($user)) {
                 return redirect()->route('member.inactive');
             }
 
@@ -2837,8 +2905,7 @@ class UsersHandle extends Controller
             return redirect()->route('dashboard');
         }
 
-        $isInactive = strtolower((string) $user->status) === 'inactive'
-            || strtolower((string) $user->role) === 'inactive'
+        $isInactive = $this->isLockedOutStatus($user)
             || strtolower((string) $user->status) === 'reactivation_pending';
 
         if (!$isInactive) {
@@ -2885,7 +2952,7 @@ class UsersHandle extends Controller
                 ->withErrors(['login' => 'Your reactivation request is still under review.']);
         }
 
-        $isInactive = $status === 'inactive' || strtolower((string) $user->role) === 'inactive';
+        $isInactive = $this->isLockedOutStatus($user);
 
         if (!$isInactive) {
             return redirect()->route('MemberPortal');
@@ -2918,6 +2985,7 @@ class UsersHandle extends Controller
 
         $loginInput = $incomingFields['login'];
 
+        // Check if user exists by email
         // Check if user exists by email
         $user = DB::table('users_tbls')->where('email', $loginInput)->first();
 
@@ -3005,7 +3073,7 @@ class UsersHandle extends Controller
                         ->withInput($request->only('login'));
                 }
 
-                if (strtolower((string) $user->status) === 'inactive' || strtolower((string) $user->role) === 'inactive') {
+                if ($this->isLockedOutStatus($user)) {
                     auth()->login($user);
                     $request->session()->regenerate();
                     $request->session()->flash('just_logged_in', true);

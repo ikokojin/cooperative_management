@@ -97,7 +97,13 @@ Route::get('/share-capital', [ShareCapital::class, 'memberIndex'])
     ->middleware('auth', 'member.active');
 
 // Profile Member page GET
-Route::get("/profile-member", [UsersHandle::class, "ProfileMember"])->name("ProfileMember")->middleware("auth", "member.active");
+Route::get("/profile-member", [UsersHandle::class, "ProfileMember"])
+    ->name("ProfileMember")
+    ->middleware("auth", "resigned.redirect", "member.active");
+
+Route::get('/member/status-ping', [UsersHandle::class, 'AccountStatusPing'])
+    ->name('member.statusPing')
+    ->middleware('auth');   // ← no member-status / inactive-guard middleware
 
 // Edit Profile Member page GET
 Route::get("/edit-profile-member", [UsersHandle::class, "EditProfileMember"])->name("EditProfileMember")->middleware("auth", "member.active");

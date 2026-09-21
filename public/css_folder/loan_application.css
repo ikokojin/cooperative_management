@@ -433,7 +433,7 @@ select.form-select{
     font-size: 13.5px;
 }
 
-.container-fluid select option{
+.container-fluid select option {
     color: #1a1a1a;
 }
 
@@ -1588,6 +1588,11 @@ select.form-select{
     pointer-events: none;
 }
 
+.loan-detail-inner {
+    padding: 20px;
+    border-top: 1px dashed var(--border);
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -1864,6 +1869,12 @@ select.form-select{
     }
 }
 
+@media only screen and (max-width: 500px) {
+    .container-fluid .main-sub-parent {
+        padding: 2rem 1.5rem 8rem;
+    }
+}
+
 @media only screen and (max-width: 450px) {
 
     .container-fluid main .main-parent nav .nav-tabs {
@@ -1876,5 +1887,25 @@ select.form-select{
 @media only screen and (max-width: 445px) {
     .container-fluid main .card-box-parent {
         grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+@media only screen and (max-width: 430px) {
+    .detail-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .progress-head span:nth-child(1){
+        display: none;
+    }
+
+    .loan-card.open .loan-detail {
+        max-height: 8000px;
+        /* large enough for any content, still animates */
+    }
+
+    .loan-detail-inner {
+        overflow-y: auto;
+        height: 500px;
     }
 }

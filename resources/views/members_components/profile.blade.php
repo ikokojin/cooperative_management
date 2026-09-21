@@ -36,9 +36,11 @@
 <body>
 
     <div class="container-fluid p-0 m-0">
+        @include("components.offcanvas")
         @include("components.sidebar")
 
         <div class="rightbar">
+            @include("components.footer")
             @include("components.navbar2")
             <div class="main-parent">
                 <div class="main-header">
@@ -66,7 +68,7 @@
                             </div>
                         </div>
                         <div class="active">
-                            Active Member
+                            <span>Active Member</span>
                         </div>
                     </div>
 
@@ -374,23 +376,126 @@
                     </div>
                 </div>
 
-                <div class="main-personal-card"
-                    style="margin-top: 1.5rem; border: 1px solid #fecaca; background: #fef2f2; padding: 20px; border-radius: 12px; display:flex; justify-content:space-between; align-items:center; gap: 16px;">
-                    <div stlye="width: 100%;">
-                        <h4 style="color: #dc2626; margin: 0 0 5px; font-size: 20px; font-weight: 600;">Leave the
-                            Cooperative?</h4>
-                        <p style="color: #1e293b; margin: 0; font-size: 14.5px; width: 100%; max-width: 500px;">If you
-                            wish to resign, submit a
-                            resignation request. A 60-day holding period applies for share capital withdrawal.</p>
+                @php
+                    $resignation = \App\Models\ResignationRequest_tbl::where('user_id', $user->id)->latest()->first();
+                    $resStatus = $resignation->status ?? null;
+                    $userStatus = strtolower((string) ($user->status ?? 'active'));
+
+                    // Block new requests while one is pending, or after an approved resignation
+                    // (until the member is reactivated and status becomes 'active' again)
+                    $resPending = $resStatus === 'pending';
+                    $resApproved = $resStatus === 'approved' && $userStatus !== 'active';
+                    $resBlocked = $resPending || $resApproved;
+                    $resRejected = $resStatus === 'rejected' && !$resBlocked;
+
+                    $submittedAt = $resignation?->created_at?->format('M d, Y');
+                    $releaseDate = $resignation?->release_date ? \Carbon\Carbon::parse($resignation->release_date)->format('M d, Y') : null;
+                @endphp
+
+                @if($resPending)
+                    {{-- STATE 1: Request submitted, waiting for admin review --}}
+                    <div class="main-personal-card-resign"
+                        style="margin-top: 1.5rem; border: 1px solid #fde68a; background: #fffbeb; padding: 20px; border-radius: 12px;">
+                        <div
+                            style="" class="resign-body">
+                            <div class="resign-sub-body">
+                                <div
+                                    style="width:44px; height:44px; border-radius:50%; background:#fef3c7; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-hourglass-half" style="color:#d97706; font-size:18px;"></i>
+                                </div>
+                                <div>
+                                    <h4 style="color:#b45309; margin:0 0 4px; font-size:19px; font-weight:600;">Resignation
+                                        Request In Process</h4>
+                                    <p style="color:#1e293b; margin:0; font-size:13.5px; max-width:520px;">
+                                        Your request{{ $submittedAt ? ' submitted on ' . $submittedAt : '' }} is being
+                                        reviewed by the admin.
+                                        You will be notified once a decision is made.
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" disabled
+                                style="background:#e5e7eb; color:#9ca3af; border:none; padding:10px 20px; border-radius:8px; cursor:not-allowed; font-weight:600; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:14.5px;">
+                                <i class="fa fa-clock"></i>
+                                <span>Request Pending</span>
+                            </button>
+                        </div>
+
+                        <div
+                            style="display:flex; gap:24px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px dashed #fcd34d; font-size:13px;">
+                            <div>
+                                <span style="color:#6b7280; display:block;">Status</span>
+                                <strong style="color:#b45309;">Pending Review</strong>
+                            </div>
+                            <div>
+                                <span style="color:#6b7280; display:block;">Share Capital</span>
+                                <strong
+                                    style="color:#111827;">{{ $resignation->withdraw_share_capital ? 'Withdraw (60-day holding)' : 'Leave with cooperative' }}</strong>
+                            </div>
+                        </div>
                     </div>
-                    <div stlye="width: 100%;">
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#profileResignModal"
-                            style="background: #dc2626; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 14.5px;">
-                            <i class="fa fa-sign-out-alt"></i>
-                            <span>Request Resignation</span>
-                        </button>
+
+                @elseif($resApproved)
+                    {{-- STATE 2: Approved --}}
+                    <div class="main-personal-card"
+                        style="margin-top: 1.5rem; border: 1px solid #bfdbfe; background: #eff6ff; padding: 20px; border-radius: 12px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:14px;">
+                                <div
+                                    style="width:44px; height:44px; border-radius:50%; background:#dbeafe; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-circle-check" style="color:#2563eb; font-size:18px;"></i>
+                                </div>
+                                <div>
+                                    <h4 style="color:#1d4ed8; margin:0 0 4px; font-size:19px; font-weight:600;">Resignation
+                                        Approved</h4>
+                                    <p style="color:#1e293b; margin:0; font-size:13.5px; max-width:520px;">
+                                        @if($resignation->withdraw_share_capital && !$resignation->is_released)
+                                            Your share capital will be released after the 60-day holding
+                                            period{{ $releaseDate ? ' (on ' . $releaseDate . ')' : '' }}.
+                                        @elseif($resignation->withdraw_share_capital)
+                                            Your share capital has been released. Thank you for being part of the cooperative.
+                                        @else
+                                            Your resignation was approved. Your share capital remains with the cooperative.
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" disabled
+                                style="background:#e5e7eb; color:#9ca3af; border:none; padding:10px 20px; border-radius:8px; cursor:not-allowed; font-weight:600; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:14.5px;">
+                                <i class="fa fa-lock"></i>
+                                <span>Already Requested</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
+
+                @else
+                    {{-- STATE 3: No request (or previous one rejected) → normal form --}}
+                    <div class="main-personal-card-resign"
+                        style="">
+                        <div style="width: 100%;">
+                            <h4 style="color: #dc2626; margin: 0 0 5px; font-size: 19px; font-weight: 600;">Leave the
+                                Cooperative?</h4>
+                            <p style="color: #1e293b; margin: 0; font-size: 13.5px; width: 100%; max-width: 500px;">
+                                If you wish to resign, submit a resignation request. A 60-day holding period applies for
+                                share capital withdrawal.
+                            </p>
+                            @if($resRejected)
+                                <p style="color:#dc2626; margin:8px 0 0; font-size:13px;">
+                                    <i class="fa fa-circle-info"></i>
+                                    Your previous request was not
+                                    approved{{ $resignation->rejection_reason ? ': ' . $resignation->rejection_reason : '.' }}
+                                </p>
+                            @endif
+                        </div>
+                        <div>
+                            <button type="button" data-bs-toggle="modal" data-bs-target="#profileResignModal"
+                                style="background: #dc2626; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 14.5px;">
+                                <i class="fa fa-sign-out-alt"></i>
+                                <span>Request Resignation</span>
+                            </button>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -921,7 +1026,8 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
         <div class="modal-content" style="border-radius: 12px;">
             <div class="modal-body" style="padding: 28px 24px 24px; text-align: center;">
-                <div style="width:56px; height:56px; border-radius:50%; background:#fef2f2; display:flex; align-items:center; justify-content:center; margin: 0 auto 16px;">
+                <div
+                    style="width:56px; height:56px; border-radius:50%; background:#fef2f2; display:flex; align-items:center; justify-content:center; margin: 0 auto 16px;">
                     <i class="fa fa-triangle-exclamation" style="color:#dc2626; font-size:22px;"></i>
                 </div>
                 <h5 style="font-weight:700; color:#111827; margin-bottom:8px;">Submit Resignation Request?</h5>
@@ -944,9 +1050,9 @@
 </div>
 
 {{-- Hidden trigger: lets JS open the confirm modal via Bootstrap's own
-     data-API, without needing a global `bootstrap` object --}}
-<button type="button" id="openResignConfirmTrigger" data-bs-toggle="modal"
-    data-bs-target="#resignConfirmModal" style="display:none;"></button>
+data-API, without needing a global `bootstrap` object --}}
+<button type="button" id="openResignConfirmTrigger" data-bs-toggle="modal" data-bs-target="#resignConfirmModal"
+    style="display:none;"></button>
 
 {{-- Resignation Modal --}}
 <div class="modal fade" id="profileResignModal" tabindex="-1" aria-hidden="true">
@@ -1043,6 +1149,7 @@
                 document.querySelector('#profileResignModal [data-bs-dismiss="modal"]')?.click();
                 form.reset();
                 showProfileToast(data.message || 'Resignation request submitted successfully.');
+                setTimeout(() => window.location.reload(), 1200);
             } else {
                 errorEl.textContent = data.message || 'Something went wrong. Please try again.';
             }
@@ -1054,6 +1161,12 @@
             pendingResignationForm = null;
         }
     });
+
+    @if($resPending)
+        // While the request is pending, re-check periodically. Once the admin
+        // approves, the reload hits the middleware and lands on the inactive page.
+        setInterval(() => window.location.reload(), 30000);
+    @endif
 </script>
 
 @if (session('success'))

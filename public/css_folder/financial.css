@@ -608,3 +608,30 @@
     color: #808080;
     border: 1.5px solid #ddd;
 }
+
+@media only screen and (max-width: 825px) {
+    .container-fluid #section1 .main-card-box {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+@media only screen and (max-width: 711px) {
+    .main-sub-parent {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media only screen and (max-width: 700px) {
+    main .parent-table table {
+        width: 800px;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    .container-fluid #section1 .main-card-box {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+    }
+}

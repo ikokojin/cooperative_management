@@ -991,7 +991,7 @@
 }
 
 .container-fluid section .card-box-parent .card-box-title .print {
-    display: flex;
+    display: none;
     justify-content: space-between;
     align-items: center;
 }
@@ -1505,10 +1505,6 @@
 }
 
 @media only screen and (max-width: 825px) {
-    .container-fluid #section1 .main-card-box {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-    }
 
     .container-fluid .rightbar .main-sub-parent .main-parent .ask-box {
         margin-top: 1.5rem;
@@ -1548,6 +1544,12 @@
     }
 }
 
+@media only screen and (max-width: 700px) {
+    main .card-box table {
+        width: 800px;
+    }
+}
+
 @media only screen and (max-width: 703px) {
     .container-fluid .rightbar {
         width: 100%;
@@ -1564,11 +1566,11 @@
 }
 
 @media only screen and (max-width: 636px) {
-    .container-fluid main .card-box-parent {
+    /* .container-fluid main .card-box-parent {
         flex-direction: column;
         gap: 2rem;
         padding: 40px 30px 40px 48px;
-    }
+    } */
 
     .container-fluid section .card-box-parent .card-box-text {
         width: 100%;
@@ -1589,7 +1591,7 @@
     }
 
     .container-fluid main .card-box-parent {
-        padding: 30px;
+        /* padding: 30px; */
         flex-wrap: wrap;
     }
 
@@ -1603,21 +1605,30 @@
         display: block;
     }
 
-    .container-fluid #section2 {
+    /* .container-fluid #section2 {
         padding: 30px;
+    } */
+
+    /* .container-fluid section .card-box-parent {
+        padding: 30px;
+    } */
+
+    .container-fluid #section2 .card-box-parent {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        border: 1px solid var(--border);
+        background-color: #ffffff;
+        border-radius: 20px;
+        margin-top: 1.5rem;
     }
 
-    .container-fluid section .card-box-parent {
-        padding: 30px;
-    }
-
+    /* 
     .container-fluid section .card-box-parent .card-box-title {
         flex-direction: column-reverse;
-    }
+    } */
 
-    .container-fluid section .card-box-parent .card-box-title .title {
+    /* .container-fluid section .card-box-parent .card-box-title .title {
         margin-top: 2rem;
-    }
+    } */
 
     .container-fluid section .card-box-parent .card-box-title .print {
         width: 100%;
@@ -1635,11 +1646,11 @@
 }
 
 @media only screen and (max-width: 415px) {
-    .container-fluid main .card-box-parent {
+    /* .container-fluid main .card-box-parent {
         padding: 48px 48px 48px 48px;
     }
 
     .container-fluid main {
         padding: 48px 30px 30px 30px;
-    }
+    } */
 }

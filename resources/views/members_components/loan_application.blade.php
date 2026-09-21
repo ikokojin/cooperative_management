@@ -1479,7 +1479,7 @@
             color: #1a1a1a;
         }
 
-        .badge {
+        .badge-table {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -1489,25 +1489,25 @@
             font-weight: 700;
         }
 
-        .badge::before {
+        .badge-table::before {
             content: "";
             width: 6px;
             height: 6px;
             border-radius: 50%;
         }
 
-        .badge.pending {
+        .badge-table.pending {
             /* background: var(--gold-pale);
             color: #a5710f; */
             background: #fff8e1;
             color: #b8860b;
         }
 
-        .badge.pending::before {
+        .badge-table.pending::before {
             background: var(--gold);
         }
 
-        .badge.approved {
+        .badge-table.approved {
             /* background: var(--mint-pale);
             color: var(--green); */
             background-color: var(--mint-pale);
@@ -1515,26 +1515,26 @@
             color: var(--green);
         }
 
-        .badge.approved::before {
+        .badge-table.approved::before {
             background: var(--mint);
         }
 
-        .badge.completed {
+        .badge-table.completed {
             /* background: var(--lavender-tint); */
             background-color: var(--green-tint);
             color: var(--green);
         }
 
-        .badge.completed::before {
+        .badge-table.completed::before {
             background: var(--green);
         }
 
-        .badge.rejected {
+        .badge-table.rejected {
             background: var(--coral-pale);
             color: var(--coral);
         }
 
-        .badge.rejected::before {
+        .badge-table.rejected::before {
             background: var(--coral);
         }
 
@@ -1588,11 +1588,6 @@
 
         .loan-card.open .loan-detail {
             max-height: 420px;
-        }
-
-        .loan-detail-inner {
-            padding: 20px;
-            border-top: 1px dashed var(--border);
         }
 
 
@@ -1829,16 +1824,17 @@
                                     </button>
                                 </div>
                                 @if(!$canApplyLoan)
-                                <div class="gate-shield">
-                                    <div class="gate-lock"><i class="fa fa-lock"></i></div>
-                                </div>
+                                    <div class="gate-shield">
+                                        <div class="gate-lock"><i class="fa fa-lock"></i></div>
+                                    </div>
                                 @endif
                             </div>
                         </div>
 
                         {{-- Server-side validation feedback (e.g. net proceeds adjustment limits) --}}
                         @if(session('loan_blocked') || $errors->any())
-                            <div style="background:rgba(220,38,38,.06);border:1px solid #dc2626;color:#b91c1c;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;margin-bottom:18px;display:flex;flex-direction:column;gap:4px;">
+                            <div
+                                style="background:rgba(220,38,38,.06);border:1px solid #dc2626;color:#b91c1c;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;margin-bottom:18px;display:flex;flex-direction:column;gap:4px;">
                                 @if(session('loan_blocked'))
                                     <span><i class="fa fa-circle-exclamation"></i> {{ session('loan_blocked') }}</span>
                                 @endif
@@ -1901,10 +1897,12 @@
                                     <div class="gate-lock"><i class="fa fa-lock"></i></div>
                                     <div class="gate-msg">Loan application is locked</div>
                                     <div class="gate-sub">
-                                        You need at least <strong>{{ number_format($minimumShares, 0) }}</strong> shares of share capital to apply for a loan.
+                                        You need at least <strong>{{ number_format($minimumShares, 0) }}</strong> shares of
+                                        share capital to apply for a loan.
                                         You currently have <strong>{{ number_format($currentShares, 2) }}</strong> shares.
                                         @if($loanEligSettings->savings_to_loan_enabled)
-                                            <br>You also need savings of at least the loan amount plus the ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
+                                            <br>You also need savings of at least the loan amount plus the
+                                            ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
                                         @endif
                                     </div>
                                 </div>
@@ -1959,8 +1957,9 @@
                                         <div class="table-filter">
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
-                                                <input type="search" id="search-all"
-                                                    data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' data-trigger="input"
+                                                <input type="search" id="search-all" data-action="applyFilters"
+                                                    data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                    data-trigger="input"
                                                     placeholder="Search by reference, type, purpose"
                                                     class="form-control">
                                             </div>
@@ -1968,13 +1967,14 @@
                                             <div class="filter-parent">
                                                 <div class="filter date">
                                                     <input type="date" id="date-all" class="date-input"
-                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        data-action="applyFilters"
+                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
                                                         class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
-                                                    <select id="status-all"
-                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                    <select id="status-all" data-action="applyFilters"
+                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
                                                         class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
@@ -2022,7 +2022,8 @@
                                                                 ₱{{ number_format($loan->lending_amount, 2) }}</div>
                                                         </div>
                                                         <div class="col-status">
-                                                            <span class="badge {{ $badgeClass }}">{{ $loan->status }}</span>
+                                                            <span
+                                                                class="badge-table {{ $badgeClass }}">{{ $loan->status }}</span>
                                                             @if($loan->status === 'Approved')
                                                                 <span class="due-tag"
                                                                     style="background:var(--mint-pale);color:var(--green);">
@@ -2065,6 +2066,18 @@
                                                                     <div class="cell-label">Next Due</div>
                                                                     <div class="cell-value">
                                                                         {{ ($loan->due_date && ($loan->remaining_balance ?? 0) > 0) ? \Carbon\Carbon::parse($loan->due_date)->format('M d, Y') : '—' }}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="detail-box">
+                                                                    <div class="cell-label">Total Charges</div>
+                                                                    <div class="cell-value">
+                                                                        ₱{{ number_format($loan->total_charges ?? 0, 2) }}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="detail-box">
+                                                                    <div class="cell-label">Total Payable</div>
+                                                                    <div class="cell-value">
+                                                                        ₱{{ number_format($loan->total_payable ?? 0, 2) }}
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2148,20 +2161,24 @@
                                         <div class="table-filter">
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
-                                                <input type="search" id="search-all"
-                                                    data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' data-trigger="input"
+                                                <input type="search" id="search-all" data-action="applyFilters"
+                                                    data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                    data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
                                                     <input type="date" id="date-all" class="date-input"
-                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-control">
+                                                        data-action="applyFilters"
+                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
-                                                    <select id="status-all"
-                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-select">
+                                                    <select id="status-all" data-action="applyFilters"
+                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
                                                         <option value="Approved">Approved</option>
@@ -2201,7 +2218,7 @@
                                                                 ₱{{ number_format($loan->lending_amount, 2) }}</div>
                                                         </div>
                                                         <div class="col-status">
-                                                            <span class="badge approved">Active</span>
+                                                            <span class="badge-table approved">Active</span>
                                                             <span class="due-tag today">Due Today</span>
                                                         </div>
                                                         <svg class="chevron" width="18" height="18" viewBox="0 0 24 24"
@@ -2248,10 +2265,10 @@
                                                                 </div>
                                                             </div>
                                                             <div class="detail-actions">
-<a class="btn-ghost"
-                                                                href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
-                                                                data-action="stop-propagation">
-                                                                <i class="fa fa-calendar-check"></i> View Repayment
+                                                                <a class="btn-ghost"
+                                                                    href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
+                                                                    data-action="stop-propagation">
+                                                                    <i class="fa fa-calendar-check"></i> View Repayment
                                                                     Schedule
                                                                 </a>
                                                             </div>
@@ -2282,20 +2299,24 @@
                                         <div class="table-filter">
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
-                                                <input type="search" id="search-all"
-                                                    data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' data-trigger="input"
+                                                <input type="search" id="search-all" data-action="applyFilters"
+                                                    data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                    data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
                                                     <input type="date" id="date-all" class="date-input"
-                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-control">
+                                                        data-action="applyFilters"
+                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
-                                                    <select id="status-all"
-                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-select">
+                                                    <select id="status-all" data-action="applyFilters"
+                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
                                                         <option value="Approved">Approved</option>
@@ -2335,7 +2356,7 @@
                                                                 ₱{{ number_format($loan->lending_amount, 2) }}</div>
                                                         </div>
                                                         <div class="col-status">
-                                                            <span class="badge approved">Active</span>
+                                                            <span class="badge-table approved">Active</span>
                                                             <span class="due-tag week">Due This Week</span>
                                                         </div>
                                                         <svg class="chevron" width="18" height="18" viewBox="0 0 24 24"
@@ -2382,10 +2403,10 @@
                                                                 </div>
                                                             </div>
                                                             <div class="detail-actions">
-<a class="btn-ghost"
-                                                                href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
-                                                                data-action="stop-propagation">
-                                                                <i class="fa fa-calendar-check"></i> View Repayment
+                                                                <a class="btn-ghost"
+                                                                    href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
+                                                                    data-action="stop-propagation">
+                                                                    <i class="fa fa-calendar-check"></i> View Repayment
                                                                     Schedule
                                                                 </a>
                                                             </div>
@@ -2416,20 +2437,24 @@
                                         <div class="table-filter">
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
-                                                <input type="search" id="search-all"
-                                                    data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' data-trigger="input"
+                                                <input type="search" id="search-all" data-action="applyFilters"
+                                                    data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                    data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
                                                     <input type="date" id="date-all" class="date-input"
-                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-control">
+                                                        data-action="applyFilters"
+                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
-                                                    <select id="status-all"
-                                                        data-action="applyFilters" data-arg='["all-loans-list","search-all","date-all","status-all"]' class="form-select">
+                                                    <select id="status-all" data-action="applyFilters"
+                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
                                                         <option value="Approved">Approved</option>
@@ -2469,7 +2494,7 @@
                                                                 ₱{{ number_format($loan->lending_amount, 2) }}</div>
                                                         </div>
                                                         <div class="col-status">
-                                                            <span class="badge approved">Active</span>
+                                                            <span class="badge-table approved">Active</span>
                                                             <span class="due-tag late">Overdue</span>
                                                         </div>
                                                         <svg class="chevron" width="18" height="18" viewBox="0 0 24 24"
@@ -2516,10 +2541,10 @@
                                                                 </div>
                                                             </div>
                                                             <div class="detail-actions">
-<a class="btn-ghost"
-                                                                href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
-                                                                data-action="stop-propagation">
-                                                                <i class="fa fa-calendar-check"></i> View Repayment
+                                                                <a class="btn-ghost"
+                                                                    href="{{ route('LoanStatus', ['loan_id' => $loan->id]) }}"
+                                                                    data-action="stop-propagation">
+                                                                    <i class="fa fa-calendar-check"></i> View Repayment
                                                                     Schedule
                                                                 </a>
                                                             </div>
@@ -2551,8 +2576,10 @@
                                     <div class="gate-msg">Loan history is locked</div>
                                     <div class="gate-sub">
                                         @if($loanEligSettings->savings_to_loan_enabled)
-                                            You need savings of at least the loan amount plus the ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
-                                            You currently have <strong>₱{{ number_format($currentSavings, 2) }}</strong> in savings.
+                                            You need savings of at least the loan amount plus the
+                                            ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
+                                            You currently have <strong>₱{{ number_format($currentSavings, 2) }}</strong> in
+                                            savings.
                                         @else
                                             Please contact the administrator to apply for a loan.
                                         @endif
@@ -2567,14 +2594,14 @@
                                 var A = window.CSP_actions;
                                 if (!A) return;
                                 A.register('m-term-change', function (e, el) { mUpdateTermOptions(); mCompute(); mClearError(el); });
-                                A.register('m-amount-input', function (e, el) { let v=parseFloat(el.value);if(v>25000)el.value=25000;mCheckLimit(el);mCompute();mClearError(el); });
-                                A.register('m-term-sync', function (e, el) { mSyncTerm();mCompute();mClearError(el); });
-                                A.register('m-income-input', function (e, el) { if(el.value.length>6)el.value=el.value.slice(0,6);mClearError(el); });
-                                A.register('m-purpose-change', function (e, el) { mHandlePurpose(el);mClearError(el); });
-                                A.register('m-adjust-change', function (e, el) { mHandleAdjustType(el);mCompute();mClearError(el); });
+                                A.register('m-amount-input', function (e, el) { let v = parseFloat(el.value); if (v > 25000) el.value = 25000; mCheckLimit(el); mCompute(); mClearError(el); });
+                                A.register('m-term-sync', function (e, el) { mSyncTerm(); mCompute(); mClearError(el); });
+                                A.register('m-income-input', function (e, el) { if (el.value.length > 6) el.value = el.value.slice(0, 6); mClearError(el); });
+                                A.register('m-purpose-change', function (e, el) { mHandlePurpose(el); mClearError(el); });
+                                A.register('m-adjust-change', function (e, el) { mHandleAdjustType(el); mCompute(); mClearError(el); });
                                 A.register('m-agree-row-click', function (e, el) { document.getElementById('mAgree').click(); });
                                 A.register('m-agree-check', function (e, el) { mClearAgreeError(); });
-                                A.register('m-dashboard-back', function (e, el) { closeLoanModal();location.reload(); });
+                                A.register('m-dashboard-back', function (e, el) { closeLoanModal(); location.reload(); });
                             })();
 
                             function toggleLoanCard(rowEl) {
@@ -2683,8 +2710,11 @@
                                         <div class="sc-alert-title">Savings Requirement</div>
                                         <p class="sc-alert-text">
                                             @if($loanEligSettings->savings_to_loan_enabled)
-                                                You need savings of at least the loan amount plus the ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
-                                                You currently have <strong>₱{{ number_format($currentSavings, 2) }}</strong> in savings.
+                                                You need savings of at least the loan amount plus the
+                                                ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to
+                                                apply.
+                                                You currently have <strong>₱{{ number_format($currentSavings, 2) }}</strong> in
+                                                savings.
                                             @else
                                                 Please contact the administrator to apply for a loan.
                                             @endif
@@ -2717,10 +2747,12 @@
                                                 };
                                             @endphp
                                             <select class="p-select np" name="lending_type" id="lending_type"
-                                                data-action="m-term-change" {{ !$canApplyLoan ? 'disabled' : '' }} required>
+                                                data-action="m-term-change" {{ !$canApplyLoan ? 'disabled' : '' }}
+                                                required>
                                                 <option value="">Select type</option>
                                                 @foreach($loanSettings as $dbType => $s)
-                                                    <option value="{{ $dbType }}" {!! $mOptData($dbType) !!}>{{ $dbType }}</option>
+                                                    <option value="{{ $dbType }}" {!! $mOptData($dbType) !!}>{{ $dbType }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -2738,8 +2770,7 @@
                                             <span class="p-inp-ico" style="font-size:13px;font-weight:700;">₱</span>
                                             <input type="number" class="p-input" name="lending_amount" id="mLoanAmount"
                                                 placeholder="e.g. 15000" min="1" max="{{ $remainingLoanable }}"
-                                                data-action="m-amount-input" data-trigger="input" data-numeric-guard
-                                                {{ !$canApplyLoan || $hasFullyLoaned ? 'disabled' : '' }} required>
+                                                data-action="m-amount-input" data-trigger="input" data-numeric-guard {{ !$canApplyLoan || $hasFullyLoaned ? 'disabled' : '' }} required>
                                         </div>
                                         <div class="p-warn" id="loan-limit-warning">
                                             <i class="fa fa-circle-exclamation" style="margin-right:5px;"></i>
@@ -2757,8 +2788,7 @@
                                         <label>Loan Term <span class="req">*</span></label>
                                         <div class="p-sel-wrap">
                                             <select class="p-select np" name="lending_type_term_nonbusiness"
-                                                id="lending_type_term_nonbusiness"
-                                                data-action="m-term-sync" {{ !$canApplyLoan ? 'disabled' : '' }}>
+                                                id="lending_type_term_nonbusiness" data-action="m-term-sync" {{ !$canApplyLoan ? 'disabled' : '' }}>
                                                 <option value="">Select term</option>
                                                 <option value="6 months">6 months</option>
                                             </select>
@@ -2766,8 +2796,7 @@
                                         <div style="display:none" id="term-business-wrap">
                                             <div class="p-sel-wrap">
                                                 <select class="p-select np" name="lending_type_term_business"
-                                                    id="lending_type_term_business"
-                                                    data-action="m-term-sync">
+                                                    id="lending_type_term_business" data-action="m-term-sync">
                                                     <option value="">Select term</option>
                                                     <option value="6 months">6 months</option>
                                                     <option value="12 months">12 months</option>
@@ -2793,8 +2822,7 @@
                                                 </svg></span>
                                             <input type="number" class="p-input" name="monthly_income"
                                                 id="mMonthlyIncome" placeholder="Monthly income"
-                                                data-action="m-income-input" data-trigger="input" data-numeric-guard
-                                                {{ !$canApplyLoan ? 'disabled' : '' }} required>
+                                                data-action="m-income-input" data-trigger="input" data-numeric-guard {{ !$canApplyLoan ? 'disabled' : '' }} required>
                                         </div>
                                         <span class="p-hint" id="income-locked-hint" style="display:none;">
                                             This was saved from your previous application and can't be changed here.
@@ -2812,7 +2840,8 @@
                                         <label>Purpose of Loan <span class="req">*</span></label>
                                         <div class="p-sel-wrap">
                                             <select class="p-select np" name="purpose_loan" id="purpose_loan_select"
-                                                data-action="m-purpose-change" {{ !$canApplyLoan ? 'disabled' : '' }} required>
+                                                data-action="m-purpose-change" {{ !$canApplyLoan ? 'disabled' : '' }}
+                                                required>
                                                 <option value="" disabled selected>Select purpose</option>
                                                 <option value="Medical Expenses">Medical Expenses</option>
                                                 <option value="Education">Education</option>
@@ -2837,8 +2866,8 @@
                                         <label>Describe the Purpose <span class="req">*</span></label>
                                         <textarea class="p-textarea" name="purpose_loan_others"
                                             id="purpose_loan_textarea"
-                                            placeholder="Describe the purpose of your loan..."
-                                            data-action="mClearError" data-arg='["|el|"]' data-trigger="input" {{ !$canApplyLoan ? 'disabled' : '' }}></textarea>
+                                            placeholder="Describe the purpose of your loan..." data-action="mClearError"
+                                            data-arg='["|el|"]' data-trigger="input" {{ !$canApplyLoan ? 'disabled' : '' }}></textarea>
                                         <span class="p-hint">Additional details help with faster approval.</span>
                                         <div class="p-field-error" id="err-purpose_loan_textarea">
                                             <i class="fa fa-circle-exclamation"></i> Please describe the purpose.
@@ -2855,9 +2884,7 @@
                                         <label>Adjustment Type</label>
                                         <div class="p-sel-wrap">
                                             <select class="p-select np" name="net_proceeds_adjustment_type"
-                                                id="mAdjustType"
-                                                data-action="m-adjust-change"
-                                                {{ !$canApplyLoan ? 'disabled' : '' }}>
+                                                id="mAdjustType" data-action="m-adjust-change" {{ !$canApplyLoan ? 'disabled' : '' }}>
                                                 <option value="">No Adjustment</option>
                                                 <option value="add">Add (+)</option>
                                                 <option value="deduct">Deduct (−)</option>
@@ -2887,8 +2914,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-vid-personal"></div>
                                                 <input type="file" name="personal_valid_id"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-vid-personal","mname-vid-personal"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-vid-personal","mname-vid-personal"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-poi-personal">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2902,8 +2929,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-poi-personal"></div>
                                                 <input type="file" name="personal_proof_of_income"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-poi-personal","mname-poi-personal"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-poi-personal","mname-poi-personal"]'>
                                             </div>
                                         </div>
                                     </div>
@@ -2923,8 +2950,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-vid-emergency"></div>
                                                 <input type="file" name="emergency_valid_id"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-vid-emergency","mname-vid-emergency"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-vid-emergency","mname-vid-emergency"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-poi-emergency">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2938,8 +2965,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-poi-emergency"></div>
                                                 <input type="file" name="emergency_proof_of_income"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-poi-emergency","mname-poi-emergency"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-poi-emergency","mname-poi-emergency"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-poe-emergency">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2953,8 +2980,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-poe-emergency"></div>
                                                 <input type="file" name="proof_of_emergency"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-poe-emergency","mname-poe-emergency"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-poe-emergency","mname-poe-emergency"]'>
                                             </div>
                                         </div>
                                     </div>
@@ -2974,8 +3001,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-vid-business"></div>
                                                 <input type="file" name="business_valid_id"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-vid-business","mname-vid-business"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-vid-business","mname-vid-business"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-poi-business">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -2989,8 +3016,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-poi-business"></div>
                                                 <input type="file" name="business_proof_of_income"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-poi-business","mname-poi-business"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-poi-business","mname-poi-business"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-bp-business">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -3004,7 +3031,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-bp-business"></div>
                                                 <input type="file" name="business_permit" accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-bp-business","mname-bp-business"]'>
+                                                    data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-bp-business","mname-bp-business"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-fs-business">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -3018,8 +3046,8 @@
                                                 <span class="uc-badge optional">Optional</span>
                                                 <div class="uc-filename" id="mname-fs-business"></div>
                                                 <input type="file" name="financial_statement"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-fs-business","mname-fs-business"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-fs-business","mname-fs-business"]'>
                                             </div>
                                         </div>
                                     </div>
@@ -3039,7 +3067,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-sid-education"></div>
                                                 <input type="file" name="school_id" accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-sid-education","mname-sid-education"]'>
+                                                    data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-sid-education","mname-sid-education"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-cor-education">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -3053,7 +3082,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-cor-education"></div>
                                                 <input type="file" name="cor" accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-cor-education","mname-cor-education"]'>
+                                                    data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-cor-education","mname-cor-education"]'>
                                             </div>
                                             <div class="upload-card-modal" id="mcard-vid-education">
                                                 <div class="uc-icon"><svg viewBox="0 0 24 24" fill="none"
@@ -3067,8 +3097,8 @@
                                                 <span class="uc-badge required">Required</span>
                                                 <div class="uc-filename" id="mname-vid-education"></div>
                                                 <input type="file" name="education_valid_id"
-                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                    data-action="mOnFileSelected" data-arg='["|el|","mcard-vid-education","mname-vid-education"]'>
+                                                    accept=".jpg,.jpeg,.png,.pdf" data-action="mOnFileSelected"
+                                                    data-arg='["|el|","mcard-vid-education","mname-vid-education"]'>
                                             </div>
                                         </div>
                                     </div>
@@ -3081,7 +3111,8 @@
                                                 <div class="lsb-title">Loan Limit Reached</div>
                                                 <p style="margin:0;font-size:12.5px;line-height:1.5;">You have an active
                                                     loan of <strong>₱{{ number_format($totalActiveLoan, 2) }}</strong> — the
-                                                    max is <strong>₱{{ number_format($effectiveCeiling, 2) }}</strong>. Please repay before applying again.
+                                                    max is <strong>₱{{ number_format($effectiveCeiling, 2) }}</strong>.
+                                                    Please repay before applying again.
                                                 </p>
                                             </div>
                                         </div>
@@ -3117,7 +3148,9 @@
                                     @else
                                         <div class="loan-status-banner lsb-ok" style="margin-top:14px;">
                                             <i class="fa fa-circle-info" style="margin-top:2px;flex-shrink:0;"></i>
-                                            <span>You may borrow up to <strong>₱{{ number_format($effectiveCeiling, 2) }}</strong>. Applications exceeding
+                                            <span>You may borrow up to
+                                                <strong>₱{{ number_format($effectiveCeiling, 2) }}</strong>. Applications
+                                                exceeding
                                                 this limit will not be processed.</span>
                                         </div>
                                     @endif
@@ -3232,21 +3265,22 @@
                                         </svg></div>
                                     <div class="b-lbl-m">Retention / CBU</div>
                                     <div class="b-val-m" id="cb-retention">₱ —</div>
-<div class="b-hint-m" id="cb-retention-hint">Held as capital build-up</div>
+                                    <div class="b-hint-m" id="cb-retention-hint">Held as capital build-up</div>
                                 </div>
                                 <div class="b-box-m" id="cb-adjust-box" style="display:none;">
-                                    <div class="b-ico-m bi-s"><svg viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
+                                    <div class="b-ico-m bi-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
                                             <path d="M12 5v14M5 12h14" />
                                             <path d="M20 12V8H6a2 2 0 0 1 0-4h12v4" />
                                         </svg></div>
                                     <div class="b-lbl-m">Net Proceeds Adjustment</div>
                                     <div class="b-val-m" id="cb-adjust">₱ 0.00</div>
-                                    <div class="b-hint-m" id="cb-adjust-hint">Charges added back — full loan released</div>
+                                    <div class="b-hint-m" id="cb-adjust-hint">Charges added back — full loan released
+                                    </div>
                                 </div>
                                 <div class="b-box-m hl">
-                                    <div class="b-ico-m bi-n"><svg viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
+                                    <div class="b-ico-m bi-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
                                             <path d="M20 12V8H6a2 2 0 0 1 0-4h12v4" />
                                             <path d="M4 6v12a2 2 0 0 0 2 2h14v-4" />
                                             <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
@@ -3254,6 +3288,15 @@
                                     <div class="b-lbl-m">Net Proceeds</div>
                                     <div class="b-val-m" id="cb-net">₱ —</div>
                                     <div class="b-hint-m">Amount released to you</div>
+                                </div>
+                                <div class="b-box-m">
+                                    <div class="b-ico-m bi-r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                        </svg></div>
+                                    <div class="b-lbl-m">Total Charges</div>
+                                    <div class="b-val-m" id="cb-charges">₱ —</div>
+                                    <div class="b-hint-m">Interest + all fees</div>
                                 </div>
                                 <div class="b-box-m hl">
                                     <div class="b-ico-m bi-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -3367,13 +3410,14 @@
                                         class="sum-val-m" id="cf-int">—</span></div>
                                 <div class="sum-row-m"><span class="sum-lbl-m">Average Monthly Payment</span><span
                                         class="sum-val-m gold" id="cf-monthly">—</span></div>
+                                <div class="sum-row-m"><span class="sum-lbl-m">Total Charges</span><span
+                                        class="sum-val-m" id="cf-charges">—</span></div>
                                 <div class="sum-row-m total"><span class="sum-lbl-m bold">Total Payable</span><span
                                         class="sum-val-m green bigf" id="cf-total">—</span></div>
                             </div>
 
                             <div class="cb-row-m" id="agreeRow" data-action="m-agree-row-click">
-                                <input type="checkbox" id="mAgree"
-                                    data-action="m-agree-check" data-stop>
+                                <input type="checkbox" id="mAgree" data-action="m-agree-check" data-stop>
                                 <label for="mAgree" data-action="stop-propagation">I confirm all information is
                                     accurate and I agree to the <strong>Terms and Conditions</strong> of KPMPCATS
                                     Cooperative.</label>
@@ -3547,8 +3591,6 @@
         //    so the member receives the full loan amount
         function mCalcBreakdown(principal, fees, termMonths, isAdd) {
             const r = fees.rate;
-            // Diminishing balance, equal principal — mirrors LoanCalculationService.
-            // The final principal installment absorbs rounding so Σ principal === principal.
             const basePrincipal = termMonths > 0 ? Math.round((principal / termMonths) * 100) / 100 : 0;
             const lastPrincipal = termMonths > 0 ? Math.round((principal - basePrincipal * (termMonths - 1)) * 100) / 100 : 0;
 
@@ -3571,13 +3613,7 @@
             const adjDelta = isAdd ? Math.round((netProceeds - baseNetProceeds) * 100) / 100 : 0;
 
             const totalFees = Math.round((processingFee + serviceFee + protectionFee + retentionFee) * 100) / 100;
-            // In "add fees back" mode the fees become an ADDITIONAL repayment
-            // liability folded into the installment schedule (interest is still
-            // computed on the principal only). In deduct mode fees are withheld
-            // from the release, so they are not part of the total payment.
-            const totalPayment = isAdd
-                ? Math.round((principal + totalInterest + totalFees) * 100) / 100
-                : Math.round((principal + totalInterest) * 100) / 100;
+            const totalPayment = Math.round((principal + totalInterest + totalFees) * 100) / 100;
             const monthlyPayment = termMonths > 0 ? Math.round((totalPayment / termMonths) * 100) / 100 : 0;
 
             return {
@@ -3902,7 +3938,7 @@
                 const requiredSavings = a + SAVINGS_HOLD_BACK;
                 if (CURRENT_SAVINGS < requiredSavings) {
                     mShowError(amountEl, 'err-mLoanAmount');
-                    document.getElementById('err-mLoanAmount').innerHTML = '<i class="fa fa-circle-exclamation"></i> You need ₱' + requiredSavings.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' in savings to borrow this amount (₱' + SAVINGS_HOLD_BACK.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' holdback must remain in savings).';
+                    document.getElementById('err-mLoanAmount').innerHTML = '<i class="fa fa-circle-exclamation"></i> You need ₱' + requiredSavings.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' in savings to borrow this amount (₱' + SAVINGS_HOLD_BACK.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' holdback must remain in savings).';
                     if (!firstErrorEl) firstErrorEl = amountEl;
                     hasError = true;
                 }
@@ -4048,6 +4084,7 @@
             const fees = getSelectedFees() ?? { rate: 0.02, processingRate: 0, serviceRate: 0, protectionPerMonth: 0, retentionRate: 0 };
             const calc = mCalcBreakdown(a, fees, t, mIsAddSelected());
 
+            document.getElementById('cf-charges').textContent = fmt(calc.totalInterest + calc.totalFees);
             document.getElementById('cf-type').textContent = type;
             document.getElementById('cf-amount').textContent = fmt(a);
             document.getElementById('cf-term').textContent = termStr;
