@@ -39,66 +39,17 @@
                 </div>
 
                 <div class="main-body">
-                    <div class="card-box-parent">
-                        <div class="card-box">
-                            <div class="card-header">
-                                <div class="sum-label">Total Deposits</div>
-                                <div class="sum-icon"><i class="fa fa-wallet"></i></div>
-                            </div>
-                            <div class="card-body">
-                                <div class="sum-value">₱{{ number_format($totalDeposits, 2) }}</div>
-                                <div class="sum-stat"></div>
-                            </div>
-                            <span>Total amount deposited</span>
-                        </div>
-
-                        <div class="card-box">
-                            <div class="card-header">
-                                <div class="sum-label">Total Repayments</div>
-                                <div class="sum-icon"><i class="fa fa-money-bill-transfer"></i></div>
-                            </div>
-                            <div class="card-body">
-                                <div class="sum-value">₱{{ number_format($totalRepayments, 2) }}</div>
-                                <div class="sum-stat"></div>
-                            </div>
-                            <span>Total loan repayments made</span>
-                        </div>
-
-                        <div class="card-box">
-                            <div class="card-header">
-                                <div class="sum-label">Transact this month</div>
-                                <div class="sum-icon"><i class="fa fa-receipt"></i></div>
-                            </div>
-                            <div class="card-body">
-                                <div class="sum-value">₱{{ number_format($transactThisMonth, 2) }}</div>
-                                <div class="sum-stat"></div>
-                            </div>
-                            <span>Transactions recorded</span>
-                        </div>
-
-                        <div class="card-box">
-                            <div class="card-header">
-                                <div class="sum-label">Net Change</div>
-                                <div class="sum-icon"><i class="fa fa-chart-line"></i></div>
-                            </div>
-                            <div class="card-body">
-                                <div class="sum-value">₱{{ number_format($netChange, 2) }}</div>
-                                <div class="sum-stat"></div>
-                            </div>
-                            <span>Overall balance change</span>
-                        </div>
-                    </div>
 
                     <div class="filters">
                         <div class="tab-group">
                             <a href="{{ route('transactions', array_merge(request()->except('type', 'page'), ['type' => 'all'])) }}"
                                 class="tab {{ $type === 'all' ? 'active' : '' }}">All</a>
-                            <a href="{{ route('transactions', array_merge(request()->except('type', 'page'), ['type' => 'share_capital'])) }}"
-                                class="tab {{ $type === 'share_capital' ? 'active' : '' }}">Share Capital</a>
-                            <a href="{{ route('transactions', array_merge(request()->except('type', 'page'), ['type' => 'savings'])) }}"
-                                class="tab {{ $type === 'savings' ? 'active' : '' }}">Savings</a>
                             <a href="{{ route('transactions', array_merge(request()->except('type', 'page'), ['type' => 'loans'])) }}"
                                 class="tab {{ $type === 'loans' ? 'active' : '' }}">Loans</a>
+                            <a href="{{ route('transactions', array_merge(request()->except('type', 'page'), ['type' => 'savings'])) }}"
+                                class="tab {{ $type === 'savings' ? 'active' : '' }}">Savings</a>
+                            <a href="{{ route('transactions', array_merge(request()->except('type', 'page'), ['type' => 'share_capital'])) }}"
+                                class="tab {{ $type === 'share_capital' ? 'active' : '' }}">Share Capital</a>
                         </div>
                     </div>
 
@@ -111,8 +62,7 @@
                         </div>
                         <input type="date" class="filter-select" name="date" value="{{ $date }}"
                             data-action="tx-submit-filter">
-                        <select class="filter-select " name="status"
-                            data-action="tx-submit-filter">
+                        <select class="filter-select " name="status" data-action="tx-submit-filter">
                             <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All statuses</option>
                             <option value="completed" {{ $status === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -150,7 +100,9 @@
                                                     class="status-chip {{ $tx['status_class'] }}">{{ $tx['status_label'] }}</span>
                                             </td>
                                             <td class="tx-amt {{ $tx['amount'] >= 0 ? 'up' : 'down' }}">
-                                                {{ $tx['amount'] >= 0 ? '+' : '-' }}₱{{ number_format(abs($tx['amount']), 2) }}
+                                                @if($tx['show_amount'] ?? true)
+                                                    {{ $tx['amount'] >= 0 ? '+' : '-' }}₱{{ number_format(abs($tx['amount']), 2) }}
+                                                @endif
                                             </td>
                                         </tr>
                                     @empty
@@ -198,29 +150,98 @@
 
     <script nonce="{{ csp_nonce() }}">
         (function () {
+            const filterForm = document.getElementById('tx-filter-form');
+            const searchInput = filterForm.querySelector('input[name="search"]');
+            let searchDebounce;
+            let controller = null;
+
+            function buildUrl() {
+                const params = new URLSearchParams();
+                new FormData(filterForm).forEach(function (value, key) {
+                    if (value !== '' && value !== null) params.set(key, value);
+                });
+                const qs = params.toString();
+                return filterForm.getAttribute('action') + (qs ? '?' + qs : '');
+            }
+
+            async function loadTransactions(url, push) {
+                if (controller) controller.abort();
+                controller = new AbortController();
+
+                const ledger = document.querySelector('.ledger-page');
+                if (ledger) ledger.style.opacity = '0.5';
+
+                try {
+                    const res = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                        signal: controller.signal
+                    });
+                    const html = await res.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    const newLedger = doc.querySelector('.ledger-page');
+                    const newTabs = doc.querySelector('.filters');
+                    const newType = doc.querySelector('#tx-filter-form input[name="type"]');
+
+                    // Not the expected page (e.g. session expired) → fall back to normal navigation
+                    if (!newLedger || !newTabs) {
+                        window.location.href = url;
+                        return;
+                    }
+
+                    document.querySelector('.ledger-page').replaceWith(newLedger);
+                    document.querySelector('.filters').replaceWith(newTabs);
+                    if (newType) filterForm.querySelector('input[name="type"]').value = newType.value;
+
+                    if (push !== false) history.pushState({}, '', url);
+                } catch (err) {
+                    if (err.name !== 'AbortError') window.location.href = url;
+                }
+            }
+
+            // Date + status dropdown filters
             var A = window.CSP_actions;
-            if (!A) return;
-            A.register('tx-submit-filter', function (e, el) { document.getElementById('tx-filter-form').submit(); });
-        })();
+            if (A) {
+                A.register('tx-submit-filter', function () {
+                    loadTransactions(buildUrl());
+                });
+            }
 
-        const searchInput = document.querySelector('.search-box input[name="search"]');
-        const filterForm = document.getElementById('tx-filter-form');
-        let searchDebounce;
-
-        if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                clearTimeout(searchDebounce);
-                searchDebounce = setTimeout(() => filterForm.submit(), 500);
+            // Enter key in the search box / any form submit
+            filterForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                loadTransactions(buildUrl());
             });
 
-            // restore cursor/focus after the reload triggered by typing
-            if (searchInput.value) {
-                searchInput.focus();
-                const val = searchInput.value;
-                searchInput.value = '';
-                searchInput.value = val;
+            // Live search (keeps focus because the form itself is never replaced)
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(searchDebounce);
+                    searchDebounce = setTimeout(function () {
+                        loadTransactions(buildUrl());
+                    }, 400);
+                });
             }
-        }
+
+            // Tabs + pagination (event delegation, so it survives content swaps)
+            document.addEventListener('click', function (e) {
+                const link = e.target.closest('.tab-group a, .page-btns a.page-btn');
+                if (!link || !link.href) return;
+                e.preventDefault();
+                loadTransactions(link.href);
+            });
+
+            // Browser back / forward
+            window.addEventListener('popstate', function () {
+                const p = new URLSearchParams(window.location.search);
+                filterForm.querySelector('input[name="type"]').value = p.get('type') || 'all';
+                filterForm.querySelector('input[name="search"]').value = p.get('search') || '';
+                filterForm.querySelector('input[name="date"]').value = p.get('date') || '';
+                filterForm.querySelector('select[name="status"]').value = p.get('status') || 'all';
+                loadTransactions(window.location.href, false);
+            });
+        })();
     </script>
 
 </body>

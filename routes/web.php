@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\lendingController;
 use App\Http\Controllers\ShareCapital;
+use App\Http\Controllers\AdminSupportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UsersHandle;
 use App\Http\Controllers\SavingsController;
@@ -104,6 +105,21 @@ Route::get("/profile-member", [UsersHandle::class, "ProfileMember"])
 Route::get('/member/status-ping', [UsersHandle::class, 'AccountStatusPing'])
     ->name('member.statusPing')
     ->middleware('auth');   // ← no member-status / inactive-guard middleware
+
+Route::get('/faqs', [UsersHandle::class, 'Faqs'])->name('Faqs');
+Route::post('/support/report', [UsersHandle::class, 'SubmitReport'])->name('support.report.store');
+Route::get('/support/reports', [UsersHandle::class, 'MyReports'])->name('support.report.index');
+
+// Member reports (support tickets)
+Route::get("/admin/support-reports", [AdminSupportController::class, "reportsIndex"])->name("admin.support-reports.index")->middleware("admin");
+Route::post("/admin/support-reports/{id}/update", [AdminSupportController::class, "reportsUpdate"])->name("admin.support-reports.update")->middleware("admin");
+
+// FAQ management
+Route::get("/admin/faqs", [AdminSupportController::class, "faqsIndex"])->name("admin.faqs.index")->middleware("admin");
+Route::post("/admin/faqs", [AdminSupportController::class, "faqsStore"])->name("admin.faqs.store")->middleware("admin");
+Route::post("/admin/faqs/{id}/update", [AdminSupportController::class, "faqsUpdate"])->name("admin.faqs.update")->middleware("admin");
+Route::post("/admin/faqs/{id}/toggle", [AdminSupportController::class, "faqsToggle"])->name("admin.faqs.toggle")->middleware("admin");
+Route::delete("/admin/faqs/{id}", [AdminSupportController::class, "faqsDestroy"])->name("admin.faqs.destroy")->middleware("admin");
 
 // Edit Profile Member page GET
 Route::get("/edit-profile-member", [UsersHandle::class, "EditProfileMember"])->name("EditProfileMember")->middleware("auth", "member.active");
@@ -284,6 +300,12 @@ Route::match(["get", "post"], "/dashboard-financial-activity", [UserController::
 Route::post('/loan-settings/create', [UserController::class, 'createLoanSetting'])->name('loan.settings.create')->middleware('admin');
 Route::post('/loan-settings/update', [UserController::class, 'updateLoanSettings'])->name('loan.settings.update')->middleware('admin');
 Route::delete('/loan-settings/{id}', [UserController::class, 'deleteLoanSetting'])->name('loan.settings.delete')->middleware('admin');
+
+Route::post('/savings/member/convert', [ShareCapital::class, 'convertSavingsToShareCapital'])
+    ->name('savings.member.convert');
+
+Route::post('/savings/member/convert', [ShareCapital::class, 'convertSavingsToShareCapital'])
+    ->name('savings.member.convert');
 
 Route::get("/loan-stats", [UsersHandle::class, "loanStats"])->name("loan_stats")->middleware("admin");
 

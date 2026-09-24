@@ -45,7 +45,7 @@ class ShareCapital extends Controller
         if ($account) {
             [$currentBalance, $currentShares] = $this->computeBalanceAndShares($account);
 
-            if ($currentShares >= 10 && ! session('success')) {
+            if ($currentShares >= 10 && !session('success')) {
                 return redirect()->route('ShareCapitalMember');
             }
         } else {
@@ -71,7 +71,7 @@ class ShareCapital extends Controller
         $projectedNextDividend = round($currentBalance * ($dividendRate / 100) / 2, 2);
         $totalDividendsEarned = $dividendHistory->where('status', 'Paid')->sum('dividend_amount');
 
-        $lastDividend = $dividendHistory->where('status', 'Paid')->sortByDesc(fn ($d) => $d->date_paid)->first();
+        $lastDividend = $dividendHistory->where('status', 'Paid')->sortByDesc(fn($d) => $d->date_paid)->first();
         $lastDividendAmount = $lastDividend->dividend_amount ?? null;
         $lastDividendDate = $lastDividend ? Carbon::parse($lastDividend->date_paid)->format('M d, Y') : null;
         $lastDividendPeriod = $lastDividend->period_label ?? null;
@@ -147,7 +147,7 @@ class ShareCapital extends Controller
         $rateHistory = $this->getRateHistory();
         $dividendHistory = $account ? $this->getDividendHistory($account->id) : collect();
 
-        $lastDividend = $dividendHistory->where('status', 'Paid')->sortByDesc(fn ($d) => $d->date_paid)->first();
+        $lastDividend = $dividendHistory->where('status', 'Paid')->sortByDesc(fn($d) => $d->date_paid)->first();
         $lastDividendAmount = $lastDividend->dividend_amount ?? null;
         $lastDividendDate = $lastDividend ? Carbon::parse($lastDividend->date_paid)->format('M d, Y') : null;
         $lastDividendPeriod = $lastDividend->period_label ?? null;
@@ -168,13 +168,13 @@ class ShareCapital extends Controller
             : $nextDividendDate->copy()->subMonths(6);
         $prevDividendPeriod = $lastDividend->period_label
             ?? ($nextDividendSemester === 1
-                ? '2nd Semester '.($nextDividendDate->year - 1)
-                : '1st Semester '.$nextDividendDate->year);
+                ? '2nd Semester ' . ($nextDividendDate->year - 1)
+                : '1st Semester ' . $nextDividendDate->year);
 
         $futureDate2 = $nextDividendDate->copy()->addMonths(6);
         $futurePeriod2 = $nextDividendSemester === 1
-            ? '2nd Semester '.$nextDividendDate->year
-            : '1st Semester '.($nextDividendDate->year + 1);
+            ? '2nd Semester ' . $nextDividendDate->year
+            : '1st Semester ' . ($nextDividendDate->year + 1);
 
         $gcashPaymentMethod = \App\Models\PaymentMethod::where('method_name', 'GCash')
             ->where('is_active', true)
@@ -238,22 +238,27 @@ class ShareCapital extends Controller
             'note' => ['nullable', 'string', 'max:500'],
             'gcash_proof' => [($hasQr ? 'required' : 'nullable'), 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
             'gcash_number' => ['nullable', 'string', 'max:20'],
-            'gcash_reference_no' => ['nullable', function ($attribute, $value, $fail) use ($hasQr) {
-                if ($hasQr && empty($value)) {
-                    $fail('The reference number field is required for this payment method.');
-                    return;
-                }
-                if (empty($value)) {
-                    return;
-                }
-                $value = (string) $value;
-                $alreadyUsed = DB::table('share_capital_transaction_tbls')->where('gcash_reference_no', $value)->where('status', '!=', 'voided')->exists()
-                    || DB::table('savings_transaction_tbls')->where('gcash_reference_no', $value)->where('status', '!=', 'voided')->exists()
-                    || DB::table('lending_repayments_tbls')->where('gcash_reference_no', $value)->where('status', '!=', 'voided')->exists();
-                if ($alreadyUsed) {
-                    $fail('This reference number has already been used for a transaction.');
-                }
-            }, 'string', 'digits:13'],
+            'gcash_reference_no' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($hasQr) {
+                    if ($hasQr && empty($value)) {
+                        $fail('The reference number field is required for this payment method.');
+                        return;
+                    }
+                    if (empty($value)) {
+                        return;
+                    }
+                    $value = (string) $value;
+                    $alreadyUsed = DB::table('share_capital_transaction_tbls')->where('gcash_reference_no', $value)->where('status', '!=', 'voided')->exists()
+                        || DB::table('savings_transaction_tbls')->where('gcash_reference_no', $value)->where('status', '!=', 'voided')->exists()
+                        || DB::table('lending_repayments_tbls')->where('gcash_reference_no', $value)->where('status', '!=', 'voided')->exists();
+                    if ($alreadyUsed) {
+                        $fail('This reference number has already been used for a transaction.');
+                    }
+                },
+                'string',
+                'digits:13'
+            ],
         ]);
 
         $gcashNumber = $request->input('gcash_number') ? trim($request->input('gcash_number')) : null;
@@ -286,7 +291,7 @@ class ShareCapital extends Controller
         // ── Block withdrawal exceeding current balance ──────────
         if ($type === 'Withdrawal' && $totalAmount > $currentBalance) {
             return redirect()->back()
-                ->with('error', 'Withdrawal amount (₱'.number_format($totalAmount, 0).') exceeds your current balance (₱'.number_format($currentBalance, 0).').')
+                ->with('error', 'Withdrawal amount (₱' . number_format($totalAmount, 0) . ') exceeds your current balance (₱' . number_format($currentBalance, 0) . ').')
                 ->withInput();
         }
 
@@ -320,7 +325,7 @@ class ShareCapital extends Controller
                 DB::rollBack();
 
                 return redirect()->back()
-                    ->with('error', 'Failed to process resignation: '.$e->getMessage())
+                    ->with('error', 'Failed to process resignation: ' . $e->getMessage())
                     ->withInput();
             }
         }
@@ -374,8 +379,8 @@ class ShareCapital extends Controller
             DB::commit();
 
             AuditLog::log(
-                'Member '.($type === 'Withdrawal' ? 'Share Capital Withdrawal Request' : 'Share Capital '.$type),
-                ($type === 'Withdrawal' ? 'Requested withdrawal of ' : 'Subscribed ').$shares.' shares (₱'.number_format($totalAmount, 2).') (Ref: '.$referenceNo.')',
+                'Member ' . ($type === 'Withdrawal' ? 'Share Capital Withdrawal Request' : 'Share Capital ' . $type),
+                ($type === 'Withdrawal' ? 'Requested withdrawal of ' : 'Subscribed ') . $shares . ' shares (₱' . number_format($totalAmount, 2) . ') (Ref: ' . $referenceNo . ')',
                 'share_capital',
                 $accountId
             );
@@ -396,8 +401,144 @@ class ShareCapital extends Controller
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Something went wrong: '.$e->getMessage())
+                ->with('error', 'Something went wrong: ' . $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    /**
+     * Member converts part of their savings balance into share capital.
+     * Only whole shares are converted; the remainder stays in savings.
+     */
+    public function convertSavingsToShareCapital(Request $request)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:' . self::PAR_VALUE,
+        ]);
+
+        $memberId = Auth::id();
+        $price = self::PAR_VALUE;
+        $requested = round((float) $request->amount, 2);
+
+        // Whole shares only
+        $shares = (int) floor(($requested / $price) + 1e-9);
+        $cost = $shares * $price;
+
+        if ($shares < 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The minimum conversion is ₱' . $price . ' (1 share).',
+            ], 422);
+        }
+
+        try {
+            $result = DB::transaction(function () use ($memberId, $shares, $cost, $price) {
+                $now = Carbon::now();
+
+                // Lock the savings row so two requests can't spend the same money
+                $savings = DB::table('savings_account_tbls')
+                    ->where('user_id', $memberId)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$savings) {
+                    throw new \RuntimeException('You do not have a savings account.');
+                }
+
+                if ((float) $savings->balance < $cost) {
+                    throw new \RuntimeException(
+                        'That is more than your savings balance (₱' . number_format($savings->balance, 2) . ').'
+                    );
+                }
+
+                $scAccount = DB::table('share_capital_account_tbls')
+                    ->where('user_id', $memberId)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($scAccount) {
+                    $scAccountId = $scAccount->id;
+                } else {
+                    $scAccountId = DB::table('share_capital_account_tbls')->insertGetId([
+                        'user_id' => $memberId,
+                        'total_shares' => 0,
+                        'total_amount' => 0,
+                        'status' => 'Active',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
+
+                $ref = 'CNV-' . strtoupper(uniqid()) . '-' . $now->format('Ymd');
+
+                // 1) Debit savings
+                $newSavings = round((float) $savings->balance - $cost, 2);
+
+                DB::table('savings_account_tbls')
+                    ->where('id', $savings->id)
+                    ->update(['balance' => $newSavings, 'updated_at' => $now]);
+
+                DB::table('savings_transaction_tbls')->insert([
+                    'savings_account_id' => $savings->id,
+                    'type' => 'withdrawal',
+                    'amount' => $cost,
+                    'balance_after' => $newSavings,
+                    'reference_no' => $ref,
+                    'payment_method' => 'Conversion',
+                    'transaction_date' => $now->toDateString(),
+                    'status' => 'Completed',
+                    'created_by' => $memberId,
+                    'approved_by' => $memberId,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+
+                // 2) Credit share capital (ledger row + account totals)
+                DB::table('share_capital_account_tbls')
+                    ->where('id', $scAccountId)
+                    ->update([
+                        'total_shares' => DB::raw('total_shares + ' . (int) $shares),
+                        'total_amount' => DB::raw('total_amount + ' . (float) $cost),
+                        'updated_at' => $now,
+                    ]);
+
+                DB::table('share_capital_transaction_tbls')->insert([
+                    'share_capital_account_id' => $scAccountId,
+                    'type' => self::CONVERSION_TYPE,
+                    'shares' => $shares,
+                    'amount_per_share' => $price,
+                    'total_amount' => $cost,
+                    'payment_method' => 'Savings',
+                    'reference_no' => $ref,
+                    'note' => 'Converted from savings',
+                    'status' => 'Completed',
+                    'transaction_date' => $now->toDateString(),
+                    'created_by' => $memberId,
+                    'approved_by' => $memberId,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+
+                AuditLog::log(
+                    'Converted Savings to Share Capital',
+                    "Converted ₱{$cost} from savings into {$shares} share(s) (Ref: {$ref})",
+                    'share_capital',
+                    $scAccountId
+                );
+
+                return ['shares' => $shares, 'amount' => $cost, 'reference_no' => $ref];
+            });
+
+            return response()->json(['success' => true] + $result);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            Log::error('Savings to share capital conversion failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'The conversion could not be completed.',
+            ], 500);
         }
     }
 
@@ -408,7 +549,7 @@ class ShareCapital extends Controller
     {
         $id = (int) $id;
 
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             return redirect()->guest(route('login'));
         }
 
@@ -465,12 +606,12 @@ class ShareCapital extends Controller
                 ->where('user_id', $sellerId)
                 ->first();
 
-            if (! $sellerAccount || (float) $sellerAccount->total_shares < $shares) {
+            if (!$sellerAccount || (float) $sellerAccount->total_shares < $shares) {
                 DB::rollBack();
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Insufficient shares. Seller has '.($sellerAccount->total_shares ?? 0).' shares.',
+                    'message' => 'Insufficient shares. Seller has ' . ($sellerAccount->total_shares ?? 0) . ' shares.',
                 ], 422);
             }
 
@@ -507,7 +648,7 @@ class ShareCapital extends Controller
                 ]);
             }
 
-            $refNo = 'TRF-'.strtoupper(uniqid()).'-'.now()->format('Ymd');
+            $refNo = 'TRF-' . strtoupper(uniqid()) . '-' . now()->format('Ymd');
 
             DB::table('share_capital_transaction_tbls')->insert([
                 'share_capital_account_id' => $sellerAccount->id,
@@ -517,7 +658,7 @@ class ShareCapital extends Controller
                 'total_amount' => $totalAmount,
                 'payment_method' => 'transfer',
                 'reference_no' => $refNo,
-                'note' => 'Transferred to member #'.$buyerId.' (share transfer)',
+                'note' => 'Transferred to member #' . $buyerId . ' (share transfer)',
                 'status' => 'Completed',
                 'transaction_date' => $now->toDateString(),
                 'created_at' => $now,
@@ -532,7 +673,7 @@ class ShareCapital extends Controller
                 'total_amount' => $totalAmount,
                 'payment_method' => 'transfer',
                 'reference_no' => $refNo,
-                'note' => 'Transferred from member #'.$sellerId.' (share transfer)',
+                'note' => 'Transferred from member #' . $sellerId . ' (share transfer)',
                 'status' => 'Completed',
                 'transaction_date' => $now->toDateString(),
                 'created_at' => $now,
@@ -552,7 +693,7 @@ class ShareCapital extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => number_format($shares, 0).' shares (₱'.number_format($totalAmount, 2).') transferred successfully!',
+                'message' => number_format($shares, 0) . ' shares (₱' . number_format($totalAmount, 2) . ') transferred successfully!',
                 'reference_no' => $refNo,
             ]);
         } catch (\Throwable $e) {
@@ -560,7 +701,7 @@ class ShareCapital extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Transfer failed: '.$e->getMessage(),
+                'message' => 'Transfer failed: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -650,7 +791,7 @@ class ShareCapital extends Controller
      */
     public function buildInstallmentTimeline($account, $contributions): array
     {
-        if (! $account) {
+        if (!$account) {
             $slots = [];
             for ($i = 1; $i <= self::INSTALLMENT_SLOTS; $i++) {
                 $year = $i <= 4 ? 1 : 2;
@@ -670,8 +811,8 @@ class ShareCapital extends Controller
 
         $paid = collect($contributions)
             ->whereIn('type', ['Deposit', 'Subscription', self::CONVERSION_TYPE])
-            ->filter(fn ($c) => strtolower($c->status ?? '') === 'completed')
-            ->map(fn ($c) => (object) [
+            ->filter(fn($c) => strtolower($c->status ?? '') === 'completed')
+            ->map(fn($c) => (object) [
                 'amount' => (float) $c->total_amount,
                 'date' => Carbon::parse($c->transaction_date),
             ])
@@ -702,14 +843,14 @@ class ShareCapital extends Controller
             $windowStart = $startDate->copy()->addMonths(($i - 1) * 3);
             $windowEnd = $startDate->copy()->addMonths($i * 3);
 
-            $inWindow = $paid->filter(fn ($c) => $c->date->gte($windowStart) && $c->date->lt($windowEnd));
+            $inWindow = $paid->filter(fn($c) => $c->date->gte($windowStart) && $c->date->lt($windowEnd));
             $sum = $inWindow->sum('amount');
 
             if ($sum > 0) {
                 $status = 'paid';
                 $amount = $sum;
                 $date = $inWindow->last()->date;
-            } elseif (! $firstUnpaidFound && $quartersElapsed >= $i) {
+            } elseif (!$firstUnpaidFound && $quartersElapsed >= $i) {
                 $status = 'due';
                 $amount = null;
                 $date = $windowStart;
@@ -732,7 +873,7 @@ class ShareCapital extends Controller
 
         // Anything paid after the 8-quarter plan window closes is an
         // advance/overflow payment — never dropped, just reported separately.
-        $advance = $paid->filter(fn ($c) => $c->date->gte($planEnd))->sum('amount');
+        $advance = $paid->filter(fn($c) => $c->date->gte($planEnd))->sum('amount');
 
         return ['slots' => $slots, 'advance' => $advance];
     }
@@ -746,15 +887,15 @@ class ShareCapital extends Controller
 
         if ($today->lte($jun15ThisYear)) {
             $nextDividendDate = $jun15ThisYear;
-            $nextDividendPeriod = '1st Semester '.$today->year;
+            $nextDividendPeriod = '1st Semester ' . $today->year;
             $nextDividendSemester = 1;
         } elseif ($today->lte($dec15ThisYear)) {
             $nextDividendDate = $dec15ThisYear;
-            $nextDividendPeriod = '2nd Semester '.$today->year;
+            $nextDividendPeriod = '2nd Semester ' . $today->year;
             $nextDividendSemester = 2;
         } else {
             $nextDividendDate = $jun15NextYear;
-            $nextDividendPeriod = '1st Semester '.($today->year + 1);
+            $nextDividendPeriod = '1st Semester ' . ($today->year + 1);
             $nextDividendSemester = 1;
         }
 
@@ -800,12 +941,12 @@ class ShareCapital extends Controller
 
     private function generateReferenceNo(): string
     {
-        return 'SC-'.strtoupper(uniqid()).'-'.now()->format('Ymd');
+        return 'SC-' . strtoupper(uniqid()) . '-' . now()->format('Ymd');
     }
 
     private function resolveMemberName(): string
     {
-        $name = trim((Auth::user()->first_name ?? '').' '.(Auth::user()->last_name ?? ''));
+        $name = trim((Auth::user()->first_name ?? '') . ' ' . (Auth::user()->last_name ?? ''));
 
         return $name ?: (Auth::user()->name ?? Auth::user()->username ?? 'Member');
     }

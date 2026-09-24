@@ -315,6 +315,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -324,6 +325,7 @@
             from {
                 opacity: 1;
             }
+
             to {
                 opacity: 0;
             }
@@ -356,11 +358,11 @@
             animation: modalContentExit 150ms cubic-bezier(0.2, 0, 0, 1) forwards;
         }
 
-        .modal-visible > div {
+        .modal-visible>div {
             animation: modalContentEnter 200ms cubic-bezier(0.2, 0, 0, 1) forwards;
         }
 
-        .modal-exiting > div {
+        .modal-exiting>div {
             animation: modalContentExit 150ms cubic-bezier(0.2, 0, 0, 1) forwards;
         }
 
@@ -369,6 +371,7 @@
                 opacity: 0;
                 transform: scale(0.96) translateY(8px);
             }
+
             to {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -380,6 +383,7 @@
                 opacity: 1;
                 transform: scale(1) translateY(0);
             }
+
             to {
                 opacity: 0;
                 transform: scale(0.96) translateY(8px);
@@ -399,7 +403,7 @@
             max-width: 36rem;
         }
 
-        .modal > div:first-child {
+        .modal>div:first-child {
             position: sticky;
             top: 0;
             background: white;
@@ -503,12 +507,14 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             *,
             *::before,
             *::after {
@@ -530,8 +536,9 @@
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm">
                             <div class="nav-logo">
-                            {{-- <h2 class="m-0" style="font-size: 25px">LOGO</h2> --}}
-                            <img src="{{ asset('images/logo2.png') }}" width="50px" height="50px" style="border-radius: 50%" alt="">
+                                {{-- <h2 class="m-0" style="font-size: 25px">LOGO</h2> --}}
+                                <img src="{{ asset('images/logo2.png') }}" width="50px" height="50px"
+                                    style="border-radius: 50%" alt="">
                             </div>
                         </div>
                         <div>
@@ -550,112 +557,136 @@
                 @endphp
                 <nav class="flex-1 p-2.5 space-y-0.5 overflow-y-auto">
                     @if($hasFullAccess || in_array('dashboard', $perms))
-                    <a href="{{ route('dashboard') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                        <span>Dashboard</span>
-                    </a>
+                        <a href="{{ route('dashboard') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                            <span>Dashboard</span>
+                        </a>
                     @endif
                     @if($hasFullAccess || in_array('members', $perms))
-                    <a href="{{ route('dashboard.members') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('dashboard.members') ? 'active' : '' }}">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                        <span>Accounts</span>
-                    </a>
+                        <a href="{{ route('dashboard.members') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('dashboard.members') ? 'active' : '' }}">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                            <span>Accounts</span>
+                        </a>
                     @endif
                     @if($hasFullAccess || in_array('lendings', $perms))
-                    <a href="{{ route('lendings') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('lendings') ? 'active' : '' }}">
-                        <i data-lucide="banknote" class="w-5 h-5"></i>
-                        <span>Loans</span>
-                    </a>
+                        <a href="{{ route('lendings') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('lendings') ? 'active' : '' }}">
+                            <i data-lucide="banknote" class="w-5 h-5"></i>
+                            <span>Loans</span>
+                        </a>
                     @endif
                     @if($hasFullAccess || in_array('payments', $perms))
-                    <a href="{{ route('payments') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('payments') ? 'active' : '' }}">
-                        <i data-lucide="credit-card" class="w-5 h-5"></i>
-                        <span>Payments</span>
-                    </a>
+                        <a href="{{ route('payments') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('payments') ? 'active' : '' }}">
+                            <i data-lucide="credit-card" class="w-5 h-5"></i>
+                            <span>Payments</span>
+                        </a>
                     @endif
                     @if($hasFullAccess || in_array('finance', $perms))
-                    <a href="{{ route('financial.activity') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('financial.activity') ? 'active' : '' }}">
-                        <i data-lucide="wallet" class="w-5 h-5"></i>
-                        <span>Finance</span>
-                    </a>
+                        <a href="{{ route('financial.activity') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('financial.activity') ? 'active' : '' }}">
+                            <i data-lucide="wallet" class="w-5 h-5"></i>
+                            <span>Finance</span>
+                        </a>
                     @endif
                     @if($hasFullAccess || in_array('reports', $perms))
-                    <a href="{{ route('reports') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('reports') ? 'active' : '' }}">
-                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                        <span>Reports</span>
-                    </a>
+                        <a href="{{ route('reports') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('reports') ? 'active' : '' }}">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                            <span>Reports</span>
+                        </a>
+                    @endif
+                    @if($hasFullAccess || in_array('support-reports', $perms ?? []) || $user?->isGeneralManager() || $user?->isMainAdmin())
+                        <a href="{{ route('admin.support-reports.index') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('admin.support-reports.*') ? 'active' : '' }}">
+                            <i data-lucide="life-buoy" class="w-5 h-5"></i>
+                            <span>Member Reports</span>
+                        </a>
+                    @endif
+                    @if($hasFullAccess || in_array('faqs', $perms ?? []) || $user?->isGeneralManager() || $user?->isMainAdmin())
+                        <a href="{{ route('admin.faqs.index') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
+                            <i data-lucide="help-circle" class="w-5 h-5"></i>
+                            <span>FAQs</span>
+                        </a>
                     @endif
                     @if($hasFullAccess || in_array('seminars', $perms))
-                    <a href="{{ route('seminars.index') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('seminars.*') ? 'active' : '' }}">
-                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-                        <span>Seminar</span>
-                    </a>
+                        <a href="{{ route('seminars.index') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('seminars.*') ? 'active' : '' }}">
+                            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                            <span>Seminar</span>
+                        </a>
                     @endif
                     @if($user?->isGeneralManager())
-                    <a href="{{ route('admin.audit-logs.index') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('admin.audit-logs.index') ? 'active' : '' }}">
-                        <i data-lucide="history" class="w-5 h-5"></i>
-                        <span>Audit Logs</span>
-                    </a>
+                        <a href="{{ route('admin.audit-logs.index') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('admin.audit-logs.index') ? 'active' : '' }}">
+                            <i data-lucide="history" class="w-5 h-5"></i>
+                            <span>Audit Logs</span>
+                        </a>
                     @endif
                     @if($hasFullAccess || in_array('officers-committees', $perms))
-                    <a href="{{ route('officers.committees') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('officers.committees') ? 'active' : '' }}">
-                        <i data-lucide="briefcase" class="w-5 h-5"></i>
-                        <span>Officers & Committees</span>
-                    </a>
+                        <a href="{{ route('officers.committees') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('officers.committees') ? 'active' : '' }}">
+                            <i data-lucide="briefcase" class="w-5 h-5"></i>
+                            <span>Officers & Committees</span>
+                        </a>
                     @endif
                     @if($user?->isGeneralManager() || $user?->isMainAdmin())
-                    <a href="{{ route('allied-workers.index') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('allied-workers.*') ? 'active' : '' }}">
-                        <i data-lucide="handshake" class="w-5 h-5"></i>
-                        <span>Allied Workers</span>
-                    </a>
+                        <a href="{{ route('allied-workers.index') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('allied-workers.*') ? 'active' : '' }}">
+                            <i data-lucide="handshake" class="w-5 h-5"></i>
+                            <span>Allied Workers</span>
+                        </a>
                     @endif
                     @if($hasFullAccess || in_array('settings', $perms))
-                    <a href="{{ route('settings') }}"
-                        class="sidebar-link justify-start {{ request()->routeIs('settings') ? 'active' : '' }}">
-                        <i data-lucide="settings" class="w-5 h-5"></i>
-                        <span>Settings</span>
-                    </a>
+                        <a href="{{ route('settings') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('settings') ? 'active' : '' }}">
+                            <i data-lucide="settings" class="w-5 h-5"></i>
+                            <span>Settings</span>
+                        </a>
                     @endif
                 </nav>
 
                 <!-- User Info -->
                 <div class="p-3 border-t border-[#E5EAF3] relative">
-                    <button type="button" data-action="toggleUserDropdown" data-arg='["|event|"]' class="flex items-center gap-3 p-3 rounded-xl hover:bg-[#EEF3FF] cursor-pointer transition-colors w-full text-left">
+                    <button type="button" data-action="toggleUserDropdown" data-arg='["|event|"]'
+                        class="flex items-center gap-3 p-3 rounded-xl hover:bg-[#EEF3FF] cursor-pointer transition-colors w-full text-left">
                         <div class="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center shadow-sm">
-                            <span class="text-primary-600 font-semibold text-sm">{{ strtoupper(substr(auth()->user()->first_name ?? 'A', 0, 1) . substr(auth()->user()->last_name ?? '', 0, 1)) }}</span>
+                            <span
+                                class="text-primary-600 font-semibold text-sm">{{ strtoupper(substr(auth()->user()->first_name ?? 'A', 0, 1) . substr(auth()->user()->last_name ?? '', 0, 1)) }}</span>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900 truncate">{{ auth()->user()->first_name ?? '' }} {{ auth()->user()->last_name ?? '' }}</p>
-                            <p class="text-xs text-gray-500 truncate">{{ ucfirst(auth()->user()->role ?? 'Administrator') }}</p>
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ auth()->user()->first_name ?? '' }}
+                                {{ auth()->user()->last_name ?? '' }}
+                            </p>
+                            <p class="text-xs text-gray-500 truncate">
+                                {{ ucfirst(auth()->user()->role ?? 'Administrator') }}
+                            </p>
                         </div>
                         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
                     </button>
-                    
+
                     <!-- Dropdown Menu -->
-                    <div id="userDropdownMenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-                        <a href="{{ route('settings') }}" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                    <div id="userDropdownMenu"
+                        class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                        <a href="{{ route('settings') }}"
+                            class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                             <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
                             <span class="text-sm">View Profile</span>
                         </a>
                         @if(auth()->user()?->isGeneralManager() || auth()->user()?->isMainAdmin())
-                        <hr class="my-2 border-gray-100">
-                        <a href="{{ route('2fa.manage') }}" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                            <i data-lucide="shield-check" class="w-4 h-4 text-gray-500"></i>
-                            <span class="text-sm">Two-Factor Auth</span>
-                        </a>
+                            <hr class="my-2 border-gray-100">
+                            <a href="{{ route('2fa.manage') }}"
+                                class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-gray-500"></i>
+                                <span class="text-sm">Two-Factor Auth</span>
+                            </a>
                         @endif
                         <hr class="my-2 border-gray-100">
-                        <a href="{{ route('logout') }}" class="flex items-center gap-3 px-4 py-3 text-danger-600 hover:bg-red-50 transition-colors">
+                        <a href="{{ route('logout') }}"
+                            class="flex items-center gap-3 px-4 py-3 text-danger-600 hover:bg-red-50 transition-colors">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                             <span class="text-sm font-medium">Logout</span>
                         </a>
@@ -672,14 +703,14 @@
                     <!-- Right Side -->
                     <div class="flex items-center gap-4">
                         @if(session('aw_mode'))
-                        <form action="{{ route('allied-workers.switch-to-member') }}" method="POST">
-                            @csrf
-                            <button type="submit"
-                                class="inline-flex items-center gap-2 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg px-3 py-2 transition-colors">
-                                <i data-lucide="arrow-left-to-line" class="w-4 h-4"></i>
-                                Return to Member mode
-                            </button>
-                        </form>
+                            <form action="{{ route('allied-workers.switch-to-member') }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                    class="inline-flex items-center gap-2 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg px-3 py-2 transition-colors">
+                                    <i data-lucide="arrow-left-to-line" class="w-4 h-4"></i>
+                                    Return to Member mode
+                                </button>
+                            </form>
                         @endif
                         <!-- Settings Link -->
                         <a href="{{ route('settings') }}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -696,7 +727,9 @@
                                 </span>
                             </div>
                             <div class="hidden md:block text-left">
-                                <p class="text-sm font-medium text-gray-900">{{ auth()->user()->first_name ?? '' }} {{ auth()->user()->last_name ?? '' }}</p>
+                                <p class="text-sm font-medium text-gray-900">{{ auth()->user()->first_name ?? '' }}
+                                    {{ auth()->user()->last_name ?? '' }}
+                                </p>
                                 <p class="text-xs text-gray-500">{{ ucfirst(auth()->user()->role ?? 'Admin') }}</p>
                             </div>
                         </a>

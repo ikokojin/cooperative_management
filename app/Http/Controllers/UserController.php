@@ -43,6 +43,113 @@ class UserController extends Controller
         $this->getUser = new Users_tbl;
     }
 
+    public function convertSavingsToShareCapital(Request $request)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:' . self::PAR_VALUE,
+        ]);
+
+        $user = Auth::user();
+        $amount = round((float) $request->amount, 2);
+        $price = self::PAR_VALUE;
+
+        // Only whole shares can be converted
+        $shares = (int) floor(($amount / $price) + 1e-9);
+        $cost = $shares * $price;
+
+        if ($shares < 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The minimum conversion is ₱' . $price . ' (1 share).',
+            ], 422);
+        }
+
+        try {
+            $result = DB::transaction(function () use ($user, $shares, $cost, $price) {
+                // Lock the savings row to prevent double-spend
+                $savings = savings_account_tbl::where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$savings || (float) $savings->balance < $cost) {
+                    throw new \RuntimeException(
+                        'That is more than your savings balance (₱' . number_format($savings->balance ?? 0, 2) . ').'
+                    );
+                }
+
+                $scAccount = share_capital_account_tbl::where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$scAccount) {
+                    $scAccount = share_capital_account_tbl::create([
+                        'user_id' => $user->id,
+                        'total_shares' => 0,
+                        'total_amount' => 0,
+                        'status' => 'Active',
+                        'acquired_date' => now(),
+                    ]);
+                }
+
+                $ref = 'CNV-' . now()->format('YmdHis') . rand(10, 99);
+
+                // 1) Debit savings
+                $newSavings = round((float) $savings->balance - $cost, 2);
+                $savings->update(['balance' => $newSavings]);
+
+                savings_transaction_tbl::create([
+                    'savings_account_id' => $savings->id,
+                    'type' => 'withdrawal',
+                    'amount' => $cost,
+                    'balance_after' => $newSavings,
+                    'reference_no' => $ref,
+                    'payment_method' => 'Conversion',
+                    'transaction_date' => now(),
+                    'status' => 'Completed',
+                    'created_by' => $user->id,
+                    'approved_by' => $user->id,
+                ]);
+
+                // 2) Credit share capital
+                $scAccount->update([
+                    'total_shares' => $scAccount->total_shares + $shares,
+                    'total_amount' => $scAccount->total_amount + $cost,
+                ]);
+
+                share_capital_transaction_tbl::create([
+                    'share_capital_account_id' => $scAccount->id,
+                    'user_id' => $user->id,
+                    'type' => self::CONVERSION_TYPE,
+                    'shares' => $shares,
+                    'amount_per_share' => $price,
+                    'total_amount' => $cost,
+                    'payment_method' => 'Savings',
+                    'reference_no' => $ref,
+                    'transaction_date' => now(),
+                    'status' => 'Completed',
+                    'created_by' => $user->id,
+                    'approved_by' => $user->id,
+                ]);
+
+                AuditLog::log(
+                    'Converted Savings to Share Capital',
+                    "Converted ₱{$cost} from savings into {$shares} share(s) (Ref: {$ref})",
+                    'share_capital',
+                    $scAccount->id
+                );
+
+                return ['shares' => $shares, 'amount' => $cost, 'reference_no' => $ref];
+            });
+
+            return response()->json(['success' => true] + $result);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            \Log::error('Savings → SC conversion failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'The conversion could not be completed.'], 500);
+        }
+    }
+
     public function sharingCapital()
     {
         return view('ShareCapitalForm.share_capital_form');
@@ -1008,6 +1115,32 @@ class UserController extends Controller
             'polls',
             'currentUser'
         ));
+    }
+
+    public function memberSearch(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $query = \App\Models\Users_tbl::query()
+            ->whereIn('role', ['member', 'pending'])
+            ->select('id', 'first_name', 'last_name', 'email', 'role');
+
+        // An empty query is allowed: it returns the suggested list of members.
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('first_name', 'like', "%{$q}%")
+                    ->orWhere('last_name', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%")
+                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$q}%"]);
+            });
+        }
+
+        return response()->json(
+            $query->orderBy('first_name')
+                ->orderBy('last_name')
+                ->limit($q === '' ? 15 : 20)
+                ->get()
+        );
     }
 
     public function dashboard_members(Request $request)

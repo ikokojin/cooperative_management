@@ -260,6 +260,10 @@
                         </a>
                     </li>
                     <li>
+                        <div class="card-icon"><i class="fa fa-circle-question"></i></div>
+                        <a href="{{ route('Faqs') }}">FAQs</a>
+                    </li>
+                    <li>
                         <div class="card-icon"><i class="fa fa-sign-out"></i></div>
                         <a href="{{ route('logout') }}">Logout</a>
                     </li>

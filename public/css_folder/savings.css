@@ -95,6 +95,11 @@
     overflow: hidden;
 }
 
+.main-head{
+    display: flex;
+    justify-content: end;
+}
+
 /* .container-fluid main .card-box-parent::before {
     content: '';
     position: absolute;
@@ -183,6 +188,10 @@
     font-size: 13.5px;
 }
 
+.container-fluid main .card-box-parent .card-box-text button span{
+    color: #ffffff;
+}
+
 .container-fluid main .card-box-parent .card-box-buttons {
     /* display: flex;
     align-items: center; */
@@ -257,7 +266,7 @@
 }
 
 .container-fluid main .card-box-parent .fa-solid {
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .container-fluid main .card-box-parent .card-box {

@@ -500,8 +500,8 @@
 
                     @if($loans->isEmpty())
                         <!-- <div class="loan-hero" style="display:flex;align-items:center;justify-content:center;padding:40px;">
-                                                                    <p style="color:var(--teal);margin:0;">You have no approved loans yet.</p>
-                                                                </div> -->
+                                                                                                                                                            <p style="color:var(--teal);margin:0;">You have no approved loans yet.</p>
+                                                                                                                                                        </div> -->
                         <div class="header-main">
                             <h3>Loan Repayments</h3>
                             <p>Manage your loan repayments by tracking payment history, upcoming due dates, and outstanding
@@ -633,20 +633,20 @@
                                         </button>
 
                                         <!-- @if($selectedLoan->disbursed_at)
-                                                                                    <button disabled style="opacity:.6;cursor:not-allowed;background:#e8f5ee;color:#1e7a4e;border:1px solid rgba(30,122,78,.3);">
-                                                                                        <i class="fa fa-circle-check"></i>
-                                                                                        <span>Disbursed</span>
-                                                                                    </button>
-                                                                                @else
-                                                                                    <form action="{{ route('loan.disburse') }}" method="POST" style="margin:0;">
-                                                                                        @csrf
-                                                                                        <input type="hidden" name="lending_id" value="{{ $selectedLoan->id }}">
-                                                                                        <button type="submit">
-                                                                                            <i class="fa fa-hand-holding-dollar"></i>
-                                                                                            <span>Disburse Loan</span>
-                                                                                        </button>
-                                                                                    </form>
-                                                                                @endif -->
+                                                                                                                                                                            <button disabled style="opacity:.6;cursor:not-allowed;background:#e8f5ee;color:#1e7a4e;border:1px solid rgba(30,122,78,.3);">
+                                                                                                                                                                                <i class="fa fa-circle-check"></i>
+                                                                                                                                                                                <span>Disbursed</span>
+                                                                                                                                                                            </button>
+                                                                                                                                                                        @else
+                                                                                                                                                                            <form action="{{ route('loan.disburse') }}" method="POST" style="margin:0;">
+                                                                                                                                                                                @csrf
+                                                                                                                                                                                <input type="hidden" name="lending_id" value="{{ $selectedLoan->id }}">
+                                                                                                                                                                                <button type="submit">
+                                                                                                                                                                                    <i class="fa fa-hand-holding-dollar"></i>
+                                                                                                                                                                                    <span>Disburse Loan</span>
+                                                                                                                                                                                </button>
+                                                                                                                                                                            </form>
+                                                                                                                                                                        @endif -->
                                     </div>
                                 </div>
                             </div>
@@ -662,11 +662,28 @@
                                     </div>
                                 </div>
                                 <div class="progress-footer">
-                                    {{-- <span>₱{{ number_format($selectedLoan->lending_amount, 0) }} principal</span> --}}
-                                    <span>{{ $lendingStatus->payments_made ?? 0 }} of
-                                        {{ $lendingStatus->total_payments ?? 0 }} payments made</span>
+                                    <span>
+                                        {{ $lendingStatus->payments_made ?? 0 }} of
+                                        {{ $lendingStatus->total_payments ?? 0 }} payments made
+                                        @if(($pendingCount ?? 0) > 0)
+                                            · <span style="color:#b45309;font-weight:600;">{{ $pendingCount }} pending
+                                                verification</span>
+                                        @endif
+                                    </span>
                                     <span><strong>₱{{ number_format($remainingPrincipal, 0) }}</strong> remaining </span>
                                 </div>
+
+                                @if(($selectedLoan->net_proceeds_adjustment_type ?? null) === 'add')
+                                    <div class="net-proceeds-note"
+                                        style="margin-top:10px;padding:10px 12px;background:#f0f7f4;border:1px solid #cfe6dc;border-radius:8px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                                        <span><i class="fa fa-circle-info" style="color:var(--teal);"></i>
+                                            Net Proceeds Adjustment — charges added back, you received the full loan amount
+                                        </span>
+                                        <strong style="color:var(--teal);white-space:nowrap;">
+                                            +₱{{ number_format($processingFee + $serviceFee + $loanProtectionFee + $retentionFee, 2) }}
+                                        </strong>
+                                    </div>
+                                @endif
                             </div>
                             <div class="perforation"></div>
                             <div class="alh-parent">
@@ -677,43 +694,21 @@
                                         {{ \Carbon\Carbon::parse($selectedLoan->created_at)->format('F d, Y') }}
                                     </p>
                                 </div>
-                                <div class="alh-stat" id="due-date-stat">
-                                    <span>Due Date</span>
-                                    @if($overdueDate)
-                                        <h5 class="stat-value">{{ $overdueDate->format('F d') }}</h5>
-                                        <p class="stat-sub badge-overdue">
-                                            <i class="fa fa-triangle-exclamation"></i>
-                                            #{{ $overdueInstallmentNumber }} · {{ $overdueDaysCount }}
-                                            day{{ $overdueDaysCount == 1 ? '' : 's' }} overdue
-                                        </p>
-                                    @else
-                                        <h5 class="stat-value">—</h5>
-                                        <p class="stat-sub">No overdue payments</p>
-                                    @endif
-                                </div>
-
-                                <div class="alh-stat" id="next-due-stat">
-                                    <span>Next Due</span>
-                                    <h5 class="stat-value">
-                                        {{ $displayNextDueDate ? $displayNextDueDate->format('F d') : '—' }}
-                                    </h5>
-                                    @if($displayDaysAway === null)
-                                        <p class="stat-sub">Fully paid</p>
-                                    @elseif($displayDaysAway == 0)
-                                        <p class="stat-sub badge-upcoming-next" style="padding: 0;">Due today</p>
-                                    @else
-                                        <p class="stat-sub badge-upcoming-next" style="padding: 0;">{{ $displayDaysAway }} days
-                                            away</p>
-                                    @endif
-                                </div>
-
                                 <div class="alh-stat">
-                                    <span>Monthly Due</span>
-                                    <h5 id="monthly-due-value">
-                                        ₱{{ number_format($currentDueAmount + $currentOverduePenalty, 2) }}</h5>
-                                    <p>Every {{ \Carbon\Carbon::parse($selectedLoan->created_at)->format('jS') }}</p>
+                                    <span>Total Interest</span>
+                                    <h5>₱{{ number_format($totalInterest, 2) }}</h5>
+                                    <p>{{ number_format($interestRate, 2) }}% rate</p>
                                 </div>
-
+                                <div class="alh-stat">
+                                    <span>Total Charges</span>
+                                    <h5>₱{{ number_format($totalCharges, 2) }}</h5>
+                                    <p>Fees only</p> {{-- was: Interest + fees --}}
+                                </div>
+                                <div class="alh-stat">
+                                    <span>Net Proceeds</span>
+                                    <h5>₱{{ number_format($netProceeds, 2) }}</h5>
+                                    <p>Amount released to you</p>
+                                </div>
                             </div>
                             <div class="payment-button payment-mobile">
                                 <button data-action="handleMakePaymentClick" data-arg='["monthly"]' {{ $fullBalanceRemaining <= 0 ? 'disabled style=opacity:.5;cursor:not-allowed;' : '' }}>
@@ -722,51 +717,81 @@
                                 </button>
 
                                 <!-- @if($selectedLoan->disbursed_at)
-                                                                            <button disabled style="opacity:.6;cursor:not-allowed;background:#e8f5ee;color:#1e7a4e;border:1px solid rgba(30,122,78,.3);">
-                                                                                <i class="fa fa-circle-check"></i>
-                                                                                <span>Disbursed</span>
-                                                                            </button>
-                                                                        @else
-                                                                            <form action="{{ route('loan.disburse') }}" method="POST" style="margin:0;">
-                                                                                @csrf
-                                                                                <input type="hidden" name="lending_id" value="{{ $selectedLoan->id }}">
-                                                                                <button type="submit">
-                                                                                    <i class="fa fa-hand-holding-dollar"></i>
-                                                                                    <span>Disburse Loan</span>
-                                                                                </button>
-                                                                            </form>
-                                                                        @endif -->
+                                                                                                                                                                    <button disabled style="opacity:.6;cursor:not-allowed;background:#e8f5ee;color:#1e7a4e;border:1px solid rgba(30,122,78,.3);">
+                                                                                                                                                                        <i class="fa fa-circle-check"></i>
+                                                                                                                                                                        <span>Disbursed</span>
+                                                                                                                                                                    </button>
+                                                                                                                                                                @else
+                                                                                                                                                                    <form action="{{ route('loan.disburse') }}" method="POST" style="margin:0;">
+                                                                                                                                                                        @csrf
+                                                                                                                                                                        <input type="hidden" name="lending_id" value="{{ $selectedLoan->id }}">
+                                                                                                                                                                        <button type="submit">
+                                                                                                                                                                            <i class="fa fa-hand-holding-dollar"></i>
+                                                                                                                                                                            <span>Disburse Loan</span>
+                                                                                                                                                                        </button>
+                                                                                                                                                                    </form>
+                                                                                                                                                                @endif -->
                             </div>
 
                         </div>
 
                         {{-- 3 SUMMARY BOXES --}}
                         <div class="loan-parent-box" style="padding: 0">
-                            {{-- <div class="loan-box">
-                                <div class="loan-header">
-                                    <h5>Principal Amount</h5>
-                                    <div class="loan-icon"><i class="fa fa-file-lines"></i></div>
-                                </div>
-                                <p>₱{{ number_format($selectedLoan->lending_amount, 2) }}</p>
-                                <span>Applied
-                                    {{ \Carbon\Carbon::parse($selectedLoan->created_at)->format('F d, Y') }}</span>
-                            </div> --}}
                             <div class="loan-box">
                                 <div class="loan-header">
-                                    <h5>Total Interest</h5>
-                                    <div class="loan-icon"><i class="fa fa-clock"></i></div>
+                                    <h5>Monthly Due</h5>
+                                    <div class="loan-icon"><i class="fa fa-calendar-day"></i></div>
                                 </div>
-                                <p>₱{{ number_format($totalInterest, 2) }}</p>
-                                <span>{{ number_format($interestRate, 2) }}% rate · cost</span>
+                                <p id="monthly-due-value">
+                                    ₱{{ number_format($currentDueAmount + $currentOverduePenalty, 2) }}</p>
+                                <span>Every {{ \Carbon\Carbon::parse($selectedLoan->created_at)->format('jS') }}</span>
                             </div>
-                            <div class="loan-box">
+
+                            <div class="loan-box" id="due-date-stat">
+                                <div class="loan-header">
+                                    <h5>Due Date</h5>
+                                    <div class="loan-icon"><i class="fa fa-calendar-xmark"></i></div>
+                                </div>
+                                @if($overdueDate)
+                                    <p class="stat-value">{{ $overdueDate->format('F d') }}</p>
+                                    <span class="stat-sub badge-overdue">
+                                        <i class="fa fa-triangle-exclamation"></i>
+                                        #{{ $overdueInstallmentNumber }} · {{ $overdueDaysCount }}
+                                        day{{ $overdueDaysCount == 1 ? '' : 's' }} overdue
+                                    </span>
+                                @else
+                                    <p class="stat-value">—</p>
+                                    <span class="stat-sub">No overdue payments</span>
+                                @endif
+                            </div>
+
+                            <div class="loan-box" id="next-due-stat">
+                                <div class="loan-header">
+                                    <h5>Next Due</h5>
+                                    <div class="loan-icon"><i class="fa fa-calendar-check"></i></div>
+                                </div>
+                                <p class="stat-value">
+                                    {{ $displayNextDueDate ? $displayNextDueDate->format('F d') : '—' }}
+                                </p>
+                                @if($displayDaysAway === null)
+                                    <span class="stat-sub">Fully paid</span>
+                                @elseif($displayDaysAway == 0)
+                                    <span class="stat-sub badge-upcoming-next" style="padding: 0;">Due today</span>
+                                @else
+                                    <span class="stat-sub badge-upcoming-next" style="padding: 0;">{{ $displayDaysAway }} days
+                                        away</span>
+                                @endif
+                            </div>
+
+                            {{-- <div class="loan-box">
                                 <div class="loan-header">
                                     <h5>Total Payable</h5>
                                     <div class="loan-icon"><i class="fa fa-check"></i></div>
                                 </div>
                                 <p>₱{{ number_format($totalPayable, 2) }}</p>
                                 <span>Principal + interest + charges</span>
-                            </div>
+                            </div> --}}
+
                             <div class="loan-box" id="penalty-box">
                                 <div class="loan-header">
                                     <h5>Penalty</h5>
@@ -791,11 +816,11 @@
                             <div class="schedule-parent">
                                 <div class="schedule-header" data-action="openScheduleModal" style="cursor:pointer;">
                                     <!-- <div class="header-tag">
-                                                                                <div class="header-icon">
-                                                                                    <i class="fa fa-calendar-check"></i> 
-                                                                                </div>
+                                                                                                                                                                        <div class="header-icon">
+                                                                                                                                                                            <i class="fa fa-calendar-check"></i> 
+                                                                                                                                                                        </div>
 
-                                                                            Payment Schedule</div> -->
+                                                                                                                                                                    Payment Schedule</div> -->
                                     <div>
                                         <div class="header-tag">Payment Schedule</div>
                                         <p>View your upcoming loan payment</p>
@@ -808,7 +833,7 @@
                                 <div class="schedule-body">
                                     @forelse($paymentSchedule as $row)
                                         <div class="pay-item schedule-row"
-                                            data-status="{{ $row['paid'] ? 'paid' : ($row['overdue'] ? 'overdue' : ($row['is_next'] ? 'active' : 'upcoming')) }}"
+                                            data-status="{{ $row['paid'] ? 'paid' : (($row['pending'] ?? false) ? 'pending' : ($row['overdue'] ? 'overdue' : ($row['is_next'] ? 'active' : 'upcoming'))) }}"
                                             data-number="{{ $row['number'] }}" data-date="{{ $row['date'] }}"
                                             data-amount="{{ $row['amount'] + ($row['penalty'] ?? 0) }}"
                                             data-action="selectScheduleRow" data-arg='["|el|"]'>
@@ -822,6 +847,8 @@
                                                 <p>₱{{ number_format($row['amount'] + ($row['penalty'] ?? 0), 2) }}</p>
                                                 @if($row['paid'])
                                                     <p class="paid"><i class="fa fa-check"></i> Paid</p>
+                                                @elseif($row['pending'] ?? false)
+                                                    <p class="badge-pending-item"><i class="fa fa-hourglass-half"></i> Pending</p>
                                                 @elseif($row['overdue'])
                                                     <p class="badge-overdue-item"><i class="fa fa-triangle-exclamation"></i> Overdue
                                                     </p>
@@ -845,11 +872,11 @@
                             <div class="charges-parent">
                                 <div class="charges-header" data-action="openChargesModal" style="cursor:pointer;">
                                     <!-- <div class="header-tag">
-                                                                                <div class="header-icon">
-                                                                                    <i class="fa fa-money-check-dollar"></i> 
-                                                                                </div>
+                                                                                                                                                                        <div class="header-icon">
+                                                                                                                                                                            <i class="fa fa-money-check-dollar"></i> 
+                                                                                                                                                                        </div>
 
-                                                                                Loan Charges</div> -->
+                                                                                                                                                                        Loan Charges</div> -->
                                     <div>
                                         <div class="header-tag">Loan Charges</div>
                                         <p>View your breakdown loan charges</p>
@@ -859,32 +886,6 @@
                                     </div>
                                 </div>
                                 <div class="charges-body">
-                                    <div class="pay-item">
-                                        <div class="parent-item">
-                                            <div class="item">
-                                                <div class="icon"><i class="fa fa-coins"></i></div>
-                                                <div><span>Interest Rate</span>
-                                                    <p>Total interest applied</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="item-amount">
-                                            <p>{{ number_format($interestRate, 2) }}%</p>
-                                        </div>
-                                    </div>
-                                    <div class="pay-item">
-                                        <div class="parent-item">
-                                            <div class="item">
-                                                <div class="icon"><i class="fa fa-receipt"></i></div>
-                                                <div><span>Total Interest</span>
-                                                    <p>Cost of borrowing</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="item-amount">
-                                            <p>₱{{ number_format($totalInterest, 2) }}</p>
-                                        </div>
-                                    </div>
                                     <div class="pay-item">
                                         <div class="parent-item">
                                             <div class="item">
@@ -937,35 +938,6 @@
                                             <p>₱{{ number_format($retentionFee, 2) }}</p>
                                         </div>
                                     </div>
-                                    @if(($selectedLoan->net_proceeds_adjustment_type ?? null) === 'add')
-                                        <div class="pay-item">
-                                            <div class="parent-item">
-                                                <div class="item">
-                                                    <div class="icon"><i class="fa fa-circle-plus"></i></div>
-                                                    <div><span>Net Proceeds Adjustment</span>
-                                                        <p>Charges added back — you received the full loan amount</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="item-amount">
-                                                <p>+₱{{ number_format($processingFee + $serviceFee + $loanProtectionFee + $retentionFee, 2) }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    @endif
-                                    <div class="pay-item">
-                                        <div class="parent-item">
-                                            <div class="item">
-                                                <div class="icon"><i class="fa fa-hand-holding-dollar"></i></div>
-                                                <div><span>Net Proceeds</span>
-                                                    <p>Amount released to you</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="item-amount">
-                                            <p>₱{{ number_format($netProceeds, 2) }}</p>
-                                        </div>
-                                    </div>
                                 </div>
                                 <div class="charges-footer">
                                     <div class="total-charges">
@@ -1006,6 +978,8 @@
                                                 </div>
                                                 @if(strtolower($payment->status ?? '') === 'voided')
                                                     <span class="badge-voided"><i class="fa fa-ban"></i> Voided</span>
+                                                @elseif(strtolower($payment->status ?? '') === 'pending')
+                                                    <span class="badge-pending"><i class="fa fa-hourglass-half"></i> Pending</span>
                                                 @elseif($wasLate)
                                                     <span class="badge-overdue"><i class="fa fa-triangle-exclamation"></i>
                                                         Overdue</span>
@@ -1101,6 +1075,9 @@
                                                         @endphp
                                                         @if(strtolower($payment->status ?? '') === 'voided')
                                                             <span class="badge-voided"><i class="fa fa-ban"></i> Voided</span>
+                                                        @elseif(strtolower($payment->status ?? '') === 'pending')
+                                                            <span class="badge-pending"><i class="fa fa-hourglass-half"></i>
+                                                                Pending</span>
                                                         @elseif($wasLate)
                                                             <span class="badge-overdue"><i class="fa fa-triangle-exclamation"></i>
                                                                 Paid (Overdue)</span>
@@ -1164,20 +1141,6 @@
                     <div class="modal-body" style="padding: 1.6rem; background: #fff;">
 
                         {{-- Payment Type Toggle --}}
-                        <div style="margin-bottom: 1.1rem;">
-                            <label
-                                style="font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
-                                Payment Type
-                            </label>
-                            <select id="payment-type-select" class="form-select" data-action="handlePaymentTypeChange"
-                                data-arg='["|value|"]'
-                                style="border-radius: 10px; border: 1.5px solid #e0e0e0; height: 46px; font-size: 14px; color: #333;">
-                                <option value="monthly">Monthly Payment — ₱{{ number_format($currentDueAmount, 2) }}
-                                </option>
-                                <option value="full">Full Balance — ₱{{ number_format($fullBalanceRemaining, 2) }}
-                                </option>
-                            </select>
-                        </div>
 
                         <form action="{{ route('repayment.store') }}" method="POST" id="cash-repay-form"
                             enctype="multipart/form-data">
@@ -1186,6 +1149,58 @@
                             <input type="hidden" name="member_id" value="{{ auth()->id() }}">
                             <input type="hidden" name="payment_number" value="{{ $nextPaymentNumber }}">
                             <input type="hidden" name="payment_type" id="cash-payment-type" value="monthly">
+
+                            {{-- Installments to Pay --}}
+                            <div style="margin-bottom: 1.1rem;">
+                                <div class="inst-head">
+                                    <label class="inst-label">Installments to Pay</label>
+                                    @if($payableInstallments->count() > 1)
+                                        <button type="button" class="inst-select-all" id="inst-select-all">Select
+                                            all</button>
+                                    @endif
+                                </div>
+
+                                @if($payableInstallments->isEmpty())
+                                    <div class="inst-empty">
+                                        <i class="fa fa-circle-check"></i>
+                                        All remaining installments are already paid or awaiting verification.
+                                    </div>
+                                @else
+                                    <div class="inst-list">
+                                        @foreach($payableInstallments as $idx => $inst)
+                                            <label class="inst-card {{ $inst['overdue'] ? 'is-overdue' : '' }}">
+                                                <input type="checkbox" class="inst-check" name="installments[]"
+                                                    value="{{ $inst['number'] }}" data-amount="{{ $inst['amount'] }}"
+                                                    data-penalty="{{ $inst['penalty'] }}" {{ $idx === 0 ? 'checked' : '' }}>
+                                                <span class="inst-box"><i class="fa fa-check"></i></span>
+                                                <span class="inst-num">{{ $inst['number'] }}</span>
+                                                <span class="inst-info">
+                                                    <span class="inst-date">{{ $inst['date'] }}</span>
+                                                    @if($inst['overdue'])
+                                                        <span class="inst-tag"><i class="fa fa-triangle-exclamation"></i>
+                                                            Overdue</span>
+                                                    @else
+                                                        <span class="inst-tag"><i class="fa fa-clock"></i> Upcoming</span>
+                                                    @endif
+                                                </span>
+                                                <span class="inst-amt">
+                                                    ₱{{ number_format($inst['amount'], 2) }}
+                                                    @if($inst['penalty'] > 0)
+                                                        <small>+ ₱{{ number_format($inst['penalty'], 2) }} late fee</small>
+                                                    @endif
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="inst-summary" id="inst-summary"></div>
+                                    <p class="inst-hint">
+                                        <i class="fa fa-circle-info"></i>
+                                        Installments are paid in order — selecting one also selects every earlier
+                                        installment.
+                                    </p>
+                                @endif
+                            </div>
 
                             {{-- Amount --}}
                             <div style="margin-bottom: 1.1rem;">
@@ -1206,14 +1221,6 @@
                                     <i class="fa fa-triangle-exclamation" style="color: #b8860b;"></i>
                                     <span id="penalty-breakdown-text"></span>
                                 </div>
-                                @if(isset($hasSchedule) && $hasSchedule)
-                                    <p
-                                        style="margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); background: #f0f7f4; border: 1px solid #cfe6dc; border-radius: 8px; padding: 8px 10px;">
-                                        <i class="fa fa-circle-info" style="color: var(--teal);"></i>
-                                        Current Installment: <strong>₱{{ number_format($currentDueAmount, 2) }}</strong>.
-                                        Full installment payment is required. Partial payments are not allowed.
-                                    </p>
-                                @endif
                             </div>
 
                             {{-- Payment Method --}}
@@ -1230,6 +1237,10 @@
                                         <option value="{{ $pm->method_name }}">{{ $pm->method_name }}</option>
                                     @endforeach
                                 </select>
+                                <p id="repay-method-error"
+                                    style="display:none; margin:6px 0 0; color:#e53e3e; font-size:12px; font-weight:600;">
+                                    <i class="fa fa-circle-exclamation"></i> Please select a payment method.
+                                </p>
                             </div>
 
                             {{-- GCash section --}}
@@ -1366,7 +1377,7 @@
                     <div class="modal-body" style="padding:0;background:#fff;max-height:70vh;overflow-y:auto;">
                         @forelse($paymentSchedule as $row)
                             <div class="pay-item schedule-row"
-                                data-status="{{ $row['paid'] ? 'paid' : ($row['overdue'] ? 'overdue' : ($row['is_next'] ? 'active' : 'upcoming')) }}"
+                                data-status="{{ $row['paid'] ? 'paid' : (($row['pending'] ?? false) ? 'pending' : ($row['overdue'] ? 'overdue' : ($row['is_next'] ? 'active' : 'upcoming'))) }}"
                                 data-number="{{ $row['number'] }}" data-date="{{ $row['date'] }}"
                                 data-amount="{{ $row['amount'] + ($row['penalty'] ?? 0) }}" data-action="pick-schedule-row"
                                 data-arg='["|el|"]'>
@@ -1378,6 +1389,8 @@
                                     <p>₱{{ number_format($row['amount'] + ($row['penalty'] ?? 0), 2) }}</p>
                                     @if($row['paid'])
                                         <p class="paid"><i class="fa fa-check"></i> Paid</p>
+                                    @elseif($row['pending'] ?? false)
+                                        <p class="badge-pending-item"><i class="fa fa-hourglass-half"></i> Pending</p>
                                     @elseif($row['overdue'])
                                         <p class="badge-overdue-item"><i class="fa fa-triangle-exclamation"></i> Overdue</p>
                                     @else
@@ -1497,22 +1510,6 @@
                                 <p>₱{{ number_format($retentionFee, 2) }}</p>
                             </div>
                         </div>
-                        @if(($selectedLoan->net_proceeds_adjustment_type ?? null) === 'add')
-                            <div class="pay-item">
-                                <div class="parent-item">
-                                    <div class="item">
-                                        <div class="icon"><i class="fa fa-circle-plus"></i></div>
-                                        <div><span>Net Proceeds Adjustment</span>
-                                            <p>Charges added back — you received the full loan amount</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="item-amount">
-                                    <p>+₱{{ number_format($processingFee + $serviceFee + $loanProtectionFee + $retentionFee, 2) }}
-                                    </p>
-                                </div>
-                            </div>
-                        @endif
                         <div class="pay-item">
                             <div class="parent-item">
                                 <div class="item">
@@ -1629,6 +1626,23 @@
             data-method="{{ session('loan_receipt_method', '—') }}" data-ref="{{ session('loan_receipt_ref', '—') }}"
             data-date="{{ now()->timezone('Asia/Manila')->format('M d, Y · h:i A') }}"
             data-status="{{ session('loan_receipt_status', 'Pending') }}" style="display:none;">
+        </div>
+
+        {{-- Success toast --}}
+        <div id="lr-toast" class="lr-toast" role="status" aria-live="polite">
+            <div class="lr-toast-icon"><i class="fa-solid fa-check"></i></div>
+            <div class="lr-toast-body">
+                <p class="lr-toast-title">Payment submitted</p>
+                <p class="lr-toast-msg">
+                    ₱{{ number_format(session('loan_receipt_amount', 0), 2) }}
+                    for installment #{{ session('loan_receipt_payment_number', '—') }}
+                    is now pending admin verification.
+                </p>
+            </div>
+            <button type="button" class="lr-toast-close" id="lr-toast-close" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
+            <div class="lr-toast-bar"></div>
         </div>
     @endif
 
@@ -1954,29 +1968,12 @@
         // Real values from controller
         const MONTHLY_AMOUNT = {{ $currentDueAmount ?? 0 }};
         const FULL_BALANCE = {{ $fullBalanceRemaining ?? 0 }};
-        // IMPORTANT: this is the penalty tied to the installment that is
-        // ACTUALLY overdue right now — 0 whenever nothing is overdue. It is
-        // NOT $penaltyAmount (that's a lifetime running total that never
-        // resets, and was incorrectly leaking into Upcoming installments'
-        // payment amounts before this fix).
         const PENALTY_PREVIEW = {{ $currentOverduePenalty ?? 0 }};
 
-        // Tracks whichever Payment Schedule row the member last clicked, so
-        // the "Make a Payment" button can react to it. Starts null (nothing
-        // selected yet) — in that state Make a Payment behaves as before.
+        // Tracks whichever Payment Schedule row the member last clicked
         let selectedRowStatus = null;
         let selectedRowNumber = null;
-
-        // Only ever include a penalty amount when it's genuinely tied to an
-        // overdue installment — never for Upcoming/Active/Paid rows, and
-        // never when nothing is actually overdue right now (PENALTY_PREVIEW
-        // itself will just be 0 in that case).
-        function getPenaltyForSelection() {
-            if (selectedRowStatus === 'upcoming' || selectedRowStatus === 'active' || selectedRowStatus === 'paid') {
-                return 0;
-            }
-            return PENALTY_PREVIEW;
-        }
+        let activeModalId = null;
 
         function updatePenaltyBreakdown(baseAmount, penalty, total) {
             const box = document.getElementById('penalty-breakdown');
@@ -1991,30 +1988,16 @@
             }
         }
 
-        function handlePaymentTypeChange(type) {
-            const amountInput = document.getElementById('repay-amount-input');
-            const paymentTypeInput = document.getElementById('cash-payment-type');
-            const penalty = getPenaltyForSelection();
-            if (type === 'full') {
-                const total = FULL_BALANCE + penalty;
-                amountInput.value = total.toFixed(2);
-                updatePenaltyBreakdown(FULL_BALANCE, penalty, total);
-            } else {
-                const total = MONTHLY_AMOUNT + penalty;
-                amountInput.value = total.toFixed(2);
-                updatePenaltyBreakdown(MONTHLY_AMOUNT, penalty, total);
-            }
-            paymentTypeInput.value = type;
-        }
-
         function handleMethodChange(method) {
             const isGcash = method === 'GCash';
             document.getElementById('gcash-section').style.display = isGcash ? 'block' : 'none';
             document.getElementById('gcash-proof-input').required = isGcash;
+            document.getElementById('repay-method-error').style.display = 'none';
+            document.getElementById('repay-method').style.borderColor = '#e0e0e0';
             if (!isGcash) setRepayRefState(false);
         }
 
-        document.getElementById('gcash-proof-input').addEventListener('change', function () {
+        document.getElementById('gcash-proof-input')?.addEventListener('change', function () {
             if (this.files && this.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
@@ -2025,6 +2008,7 @@
             }
         });
 
+        // ── GCash reference duplicate check ─────────────────────────
         let repayRefUsed = false;
         const repayRefInput = document.getElementById('repay-gcash-ref');
         const repayRefUsedMsg = document.getElementById('repay-ref-used-msg');
@@ -2058,37 +2042,111 @@
             });
         }
 
-        // Defensive fallback only — the button itself gets disabled in
-        // selectScheduleRow() the moment a Paid row is picked, so this
-        // shouldn't normally even be reachable while disabled.
-        function handleMakePaymentClick(type = 'monthly') {
-            if (selectedRowStatus === 'paid') {
-                return;
-            }
-            openRepayModal(type);
+        // ── Installment checkboxes ─────────────────────────────────
+        function instBoxes() {
+            return Array.from(document.querySelectorAll('.inst-check'));
         }
 
-        function openRepayModal(type = 'monthly') {
-            activeModalId = 'repayModal';
-            document.getElementById('payment-type-select').value = type;
-            const penalty = getPenaltyForSelection();
-            if (type === 'full') {
-                const total = FULL_BALANCE + penalty;
-                document.getElementById('repay-amount-input').value = total.toFixed(2);
-                updatePenaltyBreakdown(FULL_BALANCE, penalty, total);
-            } else {
-                const total = MONTHLY_AMOUNT + penalty;
-                document.getElementById('repay-amount-input').value = total.toFixed(2);
-                updatePenaltyBreakdown(MONTHLY_AMOUNT, penalty, total);
+        function refreshInstallments() {
+            const boxes = instBoxes();
+            let base = 0, penalty = 0, count = 0;
+
+            boxes.forEach(b => {
+                b.closest('.inst-card').classList.toggle('is-checked', b.checked);
+                if (b.checked) {
+                    base += parseFloat(b.dataset.amount || 0);
+                    penalty += parseFloat(b.dataset.penalty || 0);
+                    count++;
+                }
+            });
+
+            const total = base + penalty;
+            document.getElementById('repay-amount-input').value = total.toFixed(2);
+            document.getElementById('cash-payment-type').value =
+                (count > 0 && count === boxes.length) ? 'full' : 'monthly';
+            updatePenaltyBreakdown(base, penalty, total);
+
+            const summary = document.getElementById('inst-summary');
+            if (summary) {
+                summary.innerHTML = count
+                    ? `<span>${count} installment${count === 1 ? '' : 's'} selected</span>
+                       <strong>₱${total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>`
+                    : '';
             }
-            document.getElementById('repay-method').value = 'Cash';
+
+            const allBtn = document.getElementById('inst-select-all');
+            if (allBtn) allBtn.textContent = count === boxes.length ? 'Reset' : 'Select all';
+
+            if (repayConfirmBtn && !repayRefUsed) {
+                repayConfirmBtn.disabled = count === 0;
+                repayConfirmBtn.style.opacity = count === 0 ? 0.55 : 1;
+                repayConfirmBtn.style.cursor = count === 0 ? 'not-allowed' : 'pointer';
+            }
+        }
+
+        // Keep selection consecutive: checking #N checks 1..N, unchecking #N unchecks N..end.
+        function onInstallmentToggle(el) {
+            const boxes = instBoxes();
+            const idx = boxes.indexOf(el);
+
+            if (el.checked) {
+                boxes.forEach((b, i) => { b.checked = i <= idx; });
+            } else {
+                boxes.forEach((b, i) => { if (i >= idx) b.checked = false; });
+            }
+
+            if (!boxes.some(b => b.checked) && boxes[0]) boxes[0].checked = true;
+
+            refreshInstallments();
+        }
+
+        // If a schedule row was clicked first, pre-select up to that installment.
+        function presetInstallments() {
+            const boxes = instBoxes();
+            if (!boxes.length) { refreshInstallments(); return; }
+
+            let upTo = 0;
+            if (selectedRowNumber) {
+                const i = boxes.findIndex(b => b.value === String(selectedRowNumber));
+                if (i >= 0) upTo = i;
+            }
+            boxes.forEach((b, i) => { b.checked = i <= upTo; });
+            refreshInstallments();
+        }
+
+        document.addEventListener('change', function (e) {
+            if (e.target.classList && e.target.classList.contains('inst-check')) {
+                onInstallmentToggle(e.target);
+            }
+        });
+
+        document.getElementById('inst-select-all')?.addEventListener('click', function () {
+            const boxes = instBoxes();
+            const allChecked = boxes.every(b => b.checked);
+            boxes.forEach((b, i) => { b.checked = allChecked ? i === 0 : true; });
+            refreshInstallments();
+        });
+
+        // ── Repayment modal ────────────────────────────────────────
+        function handleMakePaymentClick() {
+            if (selectedRowStatus === 'paid') return;
+            openRepayModal();
+        }
+
+        function openRepayModal() {
+            activeModalId = 'repayModal';
+
+            document.getElementById('repay-method').value = '';
+            document.getElementById('repay-method-error').style.display = 'none';
+            document.getElementById('repay-method').style.borderColor = '#e0e0e0';
             document.getElementById('gcash-section').style.display = 'none';
             document.getElementById('confirm-pay-btn').style.display = 'flex';
             document.getElementById('repay-gcash-ref').value = '';
             setRepayRefState(false);
             document.getElementById('notes-section').style.display = 'block';
-
             document.querySelector('#notes-section textarea').value = '';
+
+            presetInstallments();
 
             const modal = document.getElementById('repayModal');
             const backdrop = document.getElementById('repay-backdrop');
@@ -2103,6 +2161,23 @@
             backdrop.classList.add('show');
         }
 
+        function closeRepayModal() {
+            const modal = document.getElementById('repayModal');
+            const backdrop = document.getElementById('repay-backdrop');
+
+            modal.classList.remove('show');
+            backdrop.classList.remove('show');
+
+            setTimeout(() => {
+                modal.style.display = 'none';
+                backdrop.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }, 250);
+
+            activeModalId = null;
+        }
+
+        // ── Payment Schedule row click ─────────────────────────────
         function selectScheduleRow(el) {
             document.querySelectorAll('.schedule-row').forEach(r => r.classList.remove('row-selected'));
             el.classList.add('row-selected');
@@ -2115,36 +2190,24 @@
             selectedRowStatus = status;
             selectedRowNumber = number;
 
-            // Keep the "Monthly Due" hero box in sync with whichever schedule row
-            // was clicked — it should always show exactly what that row's total is
-            // (base installment + penalty, if any), matching the Payment Schedule
-            // list and the repayment modal's prefilled amount.
             const monthlyDueEl = document.getElementById('monthly-due-value');
             if (monthlyDueEl) {
                 monthlyDueEl.textContent = `₱${amount.toFixed(2)}`;
             }
 
-            // Disable "Make a Payment" outright the moment a Paid row is
-            // selected — no need for a click + alert. Re-enable for any
-            // other status, as long as the loan itself still has a balance
-            // to pay (that base disabled state is rendered server-side).
-            const payBtn = document.querySelector('.payment-button button');
-            if (payBtn && FULL_BALANCE > 0) {
-                if (status === 'paid') {
-                    payBtn.disabled = true;
-                    payBtn.style.opacity = '.5';
-                    payBtn.style.cursor = 'not-allowed';
-                } else {
-                    payBtn.disabled = false;
-                    payBtn.style.opacity = '';
-                    payBtn.style.cursor = '';
-                }
-            }
+            document.querySelectorAll('.payment-button button').forEach(payBtn => {
+                if (FULL_BALANCE <= 0) return;
+                const disable = status === 'paid';
+                payBtn.disabled = disable;
+                payBtn.style.opacity = disable ? '.5' : '';
+                payBtn.style.cursor = disable ? 'not-allowed' : '';
+            });
 
             const nextDueStat = document.getElementById('next-due-stat');
             if (nextDueStat) {
                 const statusLabels = {
                     paid: 'Already paid',
+                    pending: 'Awaiting admin verification',
                     overdue: 'Overdue',
                     active: 'Upcoming — due next',
                     upcoming: 'Upcoming'
@@ -2163,7 +2226,6 @@
                 nextDueStat.querySelector('.stat-value').textContent = date;
             }
 
-            // Penalty card only shows an actual amount when the SELECTED row is overdue.
             const penaltyBox = document.getElementById('penalty-box');
             if (penaltyBox) {
                 const penaltyValue = penaltyBox.querySelector('.penalty-value');
@@ -2187,27 +2249,8 @@
             document.getElementById('loan-hero-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        function closeRepayModal() {
-            const modal = document.getElementById('repayModal');
-            const backdrop = document.getElementById('repay-backdrop');
-
-            modal.classList.remove('show');
-            backdrop.classList.remove('show');
-
-            setTimeout(() => {
-                modal.style.display = 'none';
-                backdrop.style.display = 'none';
-                document.body.classList.remove('modal-open');
-            }, 250);
-
-            activeModalId = null;
-        }
-
-        let activeModalId = null;
-
+        // ── Mobile schedule / charges modals ───────────────────────
         function openModal(modalId) {
-            // Only meaningful on the collapsed (mobile/tablet) breakpoint —
-            // matches the 880px max-width media query that hides the inline body.
             if (window.innerWidth > 880) return;
 
             const modal = document.getElementById(modalId);
@@ -2220,7 +2263,7 @@
             backdrop.style.display = 'block';
             document.body.classList.add('modal-open');
 
-            void modal.offsetWidth; // force reflow so the transition plays
+            void modal.offsetWidth;
 
             modal.classList.add('show');
             backdrop.classList.add('show');
@@ -2246,7 +2289,6 @@
         function openScheduleModal() { openModal('scheduleModal'); }
         function openChargesModal() { openModal('chargesModal'); }
 
-        // Click-outside-to-close for both new modals
         document.getElementById('scheduleModal')?.addEventListener('click', function (e) {
             if (e.target === this) closeModal('scheduleModal');
         });
@@ -2254,7 +2296,7 @@
             if (e.target === this) closeModal('chargesModal');
         });
 
-        document.getElementById('repay-backdrop').addEventListener('click', function () {
+        document.getElementById('repay-backdrop')?.addEventListener('click', function () {
             if (activeModalId === 'repayModal') {
                 closeRepayModal();
             } else if (activeModalId) {
@@ -2262,15 +2304,44 @@
             }
         });
 
-        document.getElementById('repayModal').addEventListener('click', function (e) {
+        document.getElementById('repayModal')?.addEventListener('click', function (e) {
             if (e.target === this) closeRepayModal();
         });
 
-        document.getElementById('confirm-pay-btn').addEventListener('click', function () {
+        document.getElementById('confirm-pay-btn')?.addEventListener('click', function () {
+            const methodSelect = document.getElementById('repay-method');
+            const methodError = document.getElementById('repay-method-error');
+
+            // 1. Payment method is required
+            if (!methodSelect.value) {
+                methodError.style.display = 'block';
+                methodSelect.style.borderColor = '#e53e3e';
+                methodSelect.focus();
+                return;
+            }
+
+            // 2. GCash needs proof + a valid, unused reference number
+            if (methodSelect.value === 'GCash') {
+                const proof = document.getElementById('gcash-proof-input');
+                const ref = document.getElementById('repay-gcash-ref');
+
+                if (!proof.files || !proof.files.length) {
+                    proof.style.borderColor = '#e53e3e';
+                    proof.focus();
+                    return;
+                }
+                if (!/^\d{13}$/.test(ref.value.trim())) {
+                    ref.style.borderColor = '#e53e3e';
+                    ref.focus();
+                    return;
+                }
+            }
+
             if (repayRefUsed) {
                 if (repayRefUsedMsg) repayRefUsedMsg.style.display = 'block';
                 return;
             }
+
             document.getElementById('cash-repay-form').submit();
         });
     </script>
@@ -2280,6 +2351,32 @@
             var overlay = document.getElementById('loan-receipt-overlay');
             if (overlay) overlay.remove();
         }
+
+        /* ═══ SUCCESS TOAST ═══ */
+        (function () {
+            const toast = document.getElementById('lr-toast');
+            if (!toast) return;
+
+            let hideTimer = null;
+
+            function hideToast() {
+                toast.classList.remove('show');
+                clearTimeout(hideTimer);
+                setTimeout(() => toast.remove(), 300);
+            }
+
+            // Small delay so the slide-in animation plays after page load
+            setTimeout(() => {
+                toast.classList.add('show');
+                hideTimer = setTimeout(hideToast, 5000);
+            }, 150);
+
+            document.getElementById('lr-toast-close')?.addEventListener('click', hideToast);
+
+            // Pause auto-hide while hovering
+            toast.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+            toast.addEventListener('mouseleave', () => { hideTimer = setTimeout(hideToast, 2000); });
+        })();
 
         document.getElementById('loan-receipt-overlay')?.addEventListener('click', function (e) {
             if (e.target === this) loanCloseReceipt();

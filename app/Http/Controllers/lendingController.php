@@ -31,12 +31,11 @@ class lendingController extends Controller
         $storedPayable = (float) ($loan->total_payment ?? $principal);
         $principalPlusInterest = round($principal + $interest, 2);
 
-        // Legacy loans (fees withheld, never folded into the schedule)
         $feesAlreadyIncluded = abs($storedPayable - $principalPlusInterest) > 0.01;
 
         return [
             'fees_only' => $feesOnly,
-            'total_charges' => round($interest + $feesOnly, 2),
+            'total_charges' => $feesOnly, // ← was: round($interest + $feesOnly, 2)
             'total_payable' => $feesAlreadyIncluded
                 ? round($storedPayable, 2)
                 : round($principalPlusInterest + $feesOnly, 2),
@@ -98,8 +97,38 @@ class lendingController extends Controller
             ->leftJoin('lending_status_tbls as s', 's.lending_id', '=', 'l.id')
             ->where('l.user_id', $memberId)
             ->where('l.status', 'Approved')
-            ->select('l.*', 's.due_date', 's.remaining_balance', 's.status as loan_status')
+            ->select('l.*', 's.due_date', 's.remaining_balance', 's.status as loan_status') 
             ->get();
+
+        $typeMapApproved = [
+            'Personal Lending' => 'Personal Loan',
+            'Emergency Lending' => 'Emergency Loan',
+            'Business Lending' => 'Business Loan',
+            'Education Lending' => 'Education Loan',
+        ];
+
+        $approvedLoans = $approvedLoans->map(function ($loan) use ($typeMapApproved) {
+            $loan->lending_type = $typeMapApproved[$loan->lending_type] ?? $loan->lending_type;
+
+            // These columns aren't selected in this query — total_payments/payments_made
+            // come from lending_status_tbls but weren't pulled here, so pull them too.
+            $status = DB::table('lending_status_tbls')->where('lending_id', $loan->id)->first();
+            $totalPayments = (int) ($status->total_payments ?? 0);
+            $paymentsMade = (int) ($status->payments_made ?? 0);
+
+            $loan->total_payments = $totalPayments;
+            $loan->payments_made = $paymentsMade;
+
+            $totals = $this->loanChargeTotals($loan);
+            $loan->total_charges = $totals['total_charges'];
+            $loan->total_payable = $totals['total_payable'];
+
+            $loan->monthly_payment = $totalPayments > 0
+                ? round($loan->total_payable / $totalPayments, 2)
+                : 0;
+
+            return $loan;
+        });
 
         $today = now()->timezone('Asia/Manila')->toDateString();
         $weekEnd = now()->timezone('Asia/Manila')->addDays(7)->toDateString();
@@ -634,6 +663,8 @@ class lendingController extends Controller
             'payment_method' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Models\PaymentMethod::where('is_active', true)->pluck('method_name')->toArray())],
             'payment_type' => 'nullable|in:monthly,full',
             'gcash_reference_no' => 'nullable|string',
+            'installments' => 'nullable|array',
+            'installments.*' => 'integer|min:1',
         ];
 
         if (strtolower($request->payment_method) === 'gcash') {
@@ -666,6 +697,11 @@ class lendingController extends Controller
         $status = lending_status_tbl::where('lending_id', $request->lending_id)->first();
         $paymentType = $request->get('payment_type', 'monthly');
         $isGcash = strtolower($request->payment_method) === 'gcash';
+
+        // Multi-installment payment (checkbox selection in the Make a Payment modal)
+        if ($request->filled('installments') && $status) {
+            return $this->storeMultiInstallmentRepayment($request, $loan, $status, $proofPath, $isGcash);
+        }
 
         $totalPayment = (float) ($loan->total_payment ?? $loan->lending_amount);
         $totalPayments = (int) ($status->total_payments ?? 0);
@@ -854,6 +890,160 @@ class lendingController extends Controller
         }
     }
 
+    /**
+     * Unpaid installments the member can still pay (not already paid, not already pending),
+     * in order, with the late fee each one currently carries.
+     */
+    private function payableInstallments($loan, $status): \Illuminate\Support\Collection
+    {
+        if (!$status) {
+            return collect();
+        }
+
+        $today = now()->timezone('Asia/Manila');
+        $lateFeeRate = Loan_settings_tbl::getLateFeeRate($loan->lending_type);
+        $totalPayments = (int) $status->total_payments;
+        $paymentsMade = (int) $status->payments_made;
+        $totalPayment = (float) ($loan->total_payment ?? $loan->lending_amount);
+        $monthlyDue = $totalPayments > 0 ? round($totalPayment / $totalPayments, 2) : 0;
+
+        $schedule = DB::table('lending_installment_schedules_tbls')
+            ->where('lending_id', $loan->id)
+            ->get()
+            ->keyBy('payment_number');
+
+        $pending = lending_repayments_tbl::where('lending_id', $loan->id)
+            ->where('status', 'Pending')
+            ->pluck('payment_number')
+            ->map(fn($n) => (int) $n)
+            ->all();
+
+        $nextNo = $paymentsMade + 1;
+        $anchor = $status->due_date
+            ? \Carbon\Carbon::parse($status->due_date)
+            : \Carbon\Carbon::parse($loan->created_at)->addDays($nextNo * self::PAYMENT_INTERVAL_DAYS);
+
+        $rows = collect();
+
+        for ($i = 1; $i <= $totalPayments; $i++) {
+            $row = $schedule[$i] ?? null;
+            $amount = $row ? (float) $row->amount_due : $monthlyDue;
+            $isPaid = $row ? (float) $row->amount_paid >= (float) $row->amount_due : $i <= $paymentsMade;
+
+            if ($isPaid || in_array($i, $pending, true)) {
+                continue;
+            }
+
+            $due = $anchor->copy()->addDays(($i - $nextNo) * self::PAYMENT_INTERVAL_DAYS);
+            $overdue = $due->lt($today);
+
+            $penalty = 0;
+            if ($overdue) {
+                $already = $status->last_penalty_date
+                    && \Carbon\Carbon::parse($status->last_penalty_date)->gte($due);
+                if (!$already) {
+                    $penalty = round($amount * ($lateFeeRate / 100), 2);
+                }
+            }
+
+            $rows->push([
+                'number' => $i,
+                'date' => $due->format('M d, Y'),
+                'due_date' => $due->format('Y-m-d'),
+                'amount' => $amount,
+                'penalty' => $penalty,
+                'overdue' => $overdue,
+            ]);
+        }
+
+        return $rows->values();
+    }
+
+    private function storeMultiInstallmentRepayment(Request $request, $loan, $status, ?string $proofPath, bool $isGcash)
+    {
+        $payable = $this->payableInstallments($loan, $status);
+        $selected = collect($request->input('installments', []))
+            ->map(fn($n) => (int) $n)->unique()->sort()->values();
+
+        if ($selected->isEmpty() || $payable->isEmpty()) {
+            return redirect()->back()->with('error', 'Please select at least one installment to pay.');
+        }
+
+        // Must be consecutive, starting from the earliest unpaid installment.
+        $rows = $payable->take($selected->count())->values();
+        if ($selected->all() !== $rows->pluck('number')->all()) {
+            return redirect()->back()->with('error', 'Installments must be paid in order, starting with the earliest unpaid one.');
+        }
+
+        $expectedTotal = round($rows->sum(fn($r) => $r['amount'] + $r['penalty']), 2);
+        if (abs(round((float) $request->amount_paid, 2) - $expectedTotal) > 0.01) {
+            return redirect()->back()->with('error', 'The amount must be exactly ₱' . number_format($expectedTotal, 2) . ' for the selected installments.');
+        }
+
+        $paymentType = $rows->count() === $payable->count() ? 'full' : 'monthly';
+        $batchRef = $request->reference_no ?: 'RCP-' . now()->format('YmdHis');
+
+        DB::transaction(function () use ($rows, $loan, $request, $proofPath, $isGcash, $paymentType, $batchRef) {
+            foreach ($rows as $row) {
+                $existingCount = lending_repayments_tbl::where('lending_id', $loan->id)
+                    ->where('payment_number', $row['number'])
+                    ->where('status', '!=', 'voided')
+                    ->count();
+
+                $penaltyNote = $row['penalty'] > 0
+                    ? '₱' . number_format($row['penalty'], 2) . " overdue penalty applied (installment due {$row['date']})"
+                    : null;
+
+                lending_repayments_tbl::create([
+                    'lending_id' => $loan->id,
+                    'user_id' => auth()->id(),
+                    'payment_number' => $row['number'],
+                    'payment_sequence' => $existingCount + 1,
+                    'amount_due' => $row['amount'],
+                    'amount_paid' => $row['amount'],
+                    'late_fee' => $row['penalty'],
+                    'penalty_applied_at' => $row['penalty'] > 0 ? now()->timezone('Asia/Manila') : null,
+                    'payment_proof_path' => $proofPath,
+                    'principal_paid' => 0,
+                    'interest_paid' => 0,
+                    'service_fee_paid' => 0,
+                    'due_date' => $row['due_date'],
+                    'payment_date' => now()->format('Y-m-d'),
+                    'payment_method' => $request->payment_method,
+                    'payment_type' => $paymentType,
+                    'reference_no' => $batchRef,
+                    'gcash_reference_no' => $isGcash ? $request->gcash_reference_no : null,
+                    'notes' => trim(implode(' — ', array_filter([$request->notes, $penaltyNote]))) ?: null,
+                    'recorded_by' => null,
+                    'status' => 'Pending',
+                ]);
+            }
+        });
+
+        $numbers = $rows->pluck('number');
+        $numberLabel = $numbers->count() > 1 ? $numbers->first() . '–' . $numbers->last() : (string) $numbers->first();
+
+        AuditLog::log(
+            'Loan Repayment Request',
+            "{$request->payment_method} payment of ₱{$expectedTotal} for installment(s) #{$numberLabel} on loan (ID: {$loan->id}), pending verification",
+            'loan',
+            $loan->id
+        );
+
+        $member = Auth::user();
+
+        return redirect()->route('LoanStatus', ['loan_id' => $loan->id])->with([
+            'success' => 'Payment submitted! Your payment is pending admin verification.',
+            'loan_receipt_member' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: 'Member',
+            'loan_receipt_amount' => $expectedTotal,
+            'loan_receipt_method' => $request->payment_method,
+            'loan_receipt_ref' => $batchRef,
+            'loan_receipt_status' => 'Pending',
+            'loan_receipt_payment_number' => $numberLabel,
+            'loan_receipt_lending_ref' => $loan->reference_no ?? ('LN-' . $loan->id),
+        ]);
+    }
+
     // ─── Loan Status page ─────────────────────────────────────────────────────────
     // ─── Loan Status page ─────────────────────────────────────────────────────────
     public function loanStatus(Request $request)
@@ -971,10 +1161,13 @@ class lendingController extends Controller
             ? $paymentHistory
                 ->where('status', 'Pending')
                 ->pluck('payment_number')
+                ->map(fn($n) => (int) $n)
                 ->unique()
                 ->values()
                 ->toArray()
             : [];
+
+        $pendingCount = count($pendingInstallmentNumbers);
 
         // ── Build computed hero/breakdown data ──────────────────────────────────
         $paymentSchedule = collect();
@@ -1130,6 +1323,7 @@ class lendingController extends Controller
                     'date' => $dueDateForRow->format('M d, Y'),
                     'amount' => $installmentAmount,
                     'paid' => $isPaid,
+                    'pending' => !$isPaid && in_array($i, $pendingInstallmentNumbers, true),
                     'overdue' => $isOverdue,
                     'is_next' => $isNext,
                     'penalty' => $rowPenalty,
@@ -1210,6 +1404,10 @@ class lendingController extends Controller
             }
         }
 
+        $payableInstallments = ($selectedLoan && $lendingStatus)
+            ? $this->payableInstallments($selectedLoan, $lendingStatus)
+            : collect();
+
         // The QR the admin uploaded in Settings → Payment Methods Management
         $gcashPaymentMethod = \App\Models\PaymentMethod::where('method_name', 'GCash')
             ->where('is_active', true)
@@ -1256,6 +1454,8 @@ class lendingController extends Controller
                 'totalCharges',
                 'totalPayable',
                 'loanStatusLabel',
+                'payableInstallments',
+                'pendingCount',
             )
         ));
     }

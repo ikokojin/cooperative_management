@@ -1284,22 +1284,22 @@ class UsersHandle extends Controller
             ->concat($this->buildLoanEntries($memberId));
 
         // ── Summary cards (computed from ALL completed entries, unfiltered by tab/search) ──
-        $completed = $entries->filter(fn($e) => $e['status_class'] === 'completed');
+        $completed = $entries->filter(fn($e) => ($e['status_class'] ?? '') === 'completed');
 
         $totalDeposits = $completed
             ->filter(fn($e) => in_array($e['category'], ['share_capital', 'savings']) && $e['amount'] > 0)
             ->sum('amount');
 
-        $totalRepayments = abs($completed
-            ->filter(fn($e) => $e['category'] === 'loans' && $e['amount'] < 0)
-            ->sum('amount'));
+        $totalRepayments = $completed
+            ->filter(fn($e) => !empty($e['is_repayment']))
+            ->sum('amount');
 
         $thisMonth = $completed->filter(
             fn($e) => $e['sort_at']->isSameMonth(now()) && $e['sort_at']->isSameYear(now())
         );
         $transactThisMonth = $thisMonth->sum(fn($e) => abs($e['amount']));
 
-        $netChange = $completed->sum('amount');
+        $netChange = $completed->sum(fn($e) => !empty($e['is_repayment']) ? -$e['amount'] : $e['amount']);
 
         // ── Build the list of statuses actually present, for the dropdown ──
         // Uses status_label (the granular, human-facing value: "Locked", "Released",
@@ -1388,7 +1388,8 @@ class UsersHandle extends Controller
                 $isDeposit = in_array($row->type, ['Deposit', 'Subscription', ShareCapital::CONVERSION_TYPE]);
                 $statusRaw = strtolower($row->status ?? '');
                 $statusClass = str_contains($statusRaw, 'complet') ? 'completed'
-                    : (str_contains($statusRaw, 'pend') ? 'pending' : 'pending');
+                    : (str_contains($statusRaw, 'pend') ? 'pending'
+                        : (in_array($statusRaw, ['voided', 'void', 'rejected', 'declined', 'failed']) ? 'voided' : 'pending'));
 
                 return [
                     'sort_at' => Carbon::parse($row->created_at ?? $row->transaction_date),
@@ -1438,7 +1439,11 @@ class UsersHandle extends Controller
                         ->timezone('Asia/Manila')->format('g:i A'),
                     'amount' => $config['sign'] * (float) $row->amount,
                     'status_label' => ucfirst($row->status ?? 'Completed'),
-                    'status_class' => strtolower($row->status ?? 'completed') === 'pending' ? 'pending' : 'completed',
+                    'status_class' => match (strtolower($row->status ?? 'completed')) {
+                        'pending' => 'pending',
+                        'voided', 'void', 'rejected', 'declined', 'failed' => 'voided',
+                        default => 'completed',
+                    },
                 ];
             });
     }
@@ -1460,7 +1465,11 @@ class UsersHandle extends Controller
         $applications = $loans->map(function ($row) use ($typeMap) {
             $displayType = $typeMap[$row->lending_type] ?? $row->lending_type;
             $statusRaw = strtolower($row->status ?? 'pending');
-            $statusClass = $statusRaw === 'pending' ? 'pending' : 'completed';
+            $statusClass = match ($statusRaw) {
+                'pending' => 'pending',
+                'declined', 'rejected' => 'voided',
+                default => 'completed',
+            };
 
             return [
                 'sort_at' => Carbon::parse($row->created_at),
@@ -1473,6 +1482,7 @@ class UsersHandle extends Controller
                 'date_display' => Carbon::parse($row->created_at)->format('M d, Y'),
                 'time_display' => Carbon::parse($row->created_at)->timezone('Asia/Manila')->format('g:i A'),
                 'amount' => 0,
+                'show_amount' => false,
                 'status_label' => ucfirst($row->status ?? 'Pending'),
                 'status_class' => $statusClass,
             ];
@@ -1498,8 +1508,9 @@ class UsersHandle extends Controller
                     'date_display' => Carbon::parse($row->updated_at ?? $row->created_at)->format('M d, Y'),
                     'time_display' => Carbon::parse($row->updated_at ?? $row->created_at)->timezone('Asia/Manila')->format('g:i A'),
                     'amount' => 0,
+                    'show_amount' => false,
                     'status_label' => $isApproved ? 'Approved' : 'Declined',
-                    'status_class' => 'completed',
+                    'status_class' => $isApproved ? 'completed' : 'voided',
                 ];
             });
 
@@ -1544,7 +1555,8 @@ class UsersHandle extends Controller
                     'reference_no' => $row->reference_no ?? '—',
                     'date_display' => Carbon::parse($row->payment_date)->format('M d, Y'),
                     'time_display' => Carbon::parse($row->created_at ?? $row->payment_date)->timezone('Asia/Manila')->format('g:i A'),
-                    'amount' => -(float) $row->amount_paid,
+                    'amount' => (float) $row->amount_paid,
+                    'is_repayment' => true,
                     'status_label' => 'Completed',
                     'status_class' => 'completed',
                 ];
@@ -1599,6 +1611,85 @@ class UsersHandle extends Controller
                 'socialCount' => $socialCount,
             ]
         );
+    }
+
+    public function Faqs()
+    {
+        $username = Auth::check() ? Auth::user()->username : null;
+        $email = Auth::check() ? Auth::user()->email : null;
+
+        $faqs = \App\Models\Faq_tbl::where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('category')
+            ->map(fn($items, $category) => [
+                'category' => $category,
+                'items' => $items->map(fn($f) => ['q' => $f->question, 'a' => $f->answer])->values()->all(),
+            ])
+            ->values()
+            ->all();
+
+        return view('members_components.faqs', compact('username', 'email', 'faqs'));
+    }
+
+    /**
+     * Member-submitted support/appeal ticket — e.g. a rejected deposit, a
+     * balance discrepancy, or a loan payment that didn't reflect. Purely
+     * additive: does not touch any financial record.
+     */
+    public function SubmitReport(Request $request)
+    {
+        $request->validate([
+            'category' => 'required|string|max:100',
+            'category_other' => 'nullable|required_if:category,Other|string|max:80',
+            'subject' => 'required|string|max:150',
+            'message' => 'required|string|max:2000',
+            'proof' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+        ]);
+
+        // If they chose "Other", save what they typed, e.g. "Other - Wrong birthdate"
+        $category = $request->category === 'Other'
+            ? 'Other - ' . trim($request->category_other)
+            : $request->category;
+
+        $proofPath = $request->hasFile('proof')
+            ? $request->file('proof')->store('support_tickets', 'public')
+            : null;
+
+        $ticket = \App\Models\SupportTicket_tbl::create([
+            'user_id' => Auth::id(),
+            'category' => $category,          // ← was $request->category
+            'subject' => $request->subject,
+            'message' => $request->message,
+            'proof_path' => $proofPath,
+            'status' => 'open',
+        ]);
+
+        $user = Auth::user();
+        AuditLog::log(
+            'Submitted Support Report',
+            "{$user->first_name} {$user->last_name} submitted a report: {$request->subject}",
+            'support_ticket',
+            $ticket->id
+        );
+
+        return redirect()->back()->with('report_success', 'Your report has been submitted. Our team will get back to you shortly.');
+    }
+
+    /**
+     * Member's own report/ticket history + status.
+     */
+    public function MyReports()
+    {
+        $username = Auth::check() ? Auth::user()->username : null;
+        $email = Auth::check() ? Auth::user()->email : null;
+
+        $reports = \App\Models\SupportTicket_tbl::where('user_id', Auth::id())
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('members_components.my_reports', compact('username', 'email', 'reports'));
     }
 
     public function MarkAllRead(Request $request)
@@ -1771,11 +1862,11 @@ class UsersHandle extends Controller
         $type = $request->query('type', 'all');
 
         $transactionsQuery = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
-            ->whereIn('type', ['deposit', 'withdrawal', 'td_release'])
+            ->whereIn('type', ['deposit', 'withdrawal', 'td_release', 'interest_credit'])
             ->orderBy('transaction_date', 'desc')
             ->orderBy('created_at', 'desc');
 
-        if (in_array($type, ['deposit', 'withdrawal', 'td_release'])) {
+        if (in_array($type, ['deposit', 'withdrawal', 'td_release', 'interest_credit'])) {
             $transactionsQuery->where('type', $type);
         }
         if ($ref !== '') {
@@ -1791,9 +1882,49 @@ class UsersHandle extends Controller
             ->groupByRaw("DATE_FORMAT(transaction_date, '%Y-%m')")
             ->count();
 
-        $monthlyAverage = $totalMonths > 0
-            ? $regularSavingsBalance / $totalMonths
-            : 0;
+        $lastContribution = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
+            ->where('type', 'deposit')
+            ->whereRaw('LOWER(status) = ?', ['completed'])
+            ->orderBy('transaction_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $lastContributionAmount = $lastContribution ? (float) $lastContribution->amount : 0;
+        $lastContributionDate = $lastContribution
+            ? Carbon::parse($lastContribution->transaction_date)->format('M d, Y')
+            : 'No contributions yet';
+
+        $totalContributions = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
+            ->where('type', 'deposit')
+            ->whereRaw('LOWER(status) = ?', ['completed'])
+            ->sum('amount');
+
+        // ── Monthly Contribution Breakdown (feeds the Savings "Contribution
+// Breakdown" modal — one grid of 12 months per available year) ──────────
+        $monthlyBreakdownByYear = [];
+
+        foreach ($availableGrowthYears as $yr) {
+            $yearDeposits = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
+                ->where('type', 'deposit')
+                ->whereRaw('LOWER(status) = ?', ['completed'])
+                ->whereYear('transaction_date', $yr)
+                ->get()
+                ->groupBy(fn($tx) => Carbon::parse($tx->transaction_date)->format('n')); // month number, no leading zero
+
+            $months = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $monthTxs = $yearDeposits->get((string) $m, collect());
+                $amount = $monthTxs->sum('amount');
+
+                $months[] = [
+                    'label' => Carbon::createFromDate($yr, $m, 1)->format('M'),
+                    'paid' => $amount > 0,
+                    'amount' => $amount,
+                ];
+            }
+
+            $monthlyBreakdownByYear[$yr] = $months;
+        }
 
         $lastUpdated = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
             ->orderBy('transaction_date', 'desc')
@@ -1859,7 +1990,10 @@ class UsersHandle extends Controller
                 'growthYear',
                 'availableGrowthYears',
                 'totalMonths',
-                'monthlyAverage',
+                'lastContributionAmount',
+                'lastContributionDate',
+                'totalContributions',
+                'monthlyBreakdownByYear',
                 'lastUpdated',
                 'monthsActive',
                 'hasShareCapital',
@@ -2058,20 +2192,44 @@ class UsersHandle extends Controller
         ]);
 
         $user = Auth::user();
-        $passcode = \App\Models\SeminarPasscodes_tbl::where('seminar_type', $request->seminar_type)->first();
+        $type = $request->seminar_type;
+
+        // Small helper: send the member back to the page they came from,
+        // with the error shown under the passcode box.
+        $fail = function (string $message) {
+            return redirect()->back()
+                ->withErrors(['passcode' => $message])
+                ->withInput()
+                ->with('error', $message);
+        };
+
+        // ── 1) Must be scheduled (an attendee) for a seminar of this type ──
+        // An attendee record marked "absent" does not count as scheduled.
+        $isScheduled = \App\Models\SeminarAttendees_tbl::where('user_id', $user->id)
+            ->where('status', '!=', 'absent')
+            ->whereHas('seminar', fn($q) => $q->where('seminar_type', $type))
+            ->exists();
+
+        if (!$isScheduled) {
+            return $fail('You are not scheduled for this seminar.');
+        }
+
+        // ── 2) Passcode checks ──
+        $passcode = \App\Models\SeminarPasscodes_tbl::where('seminar_type', $type)->first();
 
         if (!$passcode) {
-            return redirect()->route('Seminars')->with('error', 'No passcode has been set for this seminar yet.');
+            return $fail('No passcode has been set for this seminar yet.');
         }
 
         if ($passcode->expires_at && now()->gt($passcode->expires_at)) {
-            return redirect()->route('Seminars')->with('error', 'This passcode has already expired.');
+            return $fail('This passcode has already expired.');
         }
 
         if (!hash_equals((string) $passcode->passcode, (string) $request->passcode)) {
-            return redirect()->route('Seminars')->with('error', 'The passcode you entered is incorrect.');
+            return $fail('The passcode you entered is incorrect.');
         }
 
+        // ── 3) Mark complete ──
         $completion = \App\Models\SeminarCompletions_tbl::firstOrCreate(
             ['user_id' => $user->id],
             [
@@ -2081,9 +2239,9 @@ class UsersHandle extends Controller
             ]
         );
 
-        $column = $request->seminar_type . '_completed';
+        $column = $type . '_completed';
         if ($completion->$column) {
-            return redirect()->route('Seminars')->with('info', 'You have already completed this seminar.');
+            return $fail('You have already completed this seminar.');
         }
 
         $completion->$column = true;
@@ -2093,12 +2251,14 @@ class UsersHandle extends Controller
 
         \App\Models\AuditLog::log(
             'Verified Seminar Passcode',
-            "User #{$user->id} verified passcode for {$request->seminar_type}",
+            "User #{$user->id} verified passcode for {$type}",
             'seminar_passcode',
             $user->id
         );
 
-        return redirect()->route('Seminars')->with('success', 'Passcode accepted! Seminar marked as completed.');
+        return redirect()->back()
+            ->with('success', 'Passcode accepted! Seminar marked as completed.')
+            ->with('seminar_success', 'Passcode accepted! Seminar marked as completed.');
     }
 
     public function ProfileMember()

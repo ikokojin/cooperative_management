@@ -664,8 +664,8 @@ main .contribution-parent .table thead tr th {
 main .contribution-parent .table tbody tr td {
     padding: 16px 20px;
     vertical-align: top;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
+    /* border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px; */
     font-size: 13.5px;
     color: var(--muted);
 }
@@ -1080,7 +1080,7 @@ main .dividend-parent .table tbody tr td {
 
 .sc-split-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
     margin-bottom: 1.75rem;
 }
@@ -1147,7 +1147,7 @@ main .dividend-parent .table tbody tr td {
     font-size: 13.5px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 6px;
+    margin-bottom: 0;
 }
 
 .sc-split-card.transparent .sc-split-title {
@@ -1181,7 +1181,7 @@ main .dividend-parent .table tbody tr td {
     /* color: #888; */
     color: var(--muted);
     line-height: 1.55;
-    margin-bottom: 12px;
+    margin-bottom: 0;
 }
 
 .sc-split-card.transparent .sc-split-desc {

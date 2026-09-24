@@ -98,7 +98,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 18px;
+    margin: 18px 0;
 }
 
 .container-fluid .rightbar .main-parent .main-body .filters .tab-group {
@@ -371,6 +371,11 @@
 .status-chip.pending {
     background: var(--gold-pale);
     color: var(--gold);
+}
+
+.status-chip.voided {
+    background: #fdecec;
+    color: #c0392b;
 }
 
 .tx-amt {

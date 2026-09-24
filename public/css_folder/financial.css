@@ -340,6 +340,7 @@
     border: 1px solid var(--border);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
     border-radius: 20px;
+    display: none;
 }
 
 /* ── Receipt Modal Overlay (Share Capital) ── */
@@ -620,12 +621,6 @@
 @media only screen and (max-width: 711px) {
     .main-sub-parent {
         padding: 2rem 1.5rem;
-    }
-}
-
-@media only screen and (max-width: 700px) {
-    main .parent-table table {
-        width: 800px;
     }
 }
 

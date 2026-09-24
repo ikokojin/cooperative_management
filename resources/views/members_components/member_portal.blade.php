@@ -221,7 +221,7 @@
                                         <div class="left-text">
                                             <span>Member Cooperative Assistant</span>
                                             <p>Your money are growing steadily. Every peso you save today builds a stronger
-                                            tomorrow for you and the community.</p>
+                                                tomorrow for you and the community.</p>
                                         </div>
                                     </div>
                                     <div class="main-right">
@@ -229,15 +229,29 @@
                                     </div> --}}
                                     <div class="main-intro-icon"></div>
                                     <div class="main-intro-text">
-                                        <span>Member Cooperative Assistant</span>
-                                        <p>Your money are growing steadily. Every peso you save today builds a stronger
-                                            tomorrow for you.</p>
+                                        <div class="main-intro-header">
+                                            <span>I'm, Judith</span>
+                                            <button type="button" class="btn-report-problem" data-bs-toggle="modal"
+                                                data-bs-target="#reportProblemModal"
+                                                style=" display:inline-flex; align-items:center; gap:8px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
+                                                <i class="fa-solid fa-flag"></i>
+                                                <span>Report a Problem</span>
+                                            </button>
+                                        </div>
+                                        <p>Got a question about your balance, a loan, or a payment that doesn't look right?
+                                            I can help — or you can send a report straight to our team.</p>
+                                        {{-- <button type="button" class="btn-report-problem" data-bs-toggle="modal"
+                                            data-bs-target="#reportProblemModal"
+                                            style="margin-top:10px; display:inline-flex; align-items:center; gap:8px; padding:9px 16px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
+                                            <i class="fa-solid fa-flag"></i>
+                                            <span>Report a Problem</span>
+                                        </button> --}}
                                     </div>
                                 </div>
                             </div>
                         @endif
 
-                        
+
 
                         <div class="card-parent">
 
@@ -249,7 +263,8 @@
                                 </div>
                                 <div class="card-body">
                                     <h5>₱ {{ number_format($savingsAccount->balance ?? 0, 2) }}</h5>
-                                    <p>{{ $netSavingsThisMonth >= 0 ? '↑ +' : '↓ -' }}₱{{ number_format(abs($netSavingsThisMonth), 2) }} this month</p>
+                                    <p>{{ $netSavingsThisMonth >= 0 ? '↑ +' : '↓ -' }}₱{{ number_format(abs($netSavingsThisMonth), 2) }}
+                                        this month</p>
                                 </div>
                             </div>
 
@@ -317,96 +332,99 @@
                                 </div>
                                 <div class="card-body">
                                     <h5>{{ $overdueLoansDisplay->count() }} Loan(s)</h5>
-                                    <p>{{ $overdueLoansDisplay->isNotEmpty() ? $overdueLoansDisplay->first()['subtitle'] : 'No overdue loans' }}</p>
+                                    <p>{{ $overdueLoansDisplay->isNotEmpty() ? $overdueLoansDisplay->first()['subtitle'] : 'No overdue loans' }}
+                                    </p>
                                 </div>
                             </div>
 
                         </div>
 
                         <div class="card-parent-mobile">
-                            
+
                             <div class="card-1">
                                 {{-- Savings Balance --}}
-                            <div class="card-box" data-action="navigate" data-url="{{ route('savings.index') }}">
-                                <div class="card-header">
-                                    <p>Savings Balance</p>
-                                    <div class="update"><i class="fa fa-layer-group"></i></div>
+                                <div class="card-box" data-action="navigate" data-url="{{ route('savings.index') }}">
+                                    <div class="card-header">
+                                        <p>Savings Balance</p>
+                                        <div class="update"><i class="fa fa-layer-group"></i></div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>₱ {{ number_format($savingsAccount->balance ?? 0, 2) }}</h5>
+                                        <p>{{ $netSavingsThisMonth >= 0 ? '↑ +' : '↓ -' }}₱{{ number_format(abs($netSavingsThisMonth), 2) }}
+                                            this month</p>
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    <h5>₱ {{ number_format($savingsAccount->balance ?? 0, 2) }}</h5>
-                                    <p>{{ $netSavingsThisMonth >= 0 ? '↑ +' : '↓ -' }}₱{{ number_format(abs($netSavingsThisMonth), 2) }} this month</p>
-                                </div>
-                            </div>
 
-                            {{-- Share Capital --}}
-                            <div class="card-box" data-action="navigate" data-url="{{ route('Financial') }}">
-                                <div class="card-header">
-                                    <p>Share Capital</p>
-                                    <div class="update"><i class="fa fa-coins"></i></div>
+                                {{-- Share Capital --}}
+                                <div class="card-box" data-action="navigate" data-url="{{ route('Financial') }}">
+                                    <div class="card-header">
+                                        <p>Share Capital</p>
+                                        <div class="update"><i class="fa fa-coins"></i></div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>₱ {{ number_format($shareCapitalBalance ?? 0, 2) }}</h5>
+                                        <p>{{ $shareCapitalShares ?? 0 }} shares</p>
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    <h5>₱ {{ number_format($shareCapitalBalance ?? 0, 2) }}</h5>
-                                    <p>{{ $shareCapitalShares ?? 0 }} shares</p>
-                                </div>
-                            </div>
 
-                            {{-- Seminars --}}
-                            <div class="card-box" data-action="show-modal" data-target="seminarsModal">
-                                <div class="card-header">
-                                    <p>Seminars</p>
-                                    <div class="update"><i class="fa fa-graduation-cap"></i></div>
+                                {{-- Seminars --}}
+                                <div class="card-box" data-action="show-modal" data-target="seminarsModal">
+                                    <div class="card-header">
+                                        <p>Seminars</p>
+                                        <div class="update"><i class="fa fa-graduation-cap"></i></div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>{{ $seminarsCompletedCount }} Attended</h5>
+                                        <p>
+                                            @if ($seminarsCompletedCount === $seminarsTotalCount)
+                                                All seminars attended
+                                            @else
+                                                {{ $seminarsTotalCount - $seminarsCompletedCount }} remaining
+                                            @endif
+                                        </p>
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    <h5>{{ $seminarsCompletedCount }} Attended</h5>
-                                    <p>
-                                        @if ($seminarsCompletedCount === $seminarsTotalCount)
-                                            All seminars attended
-                                        @else
-                                            {{ $seminarsTotalCount - $seminarsCompletedCount }} remaining
-                                        @endif
-                                    </p>
-                                </div>
-                              </div>
                             </div>
 
                             <div class="card-2">
                                 {{-- Active Loans --}}
-                            <div class="card-box" data-action="navigate" data-url="{{ route('LoanStatus') }}">
-                                <div class="card-header">
-                                    <p>Active Loans</p>
-                                    <div class="update"><i class="fa fa-piggy-bank"></i></div>
-                                </div>
-                                <div class="card-body">
-                                    <h5>{{ $activeLoansCount }} Loan(s)</h5>
-                                    <p>{{ $nextDueDisplay ? "Next due {$nextDueDisplay}" : 'No upcoming dues' }}</p>
-                                </div>
-                            </div>
-
-                            {{-- Upcoming Dues --}}
-                            <div class="card-box" data-action="show-modal" data-target="upcomingDuesModal">
-                                <div class="card-header">
-                                    <p>Upcoming Dues</p>
-                                    <div class="update"><i class="fa fa-calendar-day"></i></div>
-                                </div>
-                                <div class="card-body">
-                                    <h5>{{ $upcomingDues->count() }} Due(s)</h5>
-                                    <p>{{ $nextDueDisplay ? "Next due {$nextDueDisplay}" : 'No upcoming dues' }}</p>
-                                </div>
-                            </div>
-
-                            {{-- Overdue Loans --}}
-                            <div class="card-box" data-action="show-modal" data-target="overdueLoansModal">
-                                <div class="card-header">
-                                    <p>Overdue Loans</p>
-                                    <div class="update">
-                                        <i class="fa fa-triangle-exclamation"></i>
+                                <div class="card-box" data-action="navigate" data-url="{{ route('LoanStatus') }}">
+                                    <div class="card-header">
+                                        <p>Active Loans</p>
+                                        <div class="update"><i class="fa fa-piggy-bank"></i></div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>{{ $activeLoansCount }} Loan(s)</h5>
+                                        <p>{{ $nextDueDisplay ? "Next due {$nextDueDisplay}" : 'No upcoming dues' }}</p>
                                     </div>
                                 </div>
-                                <div class="card-body">
-                                    <h5>{{ $overdueLoansDisplay->count() }} Loan(s)</h5>
-                                    <p>{{ $overdueLoansDisplay->isNotEmpty() ? $overdueLoansDisplay->first()['subtitle'] : 'No overdue loans' }}</p>
+
+                                {{-- Upcoming Dues --}}
+                                <div class="card-box" data-action="show-modal" data-target="upcomingDuesModal">
+                                    <div class="card-header">
+                                        <p>Upcoming Dues</p>
+                                        <div class="update"><i class="fa fa-calendar-day"></i></div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>{{ $upcomingDues->count() }} Due(s)</h5>
+                                        <p>{{ $nextDueDisplay ? "Next due {$nextDueDisplay}" : 'No upcoming dues' }}</p>
+                                    </div>
                                 </div>
-                            </div>
+
+                                {{-- Overdue Loans --}}
+                                <div class="card-box" data-action="show-modal" data-target="overdueLoansModal">
+                                    <div class="card-header">
+                                        <p>Overdue Loans</p>
+                                        <div class="update">
+                                            <i class="fa fa-triangle-exclamation"></i>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>{{ $overdueLoansDisplay->count() }} Loan(s)</h5>
+                                        <p>{{ $overdueLoansDisplay->isNotEmpty() ? $overdueLoansDisplay->first()['subtitle'] : 'No overdue loans' }}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </main>
@@ -441,21 +459,23 @@
                                 <div class="recent-body">
                                     <div class="tx-list">
                                         @forelse ($overdueLoansDisplay as $overdue)
-                                            <div class="tx-list-item">
-                                                <div class="tx-icon {{ $overdue['icon'] }}"><i class="fa-solid {{ $overdue['icon_fa'] }}"></i></div>
-                                                <div class="tx-list-info">
-                                                    <strong>{{ $overdue['title'] }}</strong>
-                                                    <span>{{ $overdue['date_display'] }} · {{ $overdue['subtitle'] }}</span>
-                                                </div>
-                                                <div class="tx-list-amt down">
-                                                    +₱{{ number_format($overdue['amount'], 2) }}
-                                                </div>
+                                        <div class="tx-list-item">
+                                            <div class="tx-icon {{ $overdue['icon'] }}"><i
+                                                    class="fa-solid {{ $overdue['icon_fa'] }}"></i></div>
+                                            <div class="tx-list-info">
+                                                <strong>{{ $overdue['title'] }}</strong>
+                                                <span>{{ $overdue['date_display'] }} · {{ $overdue['subtitle'] }}</span>
                                             </div>
+                                            <div class="tx-list-amt down">
+                                                +₱{{ number_format($overdue['amount'], 2) }}
+                                            </div>
+                                        </div>
                                         @empty
-                                            <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
-                                                <i class="fa fa-circle-check" style="font-size:24px; display:block; margin-bottom:8px;"></i>
-                                                No overdue loans.
-                                            </div>
+                                        <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
+                                            <i class="fa fa-circle-check"
+                                                style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                                            No overdue loans.
+                                        </div>
                                         @endforelse
                                     </div>
                                 </div>
@@ -473,26 +493,35 @@
                                 </div>
 
                                 <div class="button-parent" style="">
-                                    <button type="button" class="tx-tab-btn active" data-tx-filter="all" data-action="filterRecentTx" data-arg='["all","|el|"]'>All</button>
-                                    <button type="button" class="tx-tab-btn" data-tx-filter="loans" data-action="filterRecentTx" data-arg='["loans","|el|"]'>Loans</button>
-                                    <button type="button" class="tx-tab-btn" data-tx-filter="savings" data-action="filterRecentTx" data-arg='["savings","|el|"]'>Savings</button>
-                                    <button type="button" class="tx-tab-btn" data-tx-filter="share_capital" data-action="filterRecentTx" data-arg='["share_capital","|el|"]'>Share Capital</button>
+                                    <button type="button" class="tx-tab-btn active" data-tx-filter="all"
+                                        data-action="filterRecentTx" data-arg='["all","|el|"]'>All</button>
+                                    <button type="button" class="tx-tab-btn" data-tx-filter="loans"
+                                        data-action="filterRecentTx" data-arg='["loans","|el|"]'>Loans</button>
+                                    <button type="button" class="tx-tab-btn" data-tx-filter="savings"
+                                        data-action="filterRecentTx" data-arg='["savings","|el|"]'>Savings</button>
+                                    <button type="button" class="tx-tab-btn" data-tx-filter="share_capital"
+                                        data-action="filterRecentTx" data-arg='["share_capital","|el|"]'>Share
+                                        Capital</button>
                                 </div>
 
                                 <div class="recent-body">
                                     <div class="tx-list" id="recentTxList">
                                         @forelse ($recentTransactions as $tx)
                                             <div class="tx-list-item" data-category="{{ $tx['category'] }}">
-                                                <div class="tx-icon {{ $tx['icon'] }}"><i class="fa-solid {{ $tx['icon_fa'] }}"></i></div>
+                                                <div class="tx-icon {{ $tx['icon'] }}"><i
+                                                        class="fa-solid {{ $tx['icon_fa'] }}"></i></div>
                                                 <div class="tx-list-info">
                                                     <strong>{{ $tx['title'] }}
                                                     </strong>
                                                     <span>{{ $tx['date_display'] }} · {{ $tx['time_display'] }}</span>
                                                 </div>
-                                                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
-                                                    <div class="tx-list-amt {{ $tx['amount'] >= 0 ? 'up' : 'down' }}">
-                                                        {{ $tx['amount'] >= 0 ? '+' : '-' }}₱{{ number_format(abs($tx['amount']), 2) }}
-                                                    </div>
+                                                <div
+                                                    style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                                                    @if($tx['show_amount'] ?? true)
+                                                        <div class="tx-list-amt {{ $tx['amount'] >= 0 ? 'up' : 'down' }}">
+                                                            {{ $tx['amount'] >= 0 ? '+' : '-' }}₱{{ number_format(abs($tx['amount']), 2) }}
+                                                        </div>
+                                                    @endif
                                                     @if(($tx['status_class'] ?? '') === 'pending')
                                                         <span style="font-size: 12.5px; color: var(--muted);">
                                                             Pending
@@ -502,19 +531,22 @@
                                             </div>
                                         @empty
                                             <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
-                                                <i class="fa fa-inbox" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                                                <i class="fa fa-inbox"
+                                                    style="font-size:24px; display:block; margin-bottom:8px;"></i>
                                                 No transactions found.
                                             </div>
                                         @endforelse
                                     </div>
-                                    <div id="recentTxEmpty" style="display:none; text-align:center; color:#aaa; padding:2rem; font-size:13px;">
-                                        <i class="fa fa-inbox" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                                    <div id="recentTxEmpty"
+                                        style="display:none; text-align:center; color:#aaa; padding:2rem; font-size:13px;">
+                                        <i class="fa fa-inbox"
+                                            style="font-size:24px; display:block; margin-bottom:8px;"></i>
                                         No transactions in this category.
                                     </div>
                                 </div>
                             </div>
 
-                            
+
                             <div class="panel graph announcements">
                                 <div class="panel-head">
                                     <div>
@@ -523,73 +555,113 @@
                                     </div>
                                 </div>
                                 <div style="display:flex; border-bottom: 1px solid var(--line);">
-                                    <button type="button" data-action="switchMemberCommunityTab" data-arg='["announcements"]' id="member-community-tab-announcements" style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid var(--teal); color:var(--teal);">
+                                    <button type="button" data-action="switchMemberCommunityTab"
+                                        data-arg='["announcements"]' id="member-community-tab-announcements"
+                                        style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid var(--teal); color:var(--teal);">
                                         <i class="fa-solid fa-bullhorn" style="margin-right:4px;"></i> Announcements
                                     </button>
-                                    <button type="button" data-action="switchMemberCommunityTab" data-arg='["polls"]' id="member-community-tab-polls" style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; color:var(--muted);">
+                                    <button type="button" data-action="switchMemberCommunityTab" data-arg='["polls"]'
+                                        id="member-community-tab-polls"
+                                        style="flex:1; padding:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; color:var(--muted);">
                                         <i class="fa-solid fa-chart-bar" style="margin-right:4px;"></i> Polls
                                     </button>
                                 </div>
 
                                 {{-- Announcements Tab --}}
-                                <div id="member-community-content-announcements" class="panel-body" style="height:auto; max-height:400px;">
+                                <div id="member-community-content-announcements" class="panel-body"
+                                    style="height:auto; max-height:400px;">
                                     <div class="tx-list" id="announcementsList">
                                         @forelse ($announcements as $announcement)
-                                            <div class="tx-list-item member-announcement-item" style="flex-direction:column; align-items:stretch; padding:12px 0; border-bottom:1px solid var(--line);">
-                                                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" data-action="toggleMemberAnnouncement" data-arg='[{{ $announcement->id }}]'>
+                                            <div class="tx-list-item member-announcement-item"
+                                                style="flex-direction:column; align-items:stretch; padding:12px 0; border-bottom:1px solid var(--line);">
+                                                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;"
+                                                    data-action="toggleMemberAnnouncement"
+                                                    data-arg='[{{ $announcement->id }}]'>
                                                     <div class="tx-icon gold"><i class="fa-solid fa-bullhorn"></i></div>
                                                     <div class="tx-list-info" style="flex:1;">
                                                         <strong>{{ $announcement->title }}</strong>
                                                         <span>
                                                             {{ $announcement->created_at->format('M d, Y') }}
                                                             @if($announcement->user)
-                                                                · {{ $announcement->user->first_name }} {{ $announcement->user->last_name }}
+                                                                · {{ $announcement->user->first_name }}
+                                                                {{ $announcement->user->last_name }}
                                                             @endif
                                                         </span>
                                                     </div>
-                                                    <i class="fa-solid fa-chevron-down" style="font-size:12px; color:var(--muted); transition:transform .2s; cursor:pointer;" id="announcement-chevron-{{ $announcement->id }}"></i>
+                                                    <i class="fa-solid fa-chevron-down"
+                                                        style="font-size:12px; color:var(--muted); transition:transform .2s; cursor:pointer;"
+                                                        id="announcement-chevron-{{ $announcement->id }}"></i>
                                                 </div>
-                                                <div id="announcement-expanded-{{ $announcement->id }}" style="display:none; margin-top:10px; padding-left:46px;">
-                                                    <p style="font-size:13px; color:#555; white-space:pre-wrap; line-height:1.5;">{{ trim($announcement->content) }}</p>
+                                                <div id="announcement-expanded-{{ $announcement->id }}"
+                                                    style="display:none; margin-top:10px; padding-left:46px;">
+                                                    <p
+                                                        style="font-size:13px; color:#555; white-space:pre-wrap; line-height:1.5;">
+                                                        {{ trim($announcement->content) }}
+                                                    </p>
                                                     <div style="display:flex; gap:8px; margin-top:10px;">
-                                                        <button type="button" data-action="toggleMemberLike" data-arg='[{{ $announcement->id }},"|el|"]' data-stop class="member-like-btn {{ $announcement->likes->contains('user_id', $user->id ?? 0) ? 'liked' : '' }}" style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#FEE2E2' : 'var(--card)' }}; color:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#DC2626' : '#6B7280' }}; cursor:pointer;">
-                                                            <i class="fa-solid fa-heart"></i> <span class="like-count">{{ $announcement->likes_count }}</span>
+                                                        <button type="button" data-action="toggleMemberLike"
+                                                            data-arg='[{{ $announcement->id }},"|el|"]' data-stop
+                                                            class="member-like-btn {{ $announcement->likes->contains('user_id', $user->id ?? 0) ? 'liked' : '' }}"
+                                                            style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#FEE2E2' : 'var(--card)' }}; color:{{ $announcement->likes->contains('user_id', $user->id ?? 0) ? '#DC2626' : '#6B7280' }}; cursor:pointer;">
+                                                            <i class="fa-solid fa-heart"></i> <span
+                                                                class="like-count">{{ $announcement->likes_count }}</span>
                                                         </button>
-                                                        <button type="button" data-action="toggleMemberComments" data-arg='[{{ $announcement->id }}]' data-stop style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:var(--card); color:#6B7280; cursor:pointer;">
-                                                            <i class="fa-solid fa-comment"></i> {{ $announcement->comments_count }}
+                                                        <button type="button" data-action="toggleMemberComments"
+                                                            data-arg='[{{ $announcement->id }}]' data-stop
+                                                            style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid var(--line); background:var(--card); color:#6B7280; cursor:pointer;">
+                                                            <i class="fa-solid fa-comment"></i>
+                                                            {{ $announcement->comments_count }}
                                                         </button>
                                                     </div>
-                                                    <div id="member-comments-{{ $announcement->id }}" style="display:none; margin-top:10px;">
-                                                        <div class="member-comments-list" style="display:flex; flex-direction:column; gap:6px;">
+                                                    <div id="member-comments-{{ $announcement->id }}"
+                                                        style="display:none; margin-top:10px;">
+                                                        <div class="member-comments-list"
+                                                            style="display:flex; flex-direction:column; gap:6px;">
                                                             @foreach($announcement->comments as $comment)
-                                                                <div style="display:flex; gap:8px; padding:8px; background:var(--bg); border-radius:8px;">
-                                                                    <div style="width:24px; height:24px; border-radius:50%; background:{{ $comment->user && in_array($comment->user->role, ['admin', 'general-manager']) ? '#3B82F6' : 'var(--teal)' }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                                                        <span style="color:#fff; font-size:10px; font-weight:700;">{{ strtoupper(substr($comment->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($comment->user->last_name ?? '', 0, 1)) }}</span>
+                                                                <div
+                                                                    style="display:flex; gap:8px; padding:8px; background:var(--bg); border-radius:8px;">
+                                                                    <div
+                                                                        style="width:24px; height:24px; border-radius:50%; background:{{ $comment->user && in_array($comment->user->role, ['admin', 'general-manager']) ? '#3B82F6' : 'var(--teal)' }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                                                        <span
+                                                                            style="color:#fff; font-size:10px; font-weight:700;">{{ strtoupper(substr($comment->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($comment->user->last_name ?? '', 0, 1)) }}</span>
                                                                     </div>
                                                                     <div style="flex:1; min-width:0;">
-                                                                        <div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;">
-                                                                            <span style="font-size:12px; font-weight:600;">{{ $comment->user->first_name ?? '' }} {{ $comment->user->last_name ?? '' }}</span>
+                                                                        <div
+                                                                            style="display:flex; align-items:center; gap:4px; margin-bottom:2px;">
+                                                                            <span
+                                                                                style="font-size:12px; font-weight:600;">{{ $comment->user->first_name ?? '' }}
+                                                                                {{ $comment->user->last_name ?? '' }}</span>
                                                                             @if($comment->user && in_array($comment->user->role, ['admin', 'general-manager']))
-                                                                                <span style="font-size:10px; padding:1px 4px; background:#DBEAFE; color:#1D4ED8; border-radius:4px; font-weight:600;">Admin</span>
+                                                                                <span
+                                                                                    style="font-size:10px; padding:1px 4px; background:#DBEAFE; color:#1D4ED8; border-radius:4px; font-weight:600;">Admin</span>
                                                                             @endif
-                                                                            <span style="font-size:11px; color:var(--muted);">{{ $comment->created_at->diffForHumans() }}</span>
+                                                                            <span
+                                                                                style="font-size:11px; color:var(--muted);">{{ $comment->created_at->diffForHumans() }}</span>
                                                                         </div>
-                                                                        <p style="font-size:12px; color:#555; margin:0;">{{ $comment->comment }}</p>
+                                                                        <p style="font-size:12px; color:#555; margin:0;">
+                                                                            {{ $comment->comment }}
+                                                                        </p>
                                                                     </div>
                                                                 </div>
                                                             @endforeach
                                                         </div>
-                                                        <form data-action="postMemberComment" data-arg='["|event|",{{ $announcement->id }}]' style="display:flex; gap:6px; margin-top:8px;">
+                                                        <form data-action="postMemberComment"
+                                                            data-arg='["|event|",{{ $announcement->id }}]'
+                                                            style="display:flex; gap:6px; margin-top:8px;">
                                                             @csrf
-                                                            <input type="text" placeholder="Write a comment..." required style="flex:1; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; background:var(--card); color:var(--text);">
-                                                            <button type="submit" style="padding:6px 12px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
+                                                            <input type="text" placeholder="Write a comment..." required
+                                                                style="flex:1; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; background:var(--card); color:var(--text);">
+                                                            <button type="submit"
+                                                                style="padding:6px 12px; background:var(--teal); color:#fff; border:none; border-radius:8px; font-size:12px; cursor:pointer;"><i
+                                                                    class="fa-solid fa-paper-plane"></i></button>
                                                         </form>
                                                     </div>
                                                 </div>
                                             </div>
                                         @empty
                                             <div style="text-align: center; color: #aaa; padding: 2rem; font-size: 13px;">
-                                                <i class="fa fa-bullhorn" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                                                <i class="fa fa-bullhorn"
+                                                    style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
                                                 No announcements yet.
                                             </div>
                                         @endforelse
@@ -597,7 +669,8 @@
                                 </div>
 
                                 {{-- Polls Tab --}}
-                                <div id="member-community-content-polls" class="panel-body" style="height:auto; max-height:400px; display:none;">
+                                <div id="member-community-content-polls" class="panel-body"
+                                    style="height:auto; max-height:400px; display:none;">
                                     @php $pollOptionsMap = []; @endphp
                                     @forelse($polls as $poll)
                                         @php
@@ -608,23 +681,30 @@
                                             $isExpired = $poll->isExpired();
                                             $pollOptionsMap[$poll->id] = $poll->options;
                                         @endphp
-                                        <div style="padding:12px 0; border-bottom:1px solid var(--line);" id="member-poll-{{ $poll->id }}">
+                                        <div style="padding:12px 0; border-bottom:1px solid var(--line);"
+                                            id="member-poll-{{ $poll->id }}">
                                             <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                                                <div style="width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg, #8B5CF6, #7C3AED); display:flex; align-items:center; justify-content:center;">
-                                                    <i class="fa-solid fa-chart-bar" style="color:#fff; font-size:12px;"></i>
+                                                <div
+                                                    style="width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg, #8B5CF6, #7C3AED); display:flex; align-items:center; justify-content:center;">
+                                                    <i class="fa-solid fa-chart-bar"
+                                                        style="color:#fff; font-size:12px;"></i>
                                                 </div>
                                                 <div style="flex:1;">
                                                     <strong style="font-size:13px;">{{ $poll->question }}</strong>
-                                                    <span style="font-size:11px; color:var(--muted); margin-left:6px;">by {{ $poll->user->first_name ?? '' }} {{ $poll->user->last_name ?? '' }}</span>
+                                                    <span style="font-size:11px; color:var(--muted); margin-left:6px;">by
+                                                        {{ $poll->user->first_name ?? '' }}
+                                                        {{ $poll->user->last_name ?? '' }}</span>
                                                 </div>
                                                 @if($poll->expires_at)
-                                                    <span style="font-size:11px; {{ $isExpired ? 'color:#DC2626;' : 'color:#D97706;' }}">
+                                                    <span
+                                                        style="font-size:11px; {{ $isExpired ? 'color:#DC2626;' : 'color:#D97706;' }}">
                                                         <i class="fa-solid fa-clock" style="margin-right:2px;"></i>
-                                                        {{ $isExpired ? 'Expired' : 'Expires '.$poll->expires_at->format('M d') }}
+                                                        {{ $isExpired ? 'Expired' : 'Expires ' . $poll->expires_at->format('M d') }}
                                                     </span>
                                                 @endif
                                             </div>
-                                            <div style="display:flex; flex-direction:column; gap:4px;" id="member-poll-options-{{ $poll->id }}">
+                                            <div style="display:flex; flex-direction:column; gap:4px;"
+                                                id="member-poll-options-{{ $poll->id }}">
                                                 @foreach($poll->options as $i => $option)
                                                     @php
                                                         $count = $pollResults[$i] ?? 0;
@@ -632,15 +712,24 @@
                                                         $isChosen = $hasVoted && $userVote->option_index === $i;
                                                     @endphp
                                                     @if($hasVoted || $isExpired)
-                                                        <div style="position:relative; height:28px; border-radius:8px; overflow:hidden; background:var(--line);">
-                                                            <div style="height:100%; width:{{ $pct }}%; background:{{ $isChosen ? 'var(--teal)' : '#D1D5DB' }}; border-radius:8px; transition:width .5s;"></div>
-                                                            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px;">
-                                                                <span style="font-size:12px; font-weight:600; color:{{ $isChosen ? '#fff' : '#555' }};">{{ $option }}</span>
-                                                                <span style="font-size:11px; font-weight:600; color:{{ $isChosen ? '#fff' : '#888' }};">{{ $pct }}% <span style="font-weight:400;">({{ $count }})</span></span>
+                                                        <div
+                                                            style="position:relative; height:28px; border-radius:8px; overflow:hidden; background:var(--line);">
+                                                            <div
+                                                                style="height:100%; width:{{ $pct }}%; background:{{ $isChosen ? 'var(--teal)' : '#D1D5DB' }}; border-radius:8px; transition:width .5s;">
+                                                            </div>
+                                                            <div
+                                                                style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px;">
+                                                                <span
+                                                                    style="font-size:12px; font-weight:600; color:{{ $isChosen ? '#fff' : '#555' }};">{{ $option }}</span>
+                                                                <span
+                                                                    style="font-size:11px; font-weight:600; color:{{ $isChosen ? '#fff' : '#888' }};">{{ $pct }}%
+                                                                    <span style="font-weight:400;">({{ $count }})</span></span>
                                                             </div>
                                                         </div>
                                                     @else
-                                                        <button type="button" data-action="voteMemberPoll" data-arg='[{{ $poll->id }},{{ $i }}]' style="width:100%; text-align:left; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; font-weight:600; background:var(--card); color:var(--text); cursor:pointer;">
+                                                        <button type="button" data-action="voteMemberPoll"
+                                                            data-arg='[{{ $poll->id }},{{ $i }}]'
+                                                            style="width:100%; text-align:left; padding:6px 10px; border:1px solid var(--line); border-radius:8px; font-size:12px; font-weight:600; background:var(--card); color:var(--text); cursor:pointer;">
                                                             {{ $option }}
                                                         </button>
                                                     @endif
@@ -653,26 +742,30 @@
                                         </div>
                                     @empty
                                         <div style="text-align: center; color: #aaa; padding: 2rem; font-size: 13px;">
-                                            <i class="fa-solid fa-chart-bar" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                                            <i class="fa-solid fa-chart-bar"
+                                                style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
                                             No polls yet.
                                         </div>
                                     @endforelse
                                 </div>
                             </div>
-                            
 
-                        
+
+
                         </div>
                         <div class="parent-panel panel-1">
 
                             {{-- Dividends (left) --}}
                             <div class="panel graph announcements">
-                                <div class="panel-head" style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                                <div class="panel-head"
+                                    style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
                                     <div>
                                         <h3>Dividends</h3>
                                         <p>Interest on your share capital</p>
                                     </div>
-                                    {{-- <a href="{{ route('Financial', ['tab' => 'dividends']) }}" style="font-size:12.5px; font-weight:600; color:var(--teal); white-space:nowrap;">View all</a> --}}
+                                    {{-- <a href="{{ route('Financial', ['tab' => 'dividends']) }}"
+                                        style="font-size:12.5px; font-weight:600; color:var(--teal); white-space:nowrap;">View
+                                        all</a> --}}
                                 </div>
                                 <div class="recent-body">
                                     <div class="tx-list">
@@ -683,16 +776,19 @@
                                                     <strong>{{ $d['label'] }}</strong>
                                                     <span>{{ $d['date'] }}</span>
                                                 </div>
-                                                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                                                <div
+                                                    style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                                                     <div class="tx-list-amt up">+₱{{ number_format($d['amount'], 2) }}</div>
                                                     @if(strtolower($d['status']) !== 'paid' && strtolower($d['status']) !== 'completed')
-                                                        <span style="font-size:12.5px; color:var(--muted);">{{ ucfirst($d['status']) }}</span>
+                                                        <span
+                                                            style="font-size:12.5px; color:var(--muted);">{{ ucfirst($d['status']) }}</span>
                                                     @endif
                                                 </div>
                                             </div>
                                         @empty
                                             <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
-                                                <i class="fa fa-gift" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                                                <i class="fa fa-gift"
+                                                    style="font-size:24px; display:block; margin-bottom:8px;"></i>
                                                 No dividends recorded yet.
                                             </div>
                                         @endforelse
@@ -707,7 +803,9 @@
                                         <h3>Patronage Refund</h3>
                                         <p>Based on your loan interest &amp; fees paid</p>
                                     </div>
-                                    {{-- <a href="{{ route('Financial', ['tab' => 'patronage']) }}" style="font-size:12.5px; font-weight:600; color:var(--teal); white-space:nowrap;">View all</a> --}}
+                                    {{-- <a href="{{ route('Financial', ['tab' => 'patronage']) }}"
+                                        style="font-size:12.5px; font-weight:600; color:var(--teal); white-space:nowrap;">View
+                                        all</a> --}}
                                 </div>
                                 <div class="recent-body">
                                     <div class="tx-list">
@@ -718,16 +816,19 @@
                                                     <strong>{{ $p['label'] }}</strong>
                                                     <span>{{ $p['date'] }}</span>
                                                 </div>
-                                                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                                                <div
+                                                    style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                                                     <div class="tx-list-amt up">+₱{{ number_format($p['amount'], 2) }}</div>
                                                     @if(strtolower($p['status']) !== 'paid' && strtolower($p['status']) !== 'completed')
-                                                        <span style="font-size:12.5px; color:var(--muted);">{{ ucfirst($p['status']) }}</span>
+                                                        <span
+                                                            style="font-size:12.5px; color:var(--muted);">{{ ucfirst($p['status']) }}</span>
                                                     @endif
                                                 </div>
                                             </div>
                                         @empty
                                             <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
-                                                <i class="fa fa-percent" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                                                <i class="fa fa-percent"
+                                                    style="font-size:24px; display:block; margin-bottom:8px;"></i>
                                                 No patronage refunds recorded yet.
                                             </div>
                                         @endforelse
@@ -748,18 +849,18 @@
                                     <div class="balance-date">
                                         <select id="balanceMonthSelect" data-action="updateBalanceMonth">
                                             @foreach (range(1, 12) as $m)
-                                                <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}"
-                                                    {{ (int) explode('-', $balanceMonth)[1] === $m ? 'selected' : '' }}>
-                                                    {{ \Carbon\Carbon::create()->month($m)->format('F') }}
-                                                </option>
+                                            <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}" {{ (int)
+                                                explode('-', $balanceMonth)[1]===$m ? 'selected' : '' }}>
+                                                {{ \Carbon\Carbon::create()->month($m)->format('F') }}
+                                            </option>
                                             @endforeach
                                         </select>
                                         <select id="balanceYearSelect" data-action="updateBalanceMonth">
                                             @foreach ($availableYears as $year)
-                                                <option value="{{ $year }}"
-                                                    {{ (int) explode('-', $balanceMonth)[0] === $year ? 'selected' : '' }}>
-                                                    {{ $year }}
-                                                </option>
+                                            <option value="{{ $year }}" {{ (int) explode('-', $balanceMonth)[0]===$year
+                                                ? 'selected' : '' }}>
+                                                {{ $year }}
+                                            </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -788,9 +889,9 @@
                                     <div class="year-filter">
                                         <select data-action="goto-year" data-base-url="{{ url()->current() }}">
                                             @foreach ($availableYears as $year)
-                                                <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
-                                                    {{ $year }}
-                                                </option>
+                                            <option value="{{ $year }}" {{ $year==$selectedYear ? 'selected' : '' }}>
+                                                {{ $year }}
+                                            </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -798,22 +899,23 @@
                                 <div class="panel-body">
                                     <div class="chart-wrap">
                                         @foreach ($shareCapitalGrowth as $month)
-                                            <div class="bar-col {{ $month['is_current'] ? 'active' : '' }}">
-                                                <div class="bar" style="height:{{ $month['height_percent'] }}%">
-                                                    <div class="bar-tooltip">
-                                                        <div class="bar-tooltip-title">{{ $month['label'] }}</div>
-                                                        <div class="bar-tooltip-row">
-                                                            <span
-                                                                class="bar-tooltip-dot {{ $month['is_current'] ? 'dot-gold' : 'dot-blue' }}"></span>
-                                                            <span class="bar-tooltip-label">Net Contribution:</span>
-                                                            <span class="bar-tooltip-value">
-                                                                {{ $month['net'] >= 0 ? '₱' : '-₱' }}{{ number_format(abs($month['net']), 2) }}
-                                                            </span>
-                                                        </div>
+                                        <div class="bar-col {{ $month['is_current'] ? 'active' : '' }}">
+                                            <div class="bar" style="height:{{ $month['height_percent'] }}%">
+                                                <div class="bar-tooltip">
+                                                    <div class="bar-tooltip-title">{{ $month['label'] }}</div>
+                                                    <div class="bar-tooltip-row">
+                                                        <span
+                                                            class="bar-tooltip-dot {{ $month['is_current'] ? 'dot-gold' : 'dot-blue' }}"></span>
+                                                        <span class="bar-tooltip-label">Net Contribution:</span>
+                                                        <span class="bar-tooltip-value">
+                                                            {{ $month['net'] >= 0 ? '₱' : '-₱' }}{{
+                                                            number_format(abs($month['net']), 2) }}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                                <span class="bar-month">{{ $month['label'] }}</span>
                                             </div>
+                                            <span class="bar-month">{{ $month['label'] }}</span>
+                                        </div>
                                         @endforeach
                                     </div>
                                     <!-- <div class="chart-legend">
@@ -852,7 +954,7 @@
                             </button>
                         </div>
                     </div> -->
-                    
+
 
                         <!-- Resignation Modal -->
                         <div id="resignModal"
@@ -898,8 +1000,7 @@
                                         </label>
                                     </div>
                                     <div style="display:flex; gap:12px;">
-                                        <button type="button"
-                                            data-action="hide-modal" data-target="resignModal"
+                                        <button type="button" data-action="hide-modal" data-target="resignModal"
                                             style="flex:1; padding:12px; background:#f3f4f6; color:#374151; border:none; border-radius:8px; cursor:pointer; font-weight:600;">Cancel</button>
                                         <button type="submit"
                                             style="flex:1; padding:12px; background:#dc2626; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;"
@@ -907,6 +1008,97 @@
                                             Request</button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+
+                        <!-- Report a Problem Modal -->
+                        <div id="reportProblemModal" class="modal fade" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
+                                    <div class="modal-header"
+                                        style="border-bottom:1px solid #e5e7eb; padding:1.1rem 1.4rem;">
+                                        <h5 class="modal-title" style="font-size:15px; font-weight:700; color:#111827;">
+                                            Report a Problem</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <form action="{{ route('support.report.store') }}" method="POST"
+                                        enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="modal-body"
+                                            style="padding:1.2rem 1.4rem; display:flex; flex-direction:column; gap:12px;">
+
+                                            @if ($errors->hasAny(['category', 'category_other', 'subject', 'message', 'proof']))
+                                                <div
+                                                    style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; border-radius:8px; padding:10px 12px; font-size:12.5px;">
+                                                    {{ $errors->first() }}
+                                                </div>
+                                            @endif
+
+                                            @if (session('report_success'))
+                                                <div
+                                                    style="background:#e7f6ec; border:1px solid #b7e4c3; color:#1a7f37; border-radius:8px; padding:10px 12px; font-size:12.5px;">
+                                                    {{ session('report_success') }}
+                                                </div>
+                                            @endif
+
+                                            <div>
+                                                <label
+                                                    style="font-size:12px; text-transform:uppercase; font-weight:600; color:#888; display:block; margin-bottom:6px;">Category</label>
+                                                <select name="category" id="reportCategorySelect" required
+                                                    class="form-select"
+                                                    style="border-radius:10px; border:1.5px solid #e0e0e0; height:44px; font-size:14px;">
+                                                    <option value="" disabled selected>Select a category</option>
+                                                    <option value="Balance Discrepancy">Balance Discrepancy</option>
+                                                    <option value="Loan Requirement">Loan Requirement</option>
+                                                    <option value="Payment Reflection">Payment Reflection</option>
+                                                    <option value="Rejected / Invalid Deposit">Rejected / Invalid
+                                                        Deposit</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+
+                                                {{-- Shown only when "Other" is selected --}}
+                                                <input type="text" name="category_other" id="reportCategoryOther"
+                                                    maxlength="80" placeholder="Please specify your category"
+                                                    style="display:none; width:100%; margin-top:8px; padding:10px 12px; border-radius:10px; border:1.5px solid #e0e0e0; font-size:14px; box-sizing:border-box;">
+                                            </div>
+
+                                            <div>
+                                                <label
+                                                    style="font-size:12px; text-transform:uppercase; font-weight:600; color:#888; display:block; margin-bottom:6px;">Subject</label>
+                                                <input type="text" name="subject" required maxlength="150"
+                                                    placeholder="Short summary of the issue"
+                                                    style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #e0e0e0; font-size:14px; box-sizing:border-box;">
+                                            </div>
+
+                                            <div>
+                                                <label
+                                                    style="font-size:12px; text-transform:uppercase; font-weight:600; color:#888; display:block; margin-bottom:6px;">Details</label>
+                                                <textarea name="message" required maxlength="2000" rows="4"
+                                                    placeholder="Describe what happened, including the reference number if it's about a transaction"
+                                                    style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #e0e0e0; font-size:14px; box-sizing:border-box; resize:vertical;"></textarea>
+                                            </div>
+
+                                            <div>
+                                                <label
+                                                    style="font-size:12px; text-transform:uppercase; font-weight:600; color:#888; display:block; margin-bottom:6px;">Attach
+                                                    Screenshot <span
+                                                        style="color:#bbb; text-transform:none;">(optional)</span></label>
+                                                <input type="file" name="proof" accept="image/png,image/jpeg,image/jpg"
+                                                    class="form-control" style="border-radius:10px; font-size: 14px;">
+                                            </div>
+
+                                        </div>
+                                        <div class="modal-footer"
+                                            style="background:#f8f9fa; border-top:1px solid rgba(0,0,0,0.1); padding:1rem 1.4rem;">
+                                            <button type="submit"
+                                                style="width:100%; padding:0.75rem; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer;">
+                                                <i class="fa fa-paper-plane" style="margin-right:6px;"></i> Submit
+                                                Report
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
 
@@ -919,8 +1111,10 @@
                                 <div
                                     style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
                                     <div>
-                                        <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Net Standing</h3>
-                                        <p style="margin: 3.2px 0 0; font-size: 13.5px;color: var(--muted);">Overall Financial Position</p>
+                                        <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Net
+                                            Standing</h3>
+                                        <p style="margin: 3.2px 0 0; font-size: 13.5px;color: var(--muted);">Overall
+                                            Financial Position</p>
                                     </div>
                                     <button data-action="hide-modal" data-target="netStandingModal"
                                         style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
@@ -929,56 +1123,76 @@
                                 <div style="padding:24px;">
 
                                     <div style="display:flex; gap:8px; margin-bottom:15px;">
-                                        <select id="standingMonthSelect" class="form-select" data-action="updateStandingMonth" style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; font-weight:600; color:#111827;">
+                                        <select id="standingMonthSelect" class="form-select"
+                                            data-action="updateStandingMonth"
+                                            style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; font-weight:600; color:#111827;">
                                             @foreach (range(1, 12) as $m)
-                                                <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}"
-                                                    {{ (int) explode('-', $standingMonth)[1] === $m ? 'selected' : '' }}>
+                                                <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}" {{ (int) explode('-', $standingMonth)[1] === $m ? 'selected' : '' }}>
                                                     {{ \Carbon\Carbon::create()->month($m)->format('F') }}
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <select id="standingYearSelect" class="form-select" data-action="updateStandingMonth" style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; font-weight:600; color:#111827;">
+                                        <select id="standingYearSelect" class="form-select"
+                                            data-action="updateStandingMonth"
+                                            style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; font-weight:600; color:#111827;">
                                             @foreach ($availableYears as $year)
-                                                <option value="{{ $year }}"
-                                                    {{ (int) explode('-', $standingMonth)[0] === $year ? 'selected' : '' }}>
+                                                <option value="{{ $year }}" {{ (int) explode('-', $standingMonth)[0] === $year ? 'selected' : '' }}>
                                                     {{ $year }}
                                                 </option>
                                             @endforeach
                                         </select>
                                     </div>
 
-                                    <div style="text-align:center; padding:16px 0 20px; border-bottom:1px dashed var(--border); margin-bottom:16px;">
-                                        <p style="margin:0; font-size:12.5px; color:#808080; font-weight:600; text-transform:uppercase; letter-spacing:.5px;">Net Standing</p>
-                                        <h2 style="margin:6px 0 0; font-size:32px; font-weight:800; color:{{ $netStandingAsOf >= 0 ? 'var(--teal)' : '#DC2626' }};">
+                                    <div
+                                        style="text-align:center; padding:16px 0 20px; border-bottom:1px dashed var(--border); margin-bottom:16px;">
+                                        <p
+                                            style="margin:0; font-size:12.5px; color:#808080; font-weight:600; text-transform:uppercase; letter-spacing:.5px;">
+                                            Net Standing</p>
+                                        <h2
+                                            style="margin:6px 0 0; font-size:32px; font-weight:800; color:{{ $netStandingAsOf >= 0 ? 'var(--teal)' : '#DC2626' }};">
                                             ₱{{ number_format($netStandingAsOf, 2) }}
                                         </h2>
                                     </div>
 
                                     <div style="display:flex; flex-direction:column; gap:12px;">
-                                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px;">
-                                            <span style="display:flex; align-items:center; gap:8px; color:var(--muted); font-weight: 600;">
-                                                <span style="width:10px; height:10px; border-radius:50%; background:var(--gold);"></span>
+                                        <div
+                                            style="display:flex; justify-content:space-between; align-items:center; font-size:14px;">
+                                            <span
+                                                style="display:flex; align-items:center; gap:8px; color:var(--muted); font-weight: 600;">
+                                                <span
+                                                    style="width:10px; height:10px; border-radius:50%; background:var(--gold);"></span>
                                                 Share Capital
                                             </span>
-                                            <strong style="color:#1a1a1a;">₱{{ number_format($shareCapitalStandingAsOf, 2) }}</strong>
+                                            <strong
+                                                style="color:#1a1a1a;">₱{{ number_format($shareCapitalStandingAsOf, 2) }}</strong>
                                         </div>
-                                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px;">
-                                            <span style="display:flex; align-items:center; gap:8px; color:var(--muted); font-weight: 600;">
-                                                <span style="width:10px; height:10px; border-radius:50%; background:var(--blue);"></span>
+                                        <div
+                                            style="display:flex; justify-content:space-between; align-items:center; font-size:14px;">
+                                            <span
+                                                style="display:flex; align-items:center; gap:8px; color:var(--muted); font-weight: 600;">
+                                                <span
+                                                    style="width:10px; height:10px; border-radius:50%; background:var(--blue);"></span>
                                                 Savings
                                             </span>
-                                            <strong style="color:#1a1a1a;">+ ₱{{ number_format($savingsStandingAsOf, 2) }}</strong>
+                                            <strong style="color:#1a1a1a;">+
+                                                ₱{{ number_format($savingsStandingAsOf, 2) }}</strong>
                                         </div>
-                                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; padding-bottom:12px; border-bottom:1px solid #f0f0f0;">
-                                            <span style="display:flex; align-items:center; gap:8px; color:var(--muted); font-weight: 600;">
-                                                <span style="width:10px; height:10px; border-radius:50%; background:var(--coral);"></span>
+                                        <div
+                                            style="display:flex; justify-content:space-between; align-items:center; font-size:14px; padding-bottom:12px; border-bottom:1px solid #f0f0f0;">
+                                            <span
+                                                style="display:flex; align-items:center; gap:8px; color:var(--muted); font-weight: 600;">
+                                                <span
+                                                    style="width:10px; height:10px; border-radius:50%; background:var(--coral);"></span>
                                                 Loan Balance
                                             </span>
-                                            <strong style="color:#DC2626;">− ₱{{ number_format($loanStandingAsOf, 2) }}</strong>
+                                            <strong style="color:#DC2626;">−
+                                                ₱{{ number_format($loanStandingAsOf, 2) }}</strong>
                                         </div>
-                                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:14.5px;">
+                                        <div
+                                            style="display:flex; justify-content:space-between; align-items:center; font-size:14.5px;">
                                             <span style="font-weight:700; color:#1a1a1a;">Total</span>
-                                            <strong style="color:{{ $netStandingAsOf >= 0 ? 'var(--teal)' : '#DC2626' }};">₱{{ number_format($netStandingAsOf, 2) }}</strong>
+                                            <strong
+                                                style="color:{{ $netStandingAsOf >= 0 ? 'var(--teal)' : '#DC2626' }};">₱{{ number_format($netStandingAsOf, 2) }}</strong>
                                         </div>
                                     </div>
 
@@ -1001,7 +1215,8 @@
                 style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Upcoming Dues</h3>
-                    <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Your next loan payments across all accounts</p>
+                    <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Your next loan payments across
+                        all accounts</p>
                 </div>
                 <button data-action="hide-modal" data-target="upcomingDuesModal"
                     style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
@@ -1009,11 +1224,13 @@
 
             <div style="padding: 0 24px; overflow-y:auto; height: 368px;">
                 @forelse ($upcomingDues as $due)
-                    <div style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border);">
+                    <div
+                        style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border);">
                         <div class="tx-icon {{ $due['icon'] }}"><i class="fa-solid {{ $due['icon_fa'] }}"></i></div>
                         <div style="flex:1;">
                             <strong style="display:block; font-size:14px; color:#111827;">{{ $due['title'] }}</strong>
-                            <span style="font-size:12.5px; color:var(--muted);">{{ $due['date_display'] }} · {{ $due['subtitle'] }}</span>
+                            <span style="font-size:12.5px; color:var(--muted);">{{ $due['date_display'] }} ·
+                                {{ $due['subtitle'] }}</span>
                         </div>
                         <div style="font-size: 14px;font-weight:700; color:#DC2626;">
                             ₱{{ number_format($due['amount'], 2) }}
@@ -1039,7 +1256,8 @@
                 style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Overdue Loans</h3>
-                    <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Loans past due across all accounts</p>
+                    <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Loans past due across all
+                        accounts</p>
                 </div>
                 <button data-action="hide-modal" data-target="overdueLoansModal"
                     style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
@@ -1047,11 +1265,13 @@
 
             <div style="padding: 0 24px; overflow-y:auto; height: 368px;">
                 @forelse ($overdueLoansDisplay as $overdue)
-                    <div style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border);">
+                    <div
+                        style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border);">
                         <div class="tx-icon {{ $overdue['icon'] }}"><i class="fa-solid {{ $overdue['icon_fa'] }}"></i></div>
                         <div style="flex:1;">
                             <strong style="display:block; font-size:14px; color:#111827;">{{ $overdue['title'] }}</strong>
-                            <span style="font-size:12.5px; color:var(--muted);">{{ $overdue['date_display'] }} · {{ $overdue['subtitle'] }}</span>
+                            <span style="font-size:12.5px; color:var(--muted);">{{ $overdue['date_display'] }} ·
+                                {{ $overdue['subtitle'] }}</span>
                         </div>
                         <div style="font-size: 14px;font-weight:700; color:#DC2626;">
                             +₱{{ number_format($overdue['amount'], 2) }}
@@ -1077,7 +1297,8 @@
                 style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <h3 style="margin:0; font-size:15px; font-weight:700; color:#111827;">Seminars</h3>
-                    <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Your membership training progress</p>
+                    <p style="margin:3.2px 0 0; font-size:13.5px; color:var(--muted);">Your membership training progress
+                    </p>
                 </div>
                 <button data-action="hide-modal" data-target="seminarsModal"
                     style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">&times;</button>
@@ -1111,7 +1332,8 @@
                                     Attended{{ $s['attended_datetime'] ? ' · ' . \Carbon\Carbon::parse($s['attended_datetime'])->format('M d, Y') : '' }}
                                 </span>
                             </div>
-                            <div style="padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap;flex-shrink: 0; background-color: #EDF0F5; color: var(--teal);">
+                            <div
+                                style="padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap;flex-shrink: 0; background-color: #EDF0F5; color: var(--teal);">
                                 Attended
                             </div>
                         </div>
@@ -1132,37 +1354,44 @@
 
                 @if (!$hasUncompleted)
                     <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
-                        <i class="fa-solid fa-circle-check" style="font-size:24px; display:block; margin-bottom:8px; color:var(--teal);"></i>
+                        <i class="fa-solid fa-circle-check"
+                            style="font-size:24px; display:block; margin-bottom:8px; color:var(--teal);"></i>
                         You have completed all seminars!
                     </div>
                 @else
                     <form action="{{ route('Seminars.verifyPasscode') }}" method="POST" id="seminarPasscodeForm">
                         @csrf
                         <div style="margin-bottom:14px;">
-                            <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Seminar Type</label>
+                            <label
+                                style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Seminar
+                                Type</label>
                             <select name="seminar_type" id="seminarTypeSelect" required
                                 style="width:100%; padding:10px 12px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:13.5px; color:#111827; background:#fff; outline:none;">
-                                <option value="" disabled selected>Select a seminar</option>
+                                <option value="" disabled {{ old('seminar_type') ? '' : 'selected' }}>Select a seminar
+                                </option>
                                 @foreach ($seminarTypeLabels as $key => $label)
                                     @unless ($seminarCompletedFlags[$key] ?? false)
-                                        <option value="{{ $key }}">{{ $label }}</option>
+                                        <option value="{{ $key }}" {{ old('seminar_type') === $key ? 'selected' : '' }}>{{ $label }}
+                                        </option>
                                     @endunless
                                 @endforeach
                             </select>
                         </div>
 
                         <div style="margin-bottom:14px;">
-                            <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Passcode</label>
+                            <label
+                                style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Passcode</label>
                             <input type="text" name="passcode" id="seminarPasscodeInput" required maxlength="64"
-                                placeholder="Enter the seminar passcode"
-                                style="width:100%; padding:10px 12px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:13.5px; color:#111827; outline:none;">
+                                placeholder="Enter the seminar passcode" value="{{ old('passcode') }}"
+                                style="width:100%; padding:10px 12px; border:1.5px solid {{ $errors->has('passcode') ? '#dc2626' : '#e5e7eb' }}; background:{{ $errors->has('passcode') ? '#fef2f2' : '#fff' }}; border-radius:10px; font-size:13.5px; color:#111827; outline:none;">
+                            @if ($errors->has('passcode') || $errors->has('seminar_type'))
+                                <p id="seminarPasscodeError"
+                                    style="margin:6px 0 0; font-size:12px; font-weight:600; color:#dc2626;">
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                    {{ $errors->first('passcode') ?: $errors->first('seminar_type') }}
+                                </p>
+                            @endif
                         </div>
-
-                        @if ($errors->any())
-                            <div style="background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:8px 12px; font-size:12px; color:#b91c1c; margin-bottom:12px;">
-                                {{ $errors->first() }}
-                            </div>
-                        @endif
 
                         <button type="submit"
                             style="width:100%; padding:11px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; transition:opacity 0.2s;">
@@ -1173,6 +1402,17 @@
             </div>
         </div>
     </div>
+
+    @if ($errors->hasAny(['category', 'category_other', 'subject', 'message', 'proof']))
+        <script nonce="{{ csp_nonce() }}">
+            document.addEventListener('DOMContentLoaded', function () {
+                var el = document.getElementById('reportProblemModal');
+                if (el && window.bootstrap) {
+                    window.bootstrap.Modal.getOrCreateInstance(el).show();
+                }
+            });
+        </script>
+    @endif
 
     <script nonce="{{ csp_nonce() }}">
         function switchSeminarTab(tab) {
@@ -1308,8 +1548,8 @@
                         labels: ['Share Capital', 'Savings', 'Loan Balance'],
                         datasets: [{
                             data: [
-                            {{ $accountBalanceChart[0]['value'] ?? 0 }},
-                            {{ $accountBalanceChart[1]['value'] ?? 0 }},
+                                {{ $accountBalanceChart[0]['value'] ?? 0 }},
+                        {{ $accountBalanceChart[1]['value'] ?? 0 }},
                             {{ $accountBalanceChart[2]['value'] ?? 0 }},
                             ],
                             backgroundColor: [colors.gold, colors.blue, colors.coral],
@@ -1370,23 +1610,23 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    const countSpan = btn.querySelector('.like-count');
-                    countSpan.textContent = data.count;
-                    if (data.liked) {
-                        btn.style.background = '#FEE2E2';
-                        btn.style.color = '#DC2626';
-                        btn.classList.add('liked');
-                    } else {
-                        btn.style.background = 'var(--card)';
-                        btn.style.color = '#6B7280';
-                        btn.classList.remove('liked');
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const countSpan = btn.querySelector('.like-count');
+                        countSpan.textContent = data.count;
+                        if (data.liked) {
+                            btn.style.background = '#FEE2E2';
+                            btn.style.color = '#DC2626';
+                            btn.classList.add('liked');
+                        } else {
+                            btn.style.background = 'var(--card)';
+                            btn.style.color = '#6B7280';
+                            btn.classList.remove('liked');
+                        }
                     }
-                }
-            })
-            .catch(() => {});
+                })
+                .catch(() => { });
         }
 
         function postMemberComment(event, announcementId) {
@@ -1401,25 +1641,25 @@
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify({ comment: comment }),
             })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    const c = data.comment;
-                    const escHtml = (value) => {
-                        const el = document.createElement('div');
-                        el.textContent = value;
-                        return el.innerHTML;
-                    };
-                    const isAdmin = ['admin', 'general-manager'].includes(c.user.role);
-                    const container = form.previousElementSibling;
-                    const div = document.createElement('div');
-                    div.style.cssText = 'display:flex; gap:8px; padding:8px; background:var(--bg); border-radius:8px;';
-                    div.innerHTML = '<div style="width:24px; height:24px; border-radius:50%; background:' + (isAdmin ? '#3B82F6' : 'var(--teal)') + '; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="color:#fff; font-size:10px; font-weight:700;">' + escHtml((c.user.first_name?.[0] || '') + (c.user.last_name?.[0] || '')) + '</span></div><div style="flex:1; min-width:0;"><div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;"><span style="font-size:12px; font-weight:600;">' + escHtml(c.user.first_name) + ' ' + escHtml(c.user.last_name) + '</span>' + (isAdmin ? '<span style="font-size:10px; padding:1px 4px; background:#DBEAFE; color:#1D4ED8; border-radius:4px; font-weight:600;">Admin</span>' : '') + '<span style="font-size:11px; color:var(--muted);">' + escHtml(c.created_at) + '</span></div><p style="font-size:12px; color:#555; margin:0;">' + escHtml(c.comment) + '</p></div>';
-                    container.appendChild(div);
-                    input.value = '';
-                }
-            })
-            .catch(() => {});
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const c = data.comment;
+                        const escHtml = (value) => {
+                            const el = document.createElement('div');
+                            el.textContent = value;
+                            return el.innerHTML;
+                        };
+                        const isAdmin = ['admin', 'general-manager'].includes(c.user.role);
+                        const container = form.previousElementSibling;
+                        const div = document.createElement('div');
+                        div.style.cssText = 'display:flex; gap:8px; padding:8px; background:var(--bg); border-radius:8px;';
+                        div.innerHTML = '<div style="width:24px; height:24px; border-radius:50%; background:' + (isAdmin ? '#3B82F6' : 'var(--teal)') + '; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="color:#fff; font-size:10px; font-weight:700;">' + escHtml((c.user.first_name?.[0] || '') + (c.user.last_name?.[0] || '')) + '</span></div><div style="flex:1; min-width:0;"><div style="display:flex; align-items:center; gap:4px; margin-bottom:2px;"><span style="font-size:12px; font-weight:600;">' + escHtml(c.user.first_name) + ' ' + escHtml(c.user.last_name) + '</span>' + (isAdmin ? '<span style="font-size:10px; padding:1px 4px; background:#DBEAFE; color:#1D4ED8; border-radius:4px; font-weight:600;">Admin</span>' : '') + '<span style="font-size:11px; color:var(--muted);">' + escHtml(c.created_at) + '</span></div><p style="font-size:12px; color:#555; margin:0;">' + escHtml(c.comment) + '</p></div>';
+                        container.appendChild(div);
+                        input.value = '';
+                    }
+                })
+                .catch(() => { });
         }
 
         const memberPollOptions = {{ Js::from($pollOptionsMap) }};
@@ -1430,35 +1670,112 @@
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify({ option_index: optionIndex }),
             })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    const container = document.getElementById('member-poll-options-' + pollId);
-                    const options = memberPollOptions[pollId] || [];
-                    container.innerHTML = '';
-                    data.results.forEach((count, i) => {
-                        const pct = data.total_votes > 0 ? Math.round((count / data.total_votes) * 100) : 0;
-                        const isChosen = data.voted_index === i;
-                        const escHtml = (value) => {
-                            const el = document.createElement('div');
-                            el.textContent = value;
-                            return el.innerHTML;
-                        };
-                        const div = document.createElement('div');
-                        div.style.cssText = 'position:relative; height:28px; border-radius:8px; overflow:hidden; background:var(--line);';
-                        div.innerHTML = '<div style="height:100%; width:' + pct + '%; background:' + (isChosen ? 'var(--teal)' : '#D1D5DB') + '; border-radius:8px; transition:width .5s;"></div><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px;"><span style="font-size:12px; font-weight:600; color:' + (isChosen ? '#fff' : '#555') + ';">' + escHtml(options[i] || 'Option ' + (i+1)) + '</span><span style="font-size:11px; font-weight:600; color:' + (isChosen ? '#fff' : '#888') + ';">' + pct + '% <span style="font-weight:400;">(' + count + ')</span></span></div>';
-                        container.appendChild(div);
-                    });
-                    const pollEl = document.getElementById('member-poll-' + pollId);
-                    const voteCountEl = pollEl.querySelector('div[style*="font-size:11px"]');
-                    if (voteCountEl) voteCountEl.innerHTML = data.total_votes + ' ' + (data.total_votes === 1 ? 'vote' : 'votes') + ' · You voted';
-                }
-            })
-            .catch(() => {});
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const container = document.getElementById('member-poll-options-' + pollId);
+                        const options = memberPollOptions[pollId] || [];
+                        container.innerHTML = '';
+                        data.results.forEach((count, i) => {
+                            const pct = data.total_votes > 0 ? Math.round((count / data.total_votes) * 100) : 0;
+                            const isChosen = data.voted_index === i;
+                            const escHtml = (value) => {
+                                const el = document.createElement('div');
+                                el.textContent = value;
+                                return el.innerHTML;
+                            };
+                            const div = document.createElement('div');
+                            div.style.cssText = 'position:relative; height:28px; border-radius:8px; overflow:hidden; background:var(--line);';
+                            div.innerHTML = '<div style="height:100%; width:' + pct + '%; background:' + (isChosen ? 'var(--teal)' : '#D1D5DB') + '; border-radius:8px; transition:width .5s;"></div><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px;"><span style="font-size:12px; font-weight:600; color:' + (isChosen ? '#fff' : '#555') + ';">' + escHtml(options[i] || 'Option ' + (i + 1)) + '</span><span style="font-size:11px; font-weight:600; color:' + (isChosen ? '#fff' : '#888') + ';">' + pct + '% <span style="font-weight:400;">(' + count + ')</span></span></div>';
+                            container.appendChild(div);
+                        });
+                        const pollEl = document.getElementById('member-poll-' + pollId);
+                        const voteCountEl = pollEl.querySelector('div[style*="font-size:11px"]');
+                        if (voteCountEl) voteCountEl.innerHTML = data.total_votes + ' ' + (data.total_votes === 1 ? 'vote' : 'votes') + ' · You voted';
+                    }
+                })
+                .catch(() => { });
         }
     </script>
 
+    <script nonce="{{ csp_nonce() }}">
+        document.addEventListener('DOMContentLoaded', function () {
+            var select = document.getElementById('reportCategorySelect');
+            var other = document.getElementById('reportCategoryOther');
+            if (!select || !other) return;
+
+            select.addEventListener('change', function () {
+                var isOther = select.value === 'Other';
+                other.style.display = isOther ? 'block' : 'none';
+                other.required = isOther;   // only required when visible
+                if (isOther) {
+                    other.focus();
+                } else {
+                    other.value = '';
+                }
+            });
+        });
+    </script>
+
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+
+    {{-- Toast after submitting a report --}}
+    @if (session('report_success'))
+        <div class="toast-message" id="reportToast" role="status" style="width:320px;">
+            <i class="fa-solid fa-circle-check"></i>
+            <p>{{ session('report_success') }}</p>
+        </div>
+
+        <script nonce="{{ csp_nonce() }}">
+            document.addEventListener('DOMContentLoaded', function () {
+                var toast = document.getElementById('reportToast');
+                if (!toast) return;
+                setTimeout(function () {
+                    toast.classList.add('hide');
+                    setTimeout(function () { toast.remove(); }, 400);
+                }, 4000);
+            });
+        </script>
+    @endif
+
+    {{-- Reopen the Seminars modal on the Passcode tab if the code was rejected --}}
+    @if ($errors->has('passcode') || $errors->has('seminar_type'))
+        <script nonce="{{ csp_nonce() }}">
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('seminarsModal').style.display = 'flex';
+                switchSeminarTab('passcode');
+
+                // Clear the red state as soon as the member starts typing again
+                var input = document.getElementById('seminarPasscodeInput');
+                var err = document.getElementById('seminarPasscodeError');
+                input?.addEventListener('input', function () {
+                    input.style.borderColor = '#e5e7eb';
+                    input.style.background = '#fff';
+                    if (err) err.style.display = 'none';
+                }, { once: true });
+            });
+        </script>
+    @endif
+
+    {{-- Toast after a successful passcode --}}
+    @if (session('seminar_success'))
+        <div class="toast-message" id="seminarToast" role="status" style="width:320px;">
+            <i class="fa-solid fa-circle-check"></i>
+            <p>{{ session('seminar_success') }}</p>
+        </div>
+
+        <script nonce="{{ csp_nonce() }}">
+            document.addEventListener('DOMContentLoaded', function () {
+                var toast = document.getElementById('seminarToast');
+                if (!toast) return;
+                setTimeout(function () {
+                    toast.classList.add('hide');
+                    setTimeout(function () { toast.remove(); }, 400);
+                }, 4000);
+            });
+        </script>
+    @endif
 
 </body>
 
