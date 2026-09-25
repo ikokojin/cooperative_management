@@ -2,18 +2,22 @@
 <div id="scContributionModal" class="modal-overlay hidden">
     <div class="modal max-w-lg" style="border-radius: 16px;">
         <!-- Header -->
-        <div class="modal-header" style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
+        <div class="modal-header"
+            style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="coins" class="w-5 h-5" style="color: #fff;"></i>
                     </div>
                     <div>
                         <h2 class="text-lg font-semibold" style="color: #fff; margin: 0;">Manage Share-capital</h2>
-                        <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Purchase or withdraw shares</p>
+                        <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Purchase or
+                            withdraw shares</p>
                     </div>
                 </div>
-                <button data-action="closeModal" data-arg='["scContributionModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button data-action="closeModal" data-arg='["scContributionModal"]'
+                    style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                 </button>
             </div>
@@ -24,30 +28,36 @@
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Member</label>
-                    <select name="member_id" id="manage-share-member-select" class="select" style="width: 100%;" required>
+                    <select name="member_id" id="manage-share-member-select" class="select" style="width: 100%;"
+                        required>
                         <option value="">Select member</option>
                         @foreach($allMembers as $member)
-                        <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
+                            <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <!-- Balance Pill -->
-                <div style="background: #f8f9f8; border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #1E2A4A;">
+                <div
+                    style="background: #f8f9f8; border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #1E2A4A;">
                     <span style="font-size: 13px; color: #666;">Current Shares</span>
-                    <span id="currentSharesDisplay" style="font-size: 14px; font-weight: 700; color: #1E2A4A;">0 shares · ₱0.00</span>
+                    <span id="currentSharesDisplay" style="font-size: 14px; font-weight: 700; color: #1E2A4A;">0 shares
+                        · ₱0.00</span>
                 </div>
 
                 <!-- Full Withdrawal Warning (auto-resignation) -->
-                <div id="adminFullWithdrawalWarning" style="display:none; background:#fef2f2; border:1.5px solid #fecaca; border-radius:10px; padding:0.65rem 1rem; font-size:12px; color:#991b1b; line-height:1.5;">
+                <div id="adminFullWithdrawalWarning"
+                    style="display:none; background:#fef2f2; border:1.5px solid #fecaca; border-radius:10px; padding:0.65rem 1rem; font-size:12px; color:#991b1b; line-height:1.5;">
                     <i data-lucide="alert-triangle" class="w-4 h-4" style="margin-right:6px;"></i>
-                    <strong>Notice:</strong> Fully withdrawing this member's share capital is equivalent to resigning. This will auto-submit a resignation request subject to the 60-day holding period.
+                    <strong>Notice:</strong> Fully withdrawing this member's share capital is equivalent to resigning.
+                    This will auto-submit a resignation request subject to the 60-day holding period.
                 </div>
 
                 <!-- Type -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                    <select name="type" id="shareTypeSelect" class="select" style="width: 100%;" required data-action="sc-type-change">
+                    <select name="type" id="shareTypeSelect" class="select" style="width: 100%;" required
+                        data-action="sc-type-change">
                         <option value="">Select type...</option>
                         <option value="Deposit">Deposit</option>
                         <option value="Withdrawal">Withdrawal</option>
@@ -56,8 +66,13 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
-                    <input type="number" name="amount_input" id="adminAmountInput" value="{{ $perShareValue }}" min="200" step="200" style="width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #1E2A4A; border: 1px solid #ddd; border-radius: 8px; padding: 8px;" data-action="updateFromAmount" data-trigger="input">
-                    <p style="font-size: 12px; color: #888; margin: 4px 0 0;">Equivalent to <strong id="adminSharesDisplay">1</strong> {{ Str::plural('share', 1) }} · ₱{{ number_format($perShareValue, 0) }}/share</p>
+                    <input type="number" name="amount_input" id="adminAmountInput" value="{{ $perShareValue }}"
+                        min="200" step="200"
+                        style="width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #1E2A4A; border: 1px solid #ddd; border-radius: 8px; padding: 8px;"
+                        data-action="updateFromAmount" data-trigger="input">
+                    <p style="font-size: 12px; color: #888; margin: 4px 0 0;">Equivalent to <strong
+                            id="adminSharesDisplay">1</strong> {{ Str::plural('share', 1) }} ·
+                        ₱{{ number_format($perShareValue, 0) }}/share</p>
                 </div>
 
                 <!-- Calculated fields -->
@@ -68,27 +83,33 @@
                 <div id="scPaymentField">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                     <input type="hidden" name="payment_method" id="scPaymentMethod" value="cash">
-                    <input type="text" value="Cash" readonly style="width: 100%; background: #f3f4f6; cursor: default; border: 1px solid #ddd; border-radius: 8px; padding: 8px; color: #555;">
+                    <input type="text" value="Cash" readonly
+                        style="width: 100%; background: #f3f4f6; cursor: default; border: 1px solid #ddd; border-radius: 8px; padding: 8px; color: #555;">
                 </div>
 
                 <!-- Mobile Number (withdrawal only, read-only) -->
                 <div id="scMobileField" class="hidden">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                    <input type="tel" id="scMobileDisplay" class="input" readonly placeholder="No mobile number on record" style="width: 100%; background: #f3f4f6; cursor: default;">
+                    <input type="tel" id="scMobileDisplay" class="input" readonly
+                        placeholder="No mobile number on record"
+                        style="width: 100%; background: #f3f4f6; cursor: default;">
                 </div>
 
                 <!-- QR Code Display -->
                 <div id="scQrCodeDisplay" class="hidden">
                     <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
                         <p class="text-xs text-gray-500 mb-2 font-medium">Scan QR Code to Pay</p>
-                        <img id="scQrCodeImg" class="w-40 h-40 mx-auto rounded-lg object-cover border border-gray-200" src="" alt="Payment QR Code">
+                        <img id="scQrCodeImg" class="w-40 h-40 mx-auto rounded-lg object-cover border border-gray-200"
+                            src="" alt="Payment QR Code">
                     </div>
                 </div>
 
                 <!-- Notes -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Note <span style="color: #999;">(optional)</span></label>
-                    <textarea name="note" class="input" rows="2" placeholder="Add any notes..." style="width: 100%;"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Note <span
+                            style="color: #999;">(optional)</span></label>
+                    <textarea name="note" class="input" rows="2" placeholder="Add any notes..."
+                        style="width: 100%;"></textarea>
                 </div>
             </form>
 
@@ -116,11 +137,13 @@
                         <i data-lucide="coins" class="w-5 h-5 text-primary-600"></i>
                     </div>
                     <div>
-                        <h2 id="shareCapitalsModalTitle" class="text-xl font-bold text-gray-900">Share Capital Accounts</h2>
+                        <h2 id="shareCapitalsModalTitle" class="text-xl font-bold text-gray-900">Share Capital Accounts
+                        </h2>
                         <p id="shareCapitalsModalSubtitle" class="text-xs text-gray-500">All member accounts</p>
                     </div>
                 </div>
-                <button data-action="closeModal" data-arg='["shareCapitalsModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["shareCapitalsModal"]'
+                    class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -137,32 +160,38 @@
                     </thead>
                     <tbody>
                         @forelse($shareCapitalAccounts as $account)
-                        <tr class="share-capital-row" data-shares="{{ $account->paid_up_shares }}" data-amount="{{ $account->paid_up_amount }}">
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                                        <span class="text-xs text-primary-600 font-medium">
-                                            {{ strtoupper(substr($account->user->first_name ?? 'U', 0, 1) . substr($account->user->last_name ?? '', 0, 1)) }}
-                                        </span>
+                            <tr class="share-capital-row" data-shares="{{ $account->paid_up_shares }}"
+                                data-amount="{{ $account->paid_up_amount }}">
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                                            <span class="text-xs text-primary-600 font-medium">
+                                                {{ strtoupper(substr($account->user->first_name ?? 'U', 0, 1) . substr($account->user->last_name ?? '', 0, 1)) }}
+                                            </span>
+                                        </div>
+                                        <span class="text-sm text-gray-900">{{ $account->user->first_name ?? 'Unknown' }}
+                                            {{ $account->user->last_name ?? '' }}</span>
                                     </div>
-                                    <span class="text-sm text-gray-900">{{ $account->user->first_name ?? 'Unknown' }} {{ $account->user->last_name ?? '' }}</span>
-                                </div>
-                            </td>
-                            <td class="text-right text-sm text-gray-900">{{ number_format($account->paid_up_shares, 2) }}</td>
-                            <td class="text-right text-sm font-semibold text-gray-900">₱{{ number_format($account->paid_up_amount, 2) }}</td>
-                        </tr>
+                                </td>
+                                <td class="text-right text-sm text-gray-900">
+                                    {{ number_format($account->paid_up_shares, 2) }}</td>
+                                <td class="text-right text-sm font-semibold text-gray-900">
+                                    ₱{{ number_format($account->paid_up_amount, 2) }}</td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="3" class="text-center py-12 text-gray-500">No share capital accounts found</td>
-                        </tr>
+                            <tr>
+                                <td colspan="3" class="text-center py-12 text-gray-500">No share capital accounts found</td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button data-action="closeModal" data-arg='["shareCapitalsModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
-            <a href="{{ route('financial.activity', ['tab' => 'share-capitals']) }}" class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
+            <button data-action="closeModal" data-arg='["shareCapitalsModal"]'
+                class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+            <a href="{{ route('financial.activity', ['tab' => 'share-capitals']) }}"
+                class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                 <i data-lucide="list" class="w-4 h-4"></i>
                 View All Transactions
             </a>
@@ -177,15 +206,18 @@
         <div style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="arrow-left-right" class="w-5 h-5" style="color: #fff;"></i>
                     </div>
                     <div>
                         <h2 class="text-lg font-semibold" style="color: #fff; margin: 0;">Sell Shares</h2>
-                        <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Transfer shares between members</p>
+                        <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Transfer shares
+                            between members</p>
                     </div>
                 </div>
-                <button data-action="closeModal" data-arg='["sellSharesModal"]' style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button data-action="closeModal" data-arg='["sellSharesModal"]'
+                    style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                 </button>
             </div>
@@ -196,17 +228,20 @@
                 @csrf
                 <div style="margin-bottom: 1rem;">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Seller (from)</label>
-                    <select name="seller_id" id="sell-shares-seller-select" class="select" style="width: 100%;" required>
+                    <select name="seller_id" id="sell-shares-seller-select" class="select" style="width: 100%;"
+                        required>
                         <option value="">Select seller...</option>
                         @foreach($allMembers as $member)
-                        <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
+                            <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div style="background: #f8f9f8; border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #1E2A4A; margin-bottom: 1rem;">
+                <div
+                    style="background: #f8f9f8; border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #1E2A4A; margin-bottom: 1rem;">
                     <span style="font-size: 13px; color: #666;">Seller's Current Shares</span>
-                    <span id="sellerSharesDisplay" style="font-size: 14px; font-weight: 700; color: #1E2A4A;">Select a seller</span>
+                    <span id="sellerSharesDisplay" style="font-size: 14px; font-weight: 700; color: #1E2A4A;">Select a
+                        seller</span>
                 </div>
 
                 <div style="margin-bottom: 1rem;">
@@ -214,15 +249,20 @@
                     <select name="buyer_id" id="sell-shares-buyer-select" class="select" style="width: 100%;" required>
                         <option value="">Select buyer...</option>
                         @foreach($allMembers as $member)
-                        <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
+                            <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div style="margin-bottom: 1rem;">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
-                    <input type="number" name="amount_input" id="sellAmountInput" placeholder="Enter amount (minimum ₱1,000)" min="1000" step="100" style="width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #1E2A4A; border: 1px solid #ddd; border-radius: 8px; padding: 8px;" data-action="updateSellSharesFromAmount" data-trigger="input" required>
-                    <p style="font-size: 12px; color: #888; margin: 4px 0 0;">Equivalent to <strong id="sellSharesDisplay">1</strong> {{ Str::plural('share', 1) }} · ₱{{ number_format($perShareValue, 0) }}/share</p>
+                    <input type="number" name="amount_input" id="sellAmountInput"
+                        placeholder="Enter amount (minimum ₱1,000)" min="1000" step="100"
+                        style="width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #1E2A4A; border: 1px solid #ddd; border-radius: 8px; padding: 8px;"
+                        data-action="updateSellSharesFromAmount" data-trigger="input" required>
+                    <p style="font-size: 12px; color: #888; margin: 4px 0 0;">Equivalent to <strong
+                            id="sellSharesDisplay">1</strong> {{ Str::plural('share', 1) }} ·
+                        ₱{{ number_format($perShareValue, 0) }}/share</p>
                     <p style="font-size: 12px; color: #d32f2f; margin: 4px 0 0;">Minimum transfer amount is ₱1,000.</p>
                 </div>
 
@@ -277,7 +317,7 @@
     }
 
     // Share counter functionality
-    document.getElementById('scContributionModal')?.addEventListener('transitionend', function() {
+    document.getElementById('scContributionModal')?.addEventListener('transitionend', function () {
         if (!this.classList.contains('hidden')) {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
@@ -313,11 +353,11 @@
     }
 
     // Update member shares display
-    window.updateMemberShares = function() {
+    window.updateMemberShares = function () {
         const memberId = document.getElementById('manage-share-member-select').value;
         const display = document.getElementById('currentSharesDisplay');
         const mobileEl = document.getElementById('scMobileDisplay');
-        
+
         if (!memberId) {
             display.textContent = '0 shares · ₱0.00';
             currentMemberShareAmount = 0;
@@ -332,7 +372,7 @@
                 const shares = data.total_shares || 0;
                 const amount = data.total_amount || 0;
                 currentMemberShareAmount = amount;
-                display.textContent = shares + ' shares · ₱' + amount.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                display.textContent = shares + ' shares · ₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 if (mobileEl) mobileEl.value = data.contact_no || '';
                 syncAdminAmountForType();
                 toggleAdminFullWithdrawalWarning();
@@ -369,10 +409,10 @@
     }
 
     // Submit admin share capital form
-    window.submitAdminShareCapital = function() {
+    window.submitAdminShareCapital = function () {
         const form = document.getElementById('adminShareCapitalForm');
         const formData = new FormData(form);
-        
+
         if (!formData.get('member_id')) {
             showToast('Error', 'Please select a member');
             return;
@@ -398,29 +438,29 @@
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                closeModal('scContributionModal');
-                showToast(data.warning ? 'Warning' : 'Success', data.message);
-                form.reset();
-                document.getElementById('currentSharesDisplay').textContent = '0 shares · ₱0.00';
-                document.getElementById('adminAmountInput').value = {{ $perShareValue }};
-                document.getElementById('adminTotalAmount').value = {{ $perShareValue }};
-                document.getElementById('adminSharesInput').value = 1;
-                document.getElementById('adminSharesDisplay').textContent = 1;
-                document.getElementById('scMobileDisplay').value = '';
-                toggleScPaymentFields();
-                toggleAdminFullWithdrawalWarning();
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showToast('Error', data.message || 'Transaction failed');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeModal('scContributionModal');
+                    showToast(data.warning ? 'Warning' : 'Success', data.message);
+                    form.reset();
+                    document.getElementById('currentSharesDisplay').textContent = '0 shares · ₱0.00';
+                    document.getElementById('adminAmountInput').value = {{ $perShareValue }};
+                    document.getElementById('adminTotalAmount').value = {{ $perShareValue }};
+                    document.getElementById('adminSharesInput').value = 1;
+                    document.getElementById('adminSharesDisplay').textContent = 1;
+                    document.getElementById('scMobileDisplay').value = '';
+                    toggleScPaymentFields();
+                    toggleAdminFullWithdrawalWarning();
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast('Error', data.message || 'Transaction failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
+            });
     };
 
     // Transaction Detail Modal Functions
@@ -438,12 +478,12 @@
         return '<span style="display:inline-flex; align-items:center; gap:6px; background:#d1fae5; border:1.5px solid #a7f3d0; color:#065f46; border-radius:20px; padding:0.2rem 0.75rem; font-size:0.75rem; font-weight:700;"><span style="width:7px; height:7px; background:#059669; border-radius:50%; flex-shrink:0;"></span> Completed</span>';
     }
 
-    window.viewShareCapitalDetail = function(id, type, status, memberName, shares, amount, paymentMethod, referenceNo, transactionDate) {
+    window.viewShareCapitalDetail = function (id, type, status, memberName, shares, amount, paymentMethod, referenceNo, transactionDate) {
         const existingModal = document.getElementById('scTransactionModal');
         if (existingModal) {
             existingModal.remove();
         }
-        
+
         currentTransactionId = id;
         currentSCReceipt = { memberName: memberName, type: type, shares: shares, amount: amount, paymentMethod: paymentMethod, referenceNo: referenceNo, transactionDate: transactionDate };
         const isWithdrawal = type === 'Withdrawal';
@@ -458,7 +498,7 @@
         let actionsHtml = '';
 
         if (isCompleted) {
-            const amountFmt = Number(amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+            const amountFmt = Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
             bodyHtml = scReceiptRows(memberName, type, shares, amountFmt, paymentMethod, referenceNo, transactionDate, isWithdrawal);
             actionsHtml = '<div style="padding:0 1.5rem 1.5rem; display:flex; flex-direction:column; gap:0.6rem;">'
                 + '<button data-action="downloadSCReceipt" class="sc-rec-dl" style="width:100%; padding:0.8rem; background:' + SC_NAVY + '; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;">'
@@ -478,7 +518,7 @@
                 + '<div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:14px;">Member</span><span style="color:#111827;font-size:14px;font-weight:500;">' + memberName + '</span></div>'
                 + '<div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:14px;">Type</span><span style="color:' + (isWithdrawal ? '#dc2626' : '#16a34a') + ';font-size:14px;font-weight:500;">' + type + '</span></div>'
                 + '<div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:14px;">Shares</span><span style="color:#111827;font-size:14px;font-weight:500;">' + shares + ' shares</span></div>'
-                + '<div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:14px;">Amount</span><span style="color:#111827;font-size:14px;font-weight:700;">₱' + parseFloat(amount).toLocaleString('en-PH', {minimumFractionDigits:2}) + '</span></div>'
+                + '<div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:14px;">Amount</span><span style="color:#111827;font-size:14px;font-weight:700;">₱' + parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2 }) + '</span></div>'
                 + '<div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:14px;">Payment</span><span style="color:#111827;font-size:14px;">' + paymentMethod + '</span></div>'
                 + '<div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:14px;">Reference</span><span style="color:#111827;font-size:14px;font-family:monospace;">' + referenceNo + '</span></div>'
                 + '<div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;font-size:14px;">Date</span><span style="color:#111827;font-size:14px;">' + transactionDate + '</span></div>'
@@ -503,14 +543,14 @@
                     .sc-ghost-close:hover { background:#f5f5f5; color:#333; }
                 </style>
                 ${isCompleted ? ('<div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">'
-                    + '<div style="width:60px;height:60px;background:' + SC_NAVY + ';border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">'
-                    + '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-                    + '</div>'
-                    + '<h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">' + (isWithdrawal ? 'Withdrawal Successful!' : 'Deposit Successful!') + '</h2>'
-                    + '<p style="color:#6b7280; font-size:0.82rem; margin:0;">KMPCATS Cooperative -- Official Receipt</p>'
-                    + '</div>'
-                    + '<div style="padding:0.6rem 1.5rem 0;">' + bodyHtml + '</div>'
-                    + actionsHtml)
+                + '<div style="width:60px;height:60px;background:' + SC_NAVY + ';border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">'
+                + '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+                + '</div>'
+                + '<h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">' + (isWithdrawal ? 'Withdrawal Successful!' : 'Deposit Successful!') + '</h2>'
+                + '<p style="color:#6b7280; font-size:0.82rem; margin:0;">KMPCATS Cooperative -- Official Receipt</p>'
+                + '</div>'
+                + '<div style="padding:0.6rem 1.5rem 0;">' + bodyHtml + '</div>'
+                + actionsHtml)
                 : ('<div style="padding:1.5rem; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">'
                     + '<h3 style="margin:0; font-size:1.05rem; font-weight:700; color:#1a1a1a;">Transaction Details</h3>'
                     + '<button data-action="sc-close-modal" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#666; line-height:1;">&times;</button>'
@@ -518,7 +558,7 @@
                     + '<div style="padding:1.25rem 1.5rem;">' + bodyHtml + actionsHtml + '</div>')}
             </div>
         `;
-        
+
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
     };
@@ -547,15 +587,15 @@
     };
     function scGetVoidLabel(key) { return SC_VOID_LABELS[key] || key || 'No reason provided'; }
 
-    window.showSCVoidReason = function(d) {
+    window.showSCVoidReason = function (d) {
         d = d || {};
         const label = scGetVoidLabel(d.reason);
         const existingModal = document.getElementById('scVoidReasonModal');
         if (existingModal) { existingModal.remove(); }
 
-        const amountFmt = Number(d.amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+        const amountFmt = Number(d.amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         const sharesFmt = (d.shares !== undefined && d.shares !== '' && d.shares !== '0')
-            ? Number(d.shares || 0).toLocaleString('en-PH', {maximumFractionDigits: 0}) + ' shares'
+            ? Number(d.shares || 0).toLocaleString('en-PH', { maximumFractionDigits: 0 }) + ' shares'
             : '— shares';
         const isWithdrawal = String(d.type || '').toLowerCase() === 'withdrawal';
 
@@ -582,14 +622,8 @@
                     <div style="width:60px;height:60px;background:#c0392b;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
                     </div>
-                    <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">${isWithdrawal ? 'Withdrawal Voided' : 'Transaction Voided'}</h2>
+                    <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">$${isWithdrawal ? 'Withdrawal Returned' : 'Transaction Returned'}</h2>
                     <p style="color:#6b7280; font-size:0.82rem; margin:0;">This share capital transaction has been voided by the admin.</p>
-                </div>
-                <div style="padding:1.25rem 1.5rem 0.25rem;">
-                    <div style="background:#fdecec; border:1px solid #f5c6c6; border-radius:12px; padding:0.9rem 1rem; text-align:center;">
-                        <div style="font-size:0.72rem; color:#a94442; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.2rem;">Voided Amount</div>
-                        <div style="font-size:1.5rem; font-weight:800; color:#c0392b; line-height:1.2;">&#8369;${amountFmt}</div>
-                    </div>
                 </div>
                 <div style="padding:0.75rem 1.5rem 0;">
                     <div style="background:#fafafa; border-radius:12px; padding:0.25rem 1rem;">
@@ -613,7 +647,7 @@
         document.body.appendChild(modal);
     };
 
-    window.downloadSCReceipt = function() {
+    window.downloadSCReceipt = function () {
         const d = currentSCReceipt || {};
         const memberName = d.memberName || '';
         const type = d.type || '';
@@ -623,7 +657,7 @@
         const referenceNo = d.referenceNo || '';
         const transactionDate = d.transactionDate || '';
 
-        const amountFmt = Number(amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+        const amountFmt = Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         const isWithdrawal = type === 'Withdrawal';
 
         const wrapper = document.createElement('div');
@@ -665,7 +699,7 @@
         }
     };
 
-    window.openSCRow = function(e, row) {
+    window.openSCRow = function (e, row) {
         if (e && e.target && e.target.closest && e.target.closest('a, button')) return;
         const d = row.dataset;
         if (d.void === '1') {
@@ -675,7 +709,7 @@
         viewShareCapitalDetail(d.id, d.type, d.status, d.member, d.shares, d.amount, d.method, d.ref, d.date);
     };
 
-    window.processWithdrawalSC = function(action) {
+    window.processWithdrawalSC = function (action) {
         if (!currentTransactionId) return;
 
         fetch('/sharecapital/withdrawal/' + currentTransactionId + '/status', {
@@ -686,24 +720,24 @@
             },
             body: JSON.stringify({ action: action })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Success', data.message);
-                document.getElementById('scTransactionModal').remove();
-                document.body.style.overflow = 'auto';
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                showToast('Error', data.message || 'Failed to process withdrawal');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Success', data.message);
+                    document.getElementById('scTransactionModal').remove();
+                    document.body.style.overflow = 'auto';
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('Error', data.message || 'Failed to process withdrawal');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
+            });
     };
     // ── Sell Shares ────────────────────────────────────────────────
-    window.updateSellSharesFromAmount = function() {
+    window.updateSellSharesFromAmount = function () {
         const amount = parseFloat(document.getElementById('sellAmountInput')?.value) || 0;
         const perShare = {{ $perShareValue }};
         const shares = Math.round((amount / perShare) * 100) / 100;
@@ -712,7 +746,7 @@
         document.getElementById('sellSharesDisplay').textContent = shares;
     };
 
-    window.fetchSellerBalance = function(sellerId) {
+    window.fetchSellerBalance = function (sellerId) {
         const display = document.getElementById('sellerSharesDisplay');
         if (!sellerId) {
             display.textContent = 'Select a seller';
@@ -723,7 +757,7 @@
             .then(data => {
                 const shares = data.total_shares || 0;
                 const amount = data.total_amount || 0;
-                display.textContent = shares + ' shares · ₱' + amount.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                display.textContent = shares + ' shares · ₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -731,7 +765,7 @@
             });
     };
 
-    window.submitSellShares = function() {
+    window.submitSellShares = function () {
         const form = document.getElementById('sellSharesForm');
         const formData = new FormData(form);
 
@@ -764,26 +798,26 @@
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                closeModal('sellSharesModal');
-                showToast('Success', data.message);
-                form.reset();
-                document.getElementById('sellerSharesDisplay').textContent = 'Select a seller';
-                document.getElementById('sellAmountInput').value = 1000;
-                document.getElementById('sellTotalAmount').value = 1000;
-                document.getElementById('sellSharesInput').value = 1;
-                document.getElementById('sellSharesDisplay').textContent = 1;
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showToast('Error', data.message || 'Transfer failed');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeModal('sellSharesModal');
+                    showToast('Success', data.message);
+                    form.reset();
+                    document.getElementById('sellerSharesDisplay').textContent = 'Select a seller';
+                    document.getElementById('sellAmountInput').value = 1000;
+                    document.getElementById('sellTotalAmount').value = 1000;
+                    document.getElementById('sellSharesInput').value = 1;
+                    document.getElementById('sellSharesDisplay').textContent = 1;
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast('Error', data.message || 'Transfer failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
+            });
     };
 
     function checkScPaymentMethodQr() {
@@ -809,13 +843,13 @@
     }
 
     // ── Tom Select Initialization ────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         if (typeof TomSelect !== 'undefined') {
             // Manage Share Capital member select
             new TomSelect('#manage-share-member-select', {
                 maxOptions: 200,
                 placeholder: 'Search for a member...',
-                onChange: function(value) {
+                onChange: function (value) {
                     updateMemberShares();
                 }
             });
@@ -824,7 +858,7 @@
             new TomSelect('#sell-shares-seller-select', {
                 maxOptions: 200,
                 placeholder: 'Search for a seller...',
-                onChange: function(value) {
+                onChange: function (value) {
                     fetchSellerBalance(value);
                 }
             });
@@ -852,7 +886,8 @@
                         <p class="text-xs text-gray-500">Review and act on this deposit request</p>
                     </div>
                 </div>
-                <button data-action="closeModal" data-arg='["scDepositDetailModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["scDepositDetailModal"]'
+                    class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -908,8 +943,8 @@
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
             <button data-action="openScVoidConfirm" id="scVoidBtn"
                 class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors flex items-center gap-2">
-                <i data-lucide="x-circle" class="w-4 h-4"></i>
-                Void Deposit
+                <i data-lucide="undo-2" class="w-4 h-4"></i>
+                Mark as Returned
             </button>
             <button data-action="confirmCompleteSCDeposit" id="scCompleteBtn"
                 class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
@@ -930,11 +965,12 @@
                         <i data-lucide="alert-triangle" class="w-5 h-5 text-danger-600"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-gray-900">Void Share Capital Deposit</h2>
-                        <p class="text-xs text-gray-500">Are you sure you want to void this deposit?</p>
+                        <h2 class="text-xl font-bold text-gray-900">Return Share Capital Deposit</h2>
+                        <p class="text-xs text-gray-500">Are you sure you want to mark this deposit as returned?</p>
                     </div>
                 </div>
-                <button data-action="closeModal" data-arg='["scVoidConfirmModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["scVoidConfirmModal"]'
+                    class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -953,7 +989,8 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Reason for Voiding</label>
-                <select id="scVoidReason" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-danger-500 focus:border-danger-500">
+                <select id="scVoidReason"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-danger-500 focus:border-danger-500">
                     <option value="" disabled selected>Select a reason...</option>
                     <option value="wrong_amount">Wrong amount entered</option>
                     <option value="duplicate_payment">Duplicate payment</option>
@@ -965,7 +1002,9 @@
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button data-action="openScDetailFromVoid" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go Back</button>
+            <button data-action="openScDetailFromVoid"
+                class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go
+                Back</button>
             <button id="scVoidConfirmBtn" data-action="submitSCVoid" disabled
                 class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <i data-lucide="x-circle" class="w-4 h-4"></i>
@@ -979,7 +1018,7 @@
     let currentSCDepositId = null;
 
     document.querySelectorAll('.sc-deposit-row').forEach(row => {
-        row.addEventListener('click', function() {
+        row.addEventListener('click', function () {
             currentSCDepositId = this.dataset.id;
             document.getElementById('scDetailMember').textContent = this.dataset.member || '—';
             document.getElementById('scDetailShares').textContent = this.dataset.shares + ' shares';
@@ -1011,7 +1050,7 @@
         });
     });
 
-    document.getElementById('scVoidReason').addEventListener('change', function() {
+    document.getElementById('scVoidReason').addEventListener('change', function () {
         document.getElementById('scVoidConfirmBtn').disabled = !this.value;
     });
 
@@ -1049,22 +1088,22 @@
             },
             body: JSON.stringify({ void_reason: reason })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Success', data.message);
-                closeModal('scVoidConfirmModal');
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                showToast('Error', data.message || 'Failed to void deposit');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Success', data.message);
+                    closeModal('scVoidConfirmModal');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('Error', data.message || 'Failed to void deposit');
+                    document.getElementById('scVoidConfirmBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
                 document.getElementById('scVoidConfirmBtn').disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-            document.getElementById('scVoidConfirmBtn').disabled = false;
-        });
+            });
     }
 
     function confirmCompleteSCDeposit() {
@@ -1077,21 +1116,21 @@
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Success', data.message);
-                closeModal('scDepositDetailModal');
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                showToast('Error', data.message || 'Failed to complete deposit');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Success', data.message);
+                    closeModal('scDepositDetailModal');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('Error', data.message || 'Failed to complete deposit');
+                    document.getElementById('scCompleteBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
                 document.getElementById('scCompleteBtn').disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-            document.getElementById('scCompleteBtn').disabled = false;
-        });
+            });
     }
 </script>

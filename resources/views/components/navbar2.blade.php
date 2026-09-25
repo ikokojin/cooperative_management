@@ -1,3 +1,13 @@
+@php
+    $navSeminarsComplete = false;
+    if (auth()->check()) {
+        $navSeminarCompletion = \App\Models\SeminarCompletions_tbl::where('user_id', auth()->id())->first();
+        $navSeminarsComplete = $navSeminarCompletion
+            && $navSeminarCompletion->pmes_completed
+            && $navSeminarCompletion->fundamentals_completed
+            && $navSeminarCompletion->finance_completed;
+    }
+@endphp
 <nav id="dashboard-nav"
     class="tw:flex justify-content-between align-items-center tw:w-[100%] tw:h-[80px] tw:bg-[#ffffff]">
     <script src="{{ asset('js/csp-events.js') }}"></script>
@@ -259,10 +269,12 @@
                             Reset Password
                         </a>
                     </li>
-                    <li>
-                        <div class="card-icon"><i class="fa fa-circle-question"></i></div>
-                        <a href="{{ route('Faqs') }}">FAQs</a>
-                    </li>
+                    @if($navSeminarsComplete)
+                        <li>
+                            <div class="card-icon"><i class="fa fa-circle-question"></i></div>
+                            <a href="{{ route('Faqs') }}">FAQs</a>
+                        </li>
+                    @endif
                     <li>
                         <div class="card-icon"><i class="fa fa-sign-out"></i></div>
                         <a href="{{ route('logout') }}">Logout</a>

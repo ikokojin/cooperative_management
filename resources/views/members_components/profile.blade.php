@@ -1,3 +1,10 @@
+@php
+    $profileSeminarCompletion = \App\Models\SeminarCompletions_tbl::where('user_id', $user->id)->first();
+    $profileSeminarsComplete = $profileSeminarCompletion
+        && $profileSeminarCompletion->pmes_completed
+        && $profileSeminarCompletion->fundamentals_completed
+        && $profileSeminarCompletion->finance_completed;
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
@@ -106,395 +113,398 @@
                     <div class="perforation"></div>
                 </div>
 
-                <div class="parent-information">
-                    <div class="personal-sub-information">
-                        <div class="personal-information-1">
-                            <div class="personal-information-header">
-                                <div class="header-text">
-                                    <div class="header-icon">
-                                        <i class="fa fa-user"></i>
+                @if($profileSeminarsComplete)
+
+                    <div class="parent-information">
+                        <div class="personal-sub-information">
+                            <div class="personal-information-1">
+                                <div class="personal-information-header">
+                                    <div class="header-text">
+                                        <div class="header-icon">
+                                            <i class="fa fa-user"></i>
+                                        </div>
+                                        <h4>Personal Information</h4>
                                     </div>
-                                    <h4>Personal Information</h4>
+                                    <div>
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editPersonalInfoModal">
+                                            Edit
+                                        </a>
+                                    </div>
                                 </div>
-                                <div>
-                                    <a href="#" data-bs-toggle="modal" data-bs-target="#editPersonalInfoModal">
-                                        Edit
-                                    </a>
+                                <div class="personal-information-body">
+                                    <div class="information">
+                                        <span>Full name</span>
+                                        <strong>{{ $user->first_name }}
+                                            {{ $user->middle_name ? $user->middle_name . ' ' : '' }}{{ $user->last_name }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Date of Birth</span>
+                                        <strong>{{ $otherinfo->date_of_birth ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Sex</span>
+                                        <strong>{{ $otherinfo->sex ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Civil Status</span>
+                                        <strong>{{ $otherinfo->civil_status ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Mobile Number</span>
+                                        <strong>{{ $otherinfo->contact_no ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Email</span>
+                                        <strong>{{ $email }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Present Address</span>
+                                        <strong>{{ $otherinfo->present_address ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Permanent Address</span>
+                                        <strong>{{ $otherinfo->permanent_address ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Weight</span>
+                                        <strong>{{ $otherinfo->weight ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Height</span>
+                                        <strong>{{ $otherinfo->height ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Blood Type</span>
+                                        <strong>{{ $otherinfo->blood_type ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Citizenship</span>
+                                        <strong>{{ $otherinfo->citizenship ?? 'N/A' }}</strong>
+                                    </div>
+                                </div>
+                                <!-- <div class="more-button">
+                                                <button>
+                                                    View More
+                                                    <i class="fa fa-arrow-right"></i>
+                                                </button>
+                                            </div> -->
+                            </div>
+
+                            <div class="personal-information-1">
+                                <div class="personal-information-header">
+                                    <div class="header-text">
+                                        <div class="header-icon">
+                                            <i class="fa fa-briefcase"></i>
+                                        </div>
+                                        <h4>Employment & Membership</h4>
+                                    </div>
+                                    <div>
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editEmploymentModal">
+                                            Edit
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="personal-information-body">
+                                    <div class="information">
+                                        <span>Role</span>
+                                        <strong>{{ $user->role ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Monthly Income</span>
+                                        <strong>{{ $savedMonthlyIncome ? '₱' . number_format($savedMonthlyIncome, 2) : 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Member Category</span>
+                                        <strong>{{ $otherinfo->membership_category ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Status</span>
+                                        <strong>{{ $otherinfo->membership_status ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    {{-- <div class="information">
+                                        <span>Employer</span>
+                                        <strong>{{ $otherinfo->employer ?? 'N/A' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Standing</span>
+                                        <strong>{{ $user->status ?? 'N/A' }}</strong>
+                                    </div> --}}
                                 </div>
                             </div>
-                            <div class="personal-information-body">
-                                <div class="information">
-                                    <span>Full name</span>
-                                    <strong>{{ $user->first_name }}
-                                        {{ $user->middle_name ? $user->middle_name . ' ' : '' }}{{ $user->last_name }}</strong>
-                                </div>
 
-                                <div class="information">
-                                    <span>Date of Birth</span>
-                                    <strong>{{ $otherinfo->date_of_birth ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Sex</span>
-                                    <strong>{{ $otherinfo->sex ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Civil Status</span>
-                                    <strong>{{ $otherinfo->civil_status ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Mobile Number</span>
-                                    <strong>{{ $otherinfo->contact_no ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Email</span>
-                                    <strong>{{ $email }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Present Address</span>
-                                    <strong>{{ $otherinfo->present_address ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Permanent Address</span>
-                                    <strong>{{ $otherinfo->permanent_address ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Weight</span>
-                                    <strong>{{ $otherinfo->weight ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Height</span>
-                                    <strong>{{ $otherinfo->height ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Blood Type</span>
-                                    <strong>{{ $otherinfo->blood_type ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Citizenship</span>
-                                    <strong>{{ $otherinfo->citizenship ?? 'N/A' }}</strong>
-                                </div>
-                            </div>
-                            <!-- <div class="more-button">
-                                <button>
-                                    View More
-                                    <i class="fa fa-arrow-right"></i>
-                                </button>
-                            </div> -->
-                        </div>
-
-                        <div class="personal-information-1">
-                            <div class="personal-information-header">
-                                <div class="header-text">
-                                    <div class="header-icon">
-                                        <i class="fa fa-briefcase"></i>
+                            <div class="personal-information-1">
+                                <div class="personal-information-header">
+                                    <div class="header-text">
+                                        <div class="header-icon">
+                                            <i class="fa fa-folder-open"></i>
+                                        </div>
+                                        <h4>Documents on File</h4>
                                     </div>
-                                    <h4>Employment & Membership</h4>
-                                </div>
-                                <div>
-                                    <a href="#" data-bs-toggle="modal" data-bs-target="#editEmploymentModal">
-                                        Edit
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="personal-information-body">
-                                <div class="information">
-                                    <span>Role</span>
-                                    <strong>{{ $user->role ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Monthly Income</span>
-                                    <strong>{{ $savedMonthlyIncome ? '₱' . number_format($savedMonthlyIncome, 2) : 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Member Category</span>
-                                    <strong>{{ $otherinfo->membership_category ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Status</span>
-                                    <strong>{{ $otherinfo->membership_status ?? 'N/A' }}</strong>
-                                </div>
-
-                                {{-- <div class="information">
-                                    <span>Employer</span>
-                                    <strong>{{ $otherinfo->employer ?? 'N/A' }}</strong>
-                                </div>
-
-                                <div class="information">
-                                    <span>Standing</span>
-                                    <strong>{{ $user->status ?? 'N/A' }}</strong>
-                                </div> --}}
-                            </div>
-                        </div>
-
-                        <div class="personal-information-1">
-                            <div class="personal-information-header">
-                                <div class="header-text">
-                                    <div class="header-icon">
-                                        <i class="fa fa-folder-open"></i>
-                                    </div>
-                                    <h4>Documents on File</h4>
-                                </div>
-                                <div>
-                                    <a href="#" data-bs-toggle="modal" data-bs-target="#editDocumentsModal">
-                                        Edit
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="personal-information-body document-body">
-                                @php
-                                    $docs = [
-                                        'SSS ID' => $membergovernIds->sss_id ?? null,
-                                        'Philhealth ID' => $membergovernIds->philhealth_id ?? null,
-                                        'Pag Ibig ID' => $membergovernIds->pagibig_id ?? null,
-                                        'Tin ID' => $membergovernIds->tin_id ?? null,
-                                    ];
-                                @endphp
-                                @foreach($docs as $label => $path)
-                                    <div class="doc-row">
-                                        <i class="fa fa-file-lines doc-icon"></i>
-                                        <div class="doc-name">{{ $label }}</div>
-                                        <div class="doc-meta">
-                                            {{ $path ? 'Uploaded' . ($membergovernIds->updated_at ? ' ' . $membergovernIds->updated_at->format('M d, Y') : '') : 'Not uploaded' }}
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                    <div class="personal-sub-information">
-                        <div class="personal-information-2">
-                            <div class="personal-information-header">
-                                <div class="header-text">
-                                    <div class="header-icon">
-                                        <i class="fa fa-wallet"></i>
-                                    </div>
-                                    <h4>Account Balance</h4>
-                                </div>
-                            </div>
-                            <div class="personal-information-body-2">
-                                <!-- <div class="personal-head">
-                                    <p>Description</p>
-                                    <p>Balance</p>
-                                </div> -->
-                                <div class="personal-parent">
-                                    <div class="item item-share">
-                                        <div class="stat-icon">
-                                            <i class="fa fa-layer-group"></i>
-                                        </div>
-                                        <div class="fw-bold item-value item-value-share">
-                                            <span>Share Capital Account</span>
-                                            <strong>₱{{ number_format($shareCapitalBalance, 2) }}</strong>
-                                        </div>
-                                    </div>
-
-                                    <div class="item item-savings">
-                                        <div class="stat-icon">
-                                            <i class="fa fa-piggy-bank"></i>
-                                        </div>
-                                        <div class="fw-bold item-value item-category-savings">
-                                            <span>Savings Account</span>
-                                            <strong>₱{{ number_format($savingsBalance, 2) }}</strong>
-                                        </div>
-                                    </div>
-
-                                    <div class="item item-loan">
-                                        <div class="stat-icon">
-                                            <i class="fa fa-hand-holding-dollar"></i>
-                                        </div>
-                                        <div class="fw-bold item-value item-category-loan">
-                                            <span>Loan Balance</span>
-                                            <strong>₱{{ number_format($loanBalance, 2) }}</strong>
-                                        </div>
-                                    </div>
-
-                                    <div class="item item-net">
-                                        <div class="fw-bold item-value item-category-net">
-                                            <span>Overall</span>
-                                        </div>
-                                        <div class="stat-delta">₱{{ number_format($overallBalance, 2) }}</div>
+                                    <div>
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editDocumentsModal">
+                                            Edit
+                                        </a>
                                     </div>
                                 </div>
-                                <!-- <div class="personal-footer">
-                                    <div class="item item-net"> 
-                                        <div class="fw-bold item-category-net">
-                                            <span>Net Standing</span>
-
-                                            <strong>₱51,930.00</strong>
+                                <div class="personal-information-body document-body">
+                                    @php
+                                        $docs = [
+                                            'SSS ID' => $membergovernIds->sss_id ?? null,
+                                            'Philhealth ID' => $membergovernIds->philhealth_id ?? null,
+                                            'Pag Ibig ID' => $membergovernIds->pagibig_id ?? null,
+                                            'Tin ID' => $membergovernIds->tin_id ?? null,
+                                        ];
+                                    @endphp
+                                    @foreach($docs as $label => $path)
+                                        <div class="doc-row">
+                                            <i class="fa fa-file-lines doc-icon"></i>
+                                            <div class="doc-name">{{ $label }}</div>
+                                            <div class="doc-meta">
+                                                {{ $path ? 'Uploaded' . ($membergovernIds->updated_at ? ' ' . $membergovernIds->updated_at->format('M d, Y') : '') : 'Not uploaded' }}
+                                            </div>
                                         </div>
-                                        <div class="fw-bold item-value-net">₱51,930.00</div>
-                                    </div>
-                                </div> -->
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
-
-                        <div class="personal-information-2">
-                            <div class="personal-information-header">
-                                <div class="header-text">
-                                    <div class="header-icon">
-                                        <i class="fa fa-chart-simple"></i>
+                        <div class="personal-sub-information">
+                            <div class="personal-information-2">
+                                <div class="personal-information-header">
+                                    <div class="header-text">
+                                        <div class="header-icon">
+                                            <i class="fa fa-wallet"></i>
+                                        </div>
+                                        <h4>Account Balance</h4>
                                     </div>
-                                    <h4>Loan Repayment Progress</h4>
+                                </div>
+                                <div class="personal-information-body-2">
+                                    <!-- <div class="personal-head">
+                                                    <p>Description</p>
+                                                    <p>Balance</p>
+                                                </div> -->
+                                    <div class="personal-parent">
+                                        <div class="item item-share">
+                                            <div class="stat-icon">
+                                                <i class="fa fa-layer-group"></i>
+                                            </div>
+                                            <div class="fw-bold item-value item-value-share">
+                                                <span>Share Capital Account</span>
+                                                <strong>₱{{ number_format($shareCapitalBalance, 2) }}</strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="item item-savings">
+                                            <div class="stat-icon">
+                                                <i class="fa fa-piggy-bank"></i>
+                                            </div>
+                                            <div class="fw-bold item-value item-category-savings">
+                                                <span>Savings Account</span>
+                                                <strong>₱{{ number_format($savingsBalance, 2) }}</strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="item item-loan">
+                                            <div class="stat-icon">
+                                                <i class="fa fa-hand-holding-dollar"></i>
+                                            </div>
+                                            <div class="fw-bold item-value item-category-loan">
+                                                <span>Loan Balance</span>
+                                                <strong>₱{{ number_format($loanBalance, 2) }}</strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="item item-net">
+                                            <div class="fw-bold item-value item-category-net">
+                                                <span>Overall</span>
+                                            </div>
+                                            <div class="stat-delta">₱{{ number_format($overallBalance, 2) }}</div>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="personal-footer">
+                                                    <div class="item item-net"> 
+                                                        <div class="fw-bold item-category-net">
+                                                            <span>Net Standing</span>
+
+                                                            <strong>₱51,930.00</strong>
+                                                        </div>
+                                                        <div class="fw-bold item-value-net">₱51,930.00</div>
+                                                    </div>
+                                                </div> -->
                                 </div>
                             </div>
-                            <div class="personal-information-body-2">
 
-                                <div class="parent-sub-progress">
-                                    @foreach($loansByType as $type => $data)
-                                        <a href="{{ route('LoanApplication') }}"
-                                            style="text-decoration:none; color:inherit; display:block;">
-                                            <div class="progress-repay progress-personal" style="cursor:pointer;">
-                                                <div class="progress-header">
-                                                    <strong>{{ $type }}</strong>
-                                                    <span>₱{{ number_format($data['balance'], 2) }}</span>
-                                                </div>
-                                                <div class="progress-body">
-                                                    <div class="parent-progress">
-                                                        <div class="progress" style="width: {{ $data['progress'] }}%;">
+                            <div class="personal-information-2">
+                                <div class="personal-information-header">
+                                    <div class="header-text">
+                                        <div class="header-icon">
+                                            <i class="fa fa-chart-simple"></i>
+                                        </div>
+                                        <h4>Loan Repayment Progress</h4>
+                                    </div>
+                                </div>
+                                <div class="personal-information-body-2">
+
+                                    <div class="parent-sub-progress">
+                                        @foreach($loansByType as $type => $data)
+                                            <a href="{{ route('LoanApplication') }}"
+                                                style="text-decoration:none; color:inherit; display:block;">
+                                                <div class="progress-repay progress-personal" style="cursor:pointer;">
+                                                    <div class="progress-header">
+                                                        <strong>{{ $type }}</strong>
+                                                        <span>₱{{ number_format($data['balance'], 2) }}</span>
+                                                    </div>
+                                                    <div class="progress-body">
+                                                        <div class="parent-progress">
+                                                            <div class="progress" style="width: {{ $data['progress'] }}%;">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </a>
-                                    @endforeach
-                                </div>
+                                            </a>
+                                        @endforeach
+                                    </div>
 
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                @endif
 
-                @php
-                    $resignation = \App\Models\ResignationRequest_tbl::where('user_id', $user->id)->latest()->first();
-                    $resStatus = $resignation->status ?? null;
-                    $userStatus = strtolower((string) ($user->status ?? 'active'));
+                @if($profileSeminarsComplete)
+                    @php
+                        $resignation = \App\Models\ResignationRequest_tbl::where('user_id', $user->id)->latest()->first();
+                        $resStatus = $resignation->status ?? null;
+                        $userStatus = strtolower((string) ($user->status ?? 'active'));
 
-                    // Block new requests while one is pending, or after an approved resignation
-                    // (until the member is reactivated and status becomes 'active' again)
-                    $resPending = $resStatus === 'pending';
-                    $resApproved = $resStatus === 'approved' && $userStatus !== 'active';
-                    $resBlocked = $resPending || $resApproved;
-                    $resRejected = $resStatus === 'rejected' && !$resBlocked;
+                        // Block new requests while one is pending, or after an approved resignation
+                        // (until the member is reactivated and status becomes 'active' again)
+                        $resPending = $resStatus === 'pending';
+                        $resApproved = $resStatus === 'approved' && $userStatus !== 'active';
+                        $resBlocked = $resPending || $resApproved;
+                        $resRejected = $resStatus === 'rejected' && !$resBlocked;
 
-                    $submittedAt = $resignation?->created_at?->format('M d, Y');
-                    $releaseDate = $resignation?->release_date ? \Carbon\Carbon::parse($resignation->release_date)->format('M d, Y') : null;
-                @endphp
+                        $submittedAt = $resignation?->created_at?->format('M d, Y');
+                        $releaseDate = $resignation?->release_date ? \Carbon\Carbon::parse($resignation->release_date)->format('M d, Y') : null;
+                    @endphp
 
-                @if($resPending)
-                    {{-- STATE 1: Request submitted, waiting for admin review --}}
-                    <div class="main-personal-card-resign"
-                        style="margin-top: 1.5rem; border: 1px solid #fde68a; background: #fffbeb; padding: 20px; border-radius: 12px;">
-                        <div
-                            style="" class="resign-body">
-                            <div class="resign-sub-body">
-                                <div
-                                    style="width:44px; height:44px; border-radius:50%; background:#fef3c7; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa fa-hourglass-half" style="color:#d97706; font-size:18px;"></i>
+                    @if($resPending)
+                        {{-- STATE 1: Request submitted, waiting for admin review --}}
+                        <div class="main-personal-card-resign"
+                            style="margin-top: 1.5rem; border: 1px solid #fde68a; background: #fffbeb; padding: 20px; border-radius: 12px;">
+                            <div style="" class="resign-body">
+                                <div class="resign-sub-body">
+                                    <div
+                                        style="width:44px; height:44px; border-radius:50%; background:#fef3c7; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fa fa-hourglass-half" style="color:#d97706; font-size:18px;"></i>
+                                    </div>
+                                    <div>
+                                        <h4 style="color:#b45309; margin:0 0 4px; font-size:19px; font-weight:600;">Resignation
+                                            Request In Process</h4>
+                                        <p style="color:#1e293b; margin:0; font-size:13.5px; max-width:520px;">
+                                            Your request{{ $submittedAt ? ' submitted on ' . $submittedAt : '' }} is being
+                                            reviewed by the admin.
+                                            You will be notified once a decision is made.
+                                        </p>
+                                    </div>
+                                </div>
+                                <button type="button" disabled
+                                    style="background:#e5e7eb; color:#9ca3af; border:none; padding:10px 20px; border-radius:8px; cursor:not-allowed; font-weight:600; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:14.5px;">
+                                    <i class="fa fa-clock"></i>
+                                    <span>Request Pending</span>
+                                </button>
+                            </div>
+
+                            <div
+                                style="display:flex; gap:24px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px dashed #fcd34d; font-size:13px;">
+                                <div>
+                                    <span style="color:#6b7280; display:block;">Status</span>
+                                    <strong style="color:#b45309;">Pending Review</strong>
                                 </div>
                                 <div>
-                                    <h4 style="color:#b45309; margin:0 0 4px; font-size:19px; font-weight:600;">Resignation
-                                        Request In Process</h4>
-                                    <p style="color:#1e293b; margin:0; font-size:13.5px; max-width:520px;">
-                                        Your request{{ $submittedAt ? ' submitted on ' . $submittedAt : '' }} is being
-                                        reviewed by the admin.
-                                        You will be notified once a decision is made.
-                                    </p>
+                                    <span style="color:#6b7280; display:block;">Share Capital</span>
+                                    <strong
+                                        style="color:#111827;">{{ $resignation->withdraw_share_capital ? 'Withdraw (60-day holding)' : 'Leave with cooperative' }}</strong>
                                 </div>
                             </div>
-                            <button type="button" disabled
-                                style="background:#e5e7eb; color:#9ca3af; border:none; padding:10px 20px; border-radius:8px; cursor:not-allowed; font-weight:600; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:14.5px;">
-                                <i class="fa fa-clock"></i>
-                                <span>Request Pending</span>
-                            </button>
                         </div>
 
-                        <div
-                            style="display:flex; gap:24px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px dashed #fcd34d; font-size:13px;">
-                            <div>
-                                <span style="color:#6b7280; display:block;">Status</span>
-                                <strong style="color:#b45309;">Pending Review</strong>
-                            </div>
-                            <div>
-                                <span style="color:#6b7280; display:block;">Share Capital</span>
-                                <strong
-                                    style="color:#111827;">{{ $resignation->withdraw_share_capital ? 'Withdraw (60-day holding)' : 'Leave with cooperative' }}</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                @elseif($resApproved)
-                    {{-- STATE 2: Approved --}}
-                    <div class="main-personal-card"
-                        style="margin-top: 1.5rem; border: 1px solid #bfdbfe; background: #eff6ff; padding: 20px; border-radius: 12px;">
-                        <div
-                            style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
-                            <div style="display:flex; align-items:center; gap:14px;">
-                                <div
-                                    style="width:44px; height:44px; border-radius:50%; background:#dbeafe; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa fa-circle-check" style="color:#2563eb; font-size:18px;"></i>
+                    @elseif($resApproved)
+                        {{-- STATE 2: Approved --}}
+                        <div class="main-personal-card"
+                            style="margin-top: 1.5rem; border: 1px solid #bfdbfe; background: #eff6ff; padding: 20px; border-radius: 12px;">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+                                <div style="display:flex; align-items:center; gap:14px;">
+                                    <div
+                                        style="width:44px; height:44px; border-radius:50%; background:#dbeafe; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fa fa-circle-check" style="color:#2563eb; font-size:18px;"></i>
+                                    </div>
+                                    <div>
+                                        <h4 style="color:#1d4ed8; margin:0 0 4px; font-size:19px; font-weight:600;">Resignation
+                                            Approved</h4>
+                                        <p style="color:#1e293b; margin:0; font-size:13.5px; max-width:520px;">
+                                            @if($resignation->withdraw_share_capital && !$resignation->is_released)
+                                                Your share capital will be released after the 60-day holding
+                                                period{{ $releaseDate ? ' (on ' . $releaseDate . ')' : '' }}.
+                                            @elseif($resignation->withdraw_share_capital)
+                                                Your share capital has been released. Thank you for being part of the cooperative.
+                                            @else
+                                                Your resignation was approved. Your share capital remains with the cooperative.
+                                            @endif
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 style="color:#1d4ed8; margin:0 0 4px; font-size:19px; font-weight:600;">Resignation
-                                        Approved</h4>
-                                    <p style="color:#1e293b; margin:0; font-size:13.5px; max-width:520px;">
-                                        @if($resignation->withdraw_share_capital && !$resignation->is_released)
-                                            Your share capital will be released after the 60-day holding
-                                            period{{ $releaseDate ? ' (on ' . $releaseDate . ')' : '' }}.
-                                        @elseif($resignation->withdraw_share_capital)
-                                            Your share capital has been released. Thank you for being part of the cooperative.
-                                        @else
-                                            Your resignation was approved. Your share capital remains with the cooperative.
-                                        @endif
-                                    </p>
-                                </div>
+                                <button type="button" disabled
+                                    style="background:#e5e7eb; color:#9ca3af; border:none; padding:10px 20px; border-radius:8px; cursor:not-allowed; font-weight:600; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:14.5px;">
+                                    <i class="fa fa-lock"></i>
+                                    <span>Already Requested</span>
+                                </button>
                             </div>
-                            <button type="button" disabled
-                                style="background:#e5e7eb; color:#9ca3af; border:none; padding:10px 20px; border-radius:8px; cursor:not-allowed; font-weight:600; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:14.5px;">
-                                <i class="fa fa-lock"></i>
-                                <span>Already Requested</span>
-                            </button>
                         </div>
-                    </div>
 
-                @else
-                    {{-- STATE 3: No request (or previous one rejected) → normal form --}}
-                    <div class="main-personal-card-resign"
-                        style="">
-                        <div style="width: 100%;">
-                            <h4 style="color: #dc2626; margin: 0 0 5px; font-size: 19px; font-weight: 600;">Leave the
-                                Cooperative?</h4>
-                            <p style="color: #1e293b; margin: 0; font-size: 13.5px; width: 100%; max-width: 500px;">
-                                If you wish to resign, submit a resignation request. A 60-day holding period applies for
-                                share capital withdrawal.
-                            </p>
-                            @if($resRejected)
-                                <p style="color:#dc2626; margin:8px 0 0; font-size:13px;">
-                                    <i class="fa fa-circle-info"></i>
-                                    Your previous request was not
-                                    approved{{ $resignation->rejection_reason ? ': ' . $resignation->rejection_reason : '.' }}
+                    @else
+                        {{-- STATE 3: No request (or previous one rejected) → normal form --}}
+                        <div class="main-personal-card-resign" style="">
+                            <div style="width: 100%;">
+                                <h4 style="color: #dc2626; margin: 0 0 5px; font-size: 19px; font-weight: 600;">Leave the
+                                    Cooperative?</h4>
+                                <p style="color: #1e293b; margin: 0; font-size: 13.5px; width: 100%; max-width: 500px;">
+                                    If you wish to resign, submit a resignation request. A 60-day holding period applies for
+                                    share capital withdrawal.
                                 </p>
-                            @endif
+                                @if($resRejected)
+                                    <p style="color:#dc2626; margin:8px 0 0; font-size:13px;">
+                                        <i class="fa fa-circle-info"></i>
+                                        Your previous request was not
+                                        approved{{ $resignation->rejection_reason ? ': ' . $resignation->rejection_reason : '.' }}
+                                    </p>
+                                @endif
+                            </div>
+                            <div>
+                                <button type="button" data-bs-toggle="modal" data-bs-target="#profileResignModal"
+                                    style="background: #dc2626; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 14.5px;">
+                                    <i class="fa fa-sign-out-alt"></i>
+                                    <span>Request Resignation</span>
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <button type="button" data-bs-toggle="modal" data-bs-target="#profileResignModal"
-                                style="background: #dc2626; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 14.5px;">
-                                <i class="fa fa-sign-out-alt"></i>
-                                <span>Request Resignation</span>
-                            </button>
-                        </div>
-                    </div>
+                    @endif
                 @endif
             </div>
         </div>
@@ -1162,7 +1172,7 @@ data-API, without needing a global `bootstrap` object --}}
         }
     });
 
-    @if($resPending)
+    @if($profileSeminarsComplete && $resPending)
         // While the request is pending, re-check periodically. Once the admin
         // approves, the reload hits the middleware and lands on the inactive page.
         setInterval(() => window.location.reload(), 30000);

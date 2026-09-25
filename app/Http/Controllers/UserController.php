@@ -1835,17 +1835,11 @@ class UserController extends Controller
         }
 
         if ($transaction->type !== 'deposit') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only deposit transactions can be voided.',
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'Only deposit transactions can be returned.'], 400);
         }
 
         if (strtolower($transaction->status) !== 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only pending deposits can be voided.',
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'Only pending deposits can be returned.'], 400);
         }
 
         $transaction->update([
@@ -1856,26 +1850,26 @@ class UserController extends Controller
         ]);
 
         $savingsAccount = savings_account_tbl::findOrFail($transaction->savings_account_id);
-        $memberId = $savingsAccount->user_id;
+        $reasonText = $this->returnReasonLabel($request->void_reason);
 
         \App\Models\Notifications_tbl::create([
-            'user_id' => $memberId,
-            'title' => 'Savings Deposit Voided',
-            'message' => 'Your savings deposit of ₱' . number_format($transaction->amount, 2) . ' has been voided by the admin. Reason: ' . str_replace('_', ' ', ucfirst($transaction->void_reason)) . '. (Ref: ' . $transaction->reference_no . ')',
+            'user_id' => $savingsAccount->user_id,
+            'title' => 'Savings Deposit Returned',
+            'message' => 'Your savings deposit of ₱' . number_format($transaction->amount, 2) . " has been returned by the admin. Reason: {$reasonText}. (Ref: {$transaction->reference_no})",
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
-            'Voided Savings Deposit',
-            "Voided deposit of ₱{$transaction->amount} (Ref: {$transaction->reference_no}). Reason: {$transaction->void_reason}",
+            'Returned Savings Deposit',
+            "Returned deposit of ₱{$transaction->amount} (Ref: {$transaction->reference_no}). Reason: {$reasonText}",
             'savings',
             $id
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Deposit voided successfully. Member has been notified.',
+            'message' => 'Deposit marked as returned. Member has been notified.',
         ]);
     }
 
@@ -2516,17 +2510,11 @@ class UserController extends Controller
         }
 
         if ($transaction->type !== 'Deposit') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only deposit transactions can be voided.',
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'Only deposit transactions can be returned.'], 400);
         }
 
         if ($transaction->status !== 'Pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only pending deposits can be voided.',
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'Only pending deposits can be returned.'], 400);
         }
 
         $transaction->update([
@@ -2537,26 +2525,26 @@ class UserController extends Controller
         ]);
 
         $scAccount = share_capital_account_tbl::findOrFail($transaction->share_capital_account_id);
-        $memberId = $scAccount->user_id;
+        $reasonText = $this->returnReasonLabel($request->void_reason);
 
         \App\Models\Notifications_tbl::create([
-            'user_id' => $memberId,
-            'title' => 'Share Capital Deposit Voided',
-            'message' => 'Your share capital deposit of ' . $transaction->shares . ' shares (₱' . number_format($transaction->total_amount, 2) . ') has been voided. Reason: ' . str_replace('_', ' ', ucfirst($transaction->void_reason)) . '. (Ref: ' . $transaction->reference_no . ')',
+            'user_id' => $scAccount->user_id,
+            'title' => 'Share Capital Deposit Returned',
+            'message' => 'Your share capital deposit of ' . $transaction->shares . ' shares (₱' . number_format($transaction->total_amount, 2) . ") has been returned. Reason: {$reasonText}. (Ref: {$transaction->reference_no})",
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
-            'Voided Share Capital Deposit',
-            "Voided deposit of {$transaction->shares} shares / ₱{$transaction->total_amount} (Ref: {$transaction->reference_no}). Reason: {$transaction->void_reason}",
+            'Returned Share Capital Deposit',
+            "Returned deposit of {$transaction->shares} shares / ₱{$transaction->total_amount} (Ref: {$transaction->reference_no}). Reason: {$reasonText}",
             'share_capital',
             $id
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Deposit voided successfully. Member has been notified.',
+            'message' => 'Deposit marked as returned. Member has been notified.',
         ]);
     }
 
@@ -3956,14 +3944,66 @@ class UserController extends Controller
         ));
     }
 
+    /**
+     * Single source of truth for a loan's display status (Active / Overdue / Completed).
+     * Used by BOTH the loan grid cards and the loan detail hero so they can never
+     * disagree on the same loan's status again.
+     */
+    private function resolveLoanStatusLabel($loan, $status): string
+    {
+        if ($loan->status === 'Completed') {
+            return 'Completed';
+        }
+
+        if (!$status) {
+            return 'Active';
+        }
+
+        $totalPayments = (int) ($status->total_payments ?? 0);
+        $paymentsMade = (int) ($status->payments_made ?? 0);
+
+        if ($totalPayments <= 0 || $paymentsMade >= $totalPayments) {
+            return 'Active';
+        }
+
+        $today = now()->timezone('Asia/Manila');
+
+        $scheduleByNumber = DB::table('lending_installment_schedules_tbls')
+            ->where('lending_id', $loan->id)
+            ->get()
+            ->keyBy('payment_number');
+
+        $nextInstallmentNumber = $paymentsMade + 1;
+        $anchorDueDate = $status->due_date
+            ? \Carbon\Carbon::parse($status->due_date)
+            : \Carbon\Carbon::parse($loan->created_at)->addDays($nextInstallmentNumber * self::PAYMENT_INTERVAL_DAYS);
+
+        for ($i = 1; $i <= $totalPayments; $i++) {
+            $row = $scheduleByNumber[$i] ?? null;
+            $isPaid = $row
+                ? (float) $row->amount_paid >= (float) $row->amount_due
+                : $i <= $paymentsMade;
+
+            if ($isPaid) {
+                continue;
+            }
+
+            $dueDateForRow = $anchorDueDate->copy()
+                ->addDays(($i - $nextInstallmentNumber) * self::PAYMENT_INTERVAL_DAYS);
+
+            return $dueDateForRow->lt($today) ? 'Overdue' : 'Active';
+        }
+
+        return 'Active';
+    }
+
     public function dashboard_payments(Request $request)
     {
         $method = $request->get('method', 'all');
 
         $alliedPendingFilter = $this->alliedPendingVisibilityClosure();
 
-        $query = lending_repayments_tbl::with(['lending.user', 'user'])
-            ->where('status', '!=', 'voided');
+        $query = lending_repayments_tbl::with(['lending.user', 'user']);
 
         if ($method !== 'all') {
             $query->where('payment_method', $method);
@@ -4726,24 +4766,34 @@ class UserController extends Controller
             'voided_at' => now(),
         ]);
 
+        $reasonLabels = [
+            'wrong_amount' => 'Wrong amount entered',
+            'duplicate_payment' => 'Duplicate payment',
+            'fraudulent' => 'Fraudulent / suspicious transaction',
+            'other_member' => 'Sent by wrong member',
+            'technical_error' => 'System / technical error',
+            'other' => 'Other',
+        ];
+        $reasonText = $this->returnReasonLabel($request->void_reason);
+
         \App\Models\Notifications_tbl::create([
             'user_id' => $repayment->user_id,
-            'title' => 'Loan Repayment Voided',
-            'message' => 'Your loan repayment of ₱' . number_format($repayment->amount_paid, 2) . " has been voided. Reason: {$request->void_reason}. (Ref: {$repayment->reference_no})",
+            'title' => 'Loan Repayment Returned',
+            'message' => 'Your loan repayment of ₱' . number_format($repayment->amount_paid, 2) . " has been returned. Reason: {$reasonText}. (Ref: {$repayment->reference_no})",
             'category' => 'inbox',
             'is_important' => true,
         ]);
 
         AuditLog::log(
-            'Voided Loan Repayment',
-            "Voided repayment of ₱{$repayment->amount_paid} (Ref: {$repayment->reference_no}) on loan (ID: {$repayment->lending_id}). Reason: {$request->void_reason}",
+            'Returned Loan Repayment',
+            "Returned repayment of ₱{$repayment->amount_paid} (Ref: {$repayment->reference_no}) on loan (ID: {$repayment->lending_id}). Reason: {$reasonText}",
             'loan',
             $repayment->lending_id
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Repayment voided successfully. Member has been notified.',
+            'message' => 'Repayment marked as returned. Member has been notified.',
         ]);
     }
 
@@ -4752,6 +4802,20 @@ class UserController extends Controller
      * from everyone except the General Manager. Returns null for the GM (or
      * when there are no Allied Workers) so the caller skips the filter.
      */
+    private function returnReasonLabel(?string $key): string
+    {
+        $labels = [
+            'wrong_amount' => 'Wrong amount entered',
+            'duplicate_payment' => 'Duplicate payment',
+            'fraudulent' => 'Fraudulent / suspicious transaction',
+            'other_member' => 'Sent by wrong member',
+            'technical_error' => 'System / technical error',
+            'other' => 'Other',
+        ];
+
+        return $labels[$key] ?? ($key ?: 'No reason provided');
+    }
+
     private function alliedPendingVisibilityClosure(): ?\Closure
     {
         if (\App\Services\SoDGuard::isGeneralManager()) {

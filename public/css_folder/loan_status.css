@@ -1906,6 +1906,13 @@ div.status-alert-text {
     border-color: rgba(220, 53, 69, .3);
 }
 
+/* The base ".status" text color above is set with 5 chained classes
+   (specificity 0,5,0), which beats a plain ".status-overdue" rule
+   (0,1,0). Match that same chain here so overdue red actually wins. */
+.container-fluid main .parent-main .loan-hero .left-hero .status.status-overdue {
+    color: #dc3545;
+}
+
 .status-overdue::before {
     background-color: #dc3545 !important;
 }

@@ -208,25 +208,9 @@
 
                         <h2>Good day, {{ $username }}! <span>Here's your overview</span></h2>
 
-                        @if ($username)
+                        {{-- @if ($username)
                             <div class="main-header">
-                                {{-- <div class="main-intro-card">
-                                    <img src="images/cooperative-home-banner1.jpg" alt="">
-                                </div> --}}
                                 <div class="main-intro">
-                                    {{-- <div class="main-left">
-                                        <div class="left-icon">
-
-                                        </div>
-                                        <div class="left-text">
-                                            <span>Member Cooperative Assistant</span>
-                                            <p>Your money are growing steadily. Every peso you save today builds a stronger
-                                                tomorrow for you and the community.</p>
-                                        </div>
-                                    </div>
-                                    <div class="main-right">
-
-                                    </div> --}}
                                     <div class="main-intro-icon"></div>
                                     <div class="main-intro-text">
                                         <div class="main-intro-header">
@@ -240,16 +224,16 @@
                                         </div>
                                         <p>Got a question about your balance, a loan, or a payment that doesn't look right?
                                             I can help — or you can send a report straight to our team.</p>
-                                        {{-- <button type="button" class="btn-report-problem" data-bs-toggle="modal"
+                                        <button type="button" class="btn-report-problem" data-bs-toggle="modal"
                                             data-bs-target="#reportProblemModal"
                                             style="margin-top:10px; display:inline-flex; align-items:center; gap:8px; padding:9px 16px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
                                             <i class="fa-solid fa-flag"></i>
                                             <span>Report a Problem</span>
-                                        </button> --}}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        @endif
+                        @endif --}}
 
 
 
@@ -522,11 +506,11 @@
                                                             {{ $tx['amount'] >= 0 ? '+' : '-' }}₱{{ number_format(abs($tx['amount']), 2) }}
                                                         </div>
                                                     @endif
-                                                    @if(($tx['status_class'] ?? '') === 'pending')
-                                                        <span style="font-size: 12.5px; color: var(--muted);">
+                                                    {{-- @if(($tx['status_class'] ?? '') === 'pending')
+                                                        <span style="" class="pending-transaction">
                                                             Pending
                                                         </span>
-                                                    @endif
+                                                    @endif --}}
                                                 </div>
                                             </div>
                                         @empty

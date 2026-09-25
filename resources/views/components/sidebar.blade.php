@@ -1,3 +1,13 @@
+@php
+    $navSeminarsComplete = false;
+    if (auth()->check()) {
+        $navSeminarCompletion = \App\Models\SeminarCompletions_tbl::where('user_id', auth()->id())->first();
+        $navSeminarsComplete = $navSeminarCompletion
+            && $navSeminarCompletion->pmes_completed
+            && $navSeminarCompletion->fundamentals_completed
+            && $navSeminarCompletion->finance_completed;
+    }
+@endphp
 <div class="sidebar">
     <div class="sidebar-logo">
         <img src="images/logo2.png" alt="">
@@ -27,22 +37,24 @@
                 <!-- <div class="menu">
                     <p>Loan Management</p>
                 </div> -->
-                <li class="{{ request()->routeIs('LoanApplication') ? 'active' : '' }}">
-                    <a href="{{ route('LoanApplication') }}" title="Loan Application">
-                        <!-- <div class="nav-icon"> -->
-                        <i class="fa fa-file"></i>
-                        <!-- </div> -->
-                        <span>Loan Application</span>
-                    </a>
-                </li>
-                <li class="{{ request()->routeIs('LoanStatus') ? 'active' : '' }}">
-                    <a href="{{ route('LoanStatus') }}" title="Loan Status">
-                        <!-- <div class="nav-icon"> -->
-                        <i class="fa fa-hand-holding-dollar"></i>
-                        <!-- </div> -->
-                        <span>Repayments</span>
-                    </a>
-                </li>
+                @if($navSeminarsComplete)
+                    <li class="{{ request()->routeIs('LoanApplication') ? 'active' : '' }}">
+                        <a href="{{ route('LoanApplication') }}" title="Loan Application">
+                            <!-- <div class="nav-icon"> -->
+                            <i class="fa fa-file"></i>
+                            <!-- </div> -->
+                            <span>Loan Application</span>
+                        </a>
+                    </li>
+                    <li class="{{ request()->routeIs('LoanStatus') ? 'active' : '' }}">
+                        <a href="{{ route('LoanStatus') }}" title="Loan Status">
+                            <!-- <div class="nav-icon"> -->
+                            <i class="fa fa-hand-holding-dollar"></i>
+                            <!-- </div> -->
+                            <span>Repayments</span>
+                        </a>
+                    </li>
+                @endif
                 <!-- <div class="menu">
                     <p>Member Finance</p>
                 </div> -->
@@ -63,12 +75,14 @@
                     <p>Account</p>
                 </div> -->
 
-                <li class="{{ request()->routeIs('Financial') ? 'active' : '' }}">
-                    <a href="{{ route('Financial') }}" title="Financial">
-                        <i class="fa fa-wallet"></i>
-                        <span>Financial</span>
-                    </a>
-                </li>
+                @if($navSeminarsComplete)
+                    <li class="{{ request()->routeIs('Financial') ? 'active' : '' }}">
+                        <a href="{{ route('Financial') }}" title="Financial">
+                            <i class="fa fa-wallet"></i>
+                            <span>Financial</span>
+                        </a>
+                    </li>
+                @endif
 
                 {{-- <li class="{{ request()->routeIs('Seminars') ? 'active' : '' }}">
                     <a href="{{ route('Seminars') }}" title="Seminars">
@@ -105,7 +119,7 @@
                 </li>
 
                 <li class="{{ request()->routeIs('Settings') ? 'active' : '' }}">
-                    <a href="{{ route("Settings") }}">
+                    <a href="{{ route(" Settings") }}">
                         <i class="fa fa-gear"></i>
                         <span>Settings</span>
                     </a>
@@ -152,9 +166,6 @@
                     <div class="fullname">
                         <p style="margin: 0">
                             {{ auth()->user()->first_name ?? '' }}
-                        </p>
-                        <p style="margin: 0">
-                            {{ auth()->user()->last_name ?? '' }}
                         </p>
                     </div>
                     <span>Member #48291</span>

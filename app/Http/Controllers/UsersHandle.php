@@ -497,9 +497,16 @@ class UsersHandle extends Controller
         // ── Loan status rows (holds the NEXT-INSTALLMENT due date, distinct from
         // lending_program_tbls.due_date which is the loan's final maturity date) ──
         $loanStatusByLoanId = DB::table('lending_status_tbls')
-            ->whereIn('lending_id', $loans->where('status', 'Approved')->pluck('id'))
+            ->whereIn('lending_id', $loans->pluck('id'))
             ->get()
             ->keyBy('lending_id');
+
+        $loans = $loans->map(function ($loan) use ($loanStatusByLoanId) {
+            $statusRow = $loanStatusByLoanId->get($loan->id);
+            $loan->card_status = $this->computeLoanCardStatus($loan, $statusRow);
+
+            return $loan;
+        });
 
         $today = Carbon::today();
         $penalizedLoans = [];
@@ -1692,6 +1699,33 @@ class UsersHandle extends Controller
         return view('members_components.my_reports', compact('username', 'email', 'reports'));
     }
 
+    /**
+     * Single source of truth for a loan's display status.
+     * Used for both the list-grid badge and the hero pill so they
+     * can never disagree again.
+     */
+    private function computeLoanCardStatus($loan, $statusRow = null): string
+    {
+        if (strtolower($loan->status) !== 'approved') {
+            return ucfirst($loan->status); // Pending / Declined / etc.
+        }
+
+        // Fully paid off
+        $totalPayments = (int) ($statusRow->total_payments ?? 0);
+        $paymentsMade = (int) ($statusRow->payments_made ?? 0);
+        if ($totalPayments > 0 && $paymentsMade >= $totalPayments) {
+            return 'Completed';
+        }
+
+        // Overdue check — same rule the hero page uses
+        $effectiveDueDate = $statusRow->due_date ?? $loan->due_date;
+        if (!empty($effectiveDueDate) && Carbon::parse($effectiveDueDate)->isPast()) {
+            return 'Overdue';
+        }
+
+        return 'Active';
+    }
+
     public function MarkAllRead(Request $request)
     {
         $memberId = Auth::id();
@@ -1788,16 +1822,15 @@ class UsersHandle extends Controller
         $interestAccruedBalance = 0;
         $totalSavingsBalance = $regularSavingsBalance;
 
-        $regularSavingsSetting = \App\Models\Savings_settings_tbl::where('savings_type', 'Regular Savings')->first();
-        $regularSavingsRate = $regularSavingsSetting->interest_rate ?? 4.00;
-        $regularSavingsFrequency = $regularSavingsSetting->crediting_frequency ?? 'Monthly';
+        $sirSettings = \App\Models\SavingsInterestSetting::getOrCreate();
+        $regularSavingsRate = (float) $sirSettings->annual_rate;
+        $regularSavingsFrequency = $sirSettings->frequency_label;
 
-        $quarterStartMonth = (intdiv(Carbon::now()->month - 1, 3)) * 3 + 1;
-        $quarterStart = Carbon::create(Carbon::now()->year, $quarterStartMonth, 1)->startOfDay();
-        $daysElapsedInQuarter = $quarterStart->diffInDays(Carbon::now()) + 1;
-
+        // Interest building up this month, credited on the 1st of next month
+        $now = Carbon::now();
         $estimatedQuarterInterest = round(
-            $regularSavingsBalance * ($regularSavingsRate / 100) * ($daysElapsedInQuarter / 365),
+            $regularSavingsBalance * ($regularSavingsRate / 100) / max(1, (int) $sirSettings->frequency_divisor)
+            * ($now->day / $now->daysInMonth),
             2
         );
 
@@ -1861,22 +1894,68 @@ class UsersHandle extends Controller
 
         $type = $request->query('type', 'all');
 
-        $transactionsQuery = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
+        // ── Regular savings transactions ─────────────────────────────────
+        $savingsTxs = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
             ->whereIn('type', ['deposit', 'withdrawal', 'td_release', 'interest_credit'])
-            ->orderBy('transaction_date', 'desc')
-            ->orderBy('created_at', 'desc');
+            ->when(
+                in_array($type, ['deposit', 'withdrawal', 'td_release', 'interest_credit']),
+                fn($q) => $q->where('type', $type)
+            )
+            ->when($ref !== '', fn($q) => $q->where('reference_no', 'like', '%' . $ref . '%'))
+            ->when($status !== 'all', fn($q) => $q->where('status', $status))
+            ->get();
 
-        if (in_array($type, ['deposit', 'withdrawal', 'td_release', 'interest_credit'])) {
-            $transactionsQuery->where('type', $type);
-        }
-        if ($ref !== '') {
-            $transactionsQuery->where('reference_no', 'like', '%' . $ref . '%');
-        }
-        if ($status !== 'all') {
-            $transactionsQuery->where('status', $status);
+        // ── Monthly interest releases (credited to the savings balance) ──
+// Shown only under the "All" and "Interest Accrued" tabs, and only when
+// the status filter is "All" or "Credited".
+        $interestReleases = collect();
+
+        if (in_array($type, ['all', 'interest_credit']) && in_array($status, ['all', 'credited'])) {
+            // Skip any release that was also written into savings_transaction_tbls
+            // as an interest_credit row, so it never shows twice.
+            $existingInterestRefs = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
+                ->where('type', 'interest_credit')
+                ->whereNotNull('reference_no')
+                ->pluck('reference_no')
+                ->all();
+
+            $interestReleases = DB::table('savings_interest_releases_tbls')
+                ->where('savings_account_id', $savingsAccount->id)
+                ->when($ref !== '', fn($q) => $q->where('reference_no', 'like', '%' . $ref . '%'))
+                ->get()
+                ->reject(fn($r) => $r->reference_no && in_array($r->reference_no, $existingInterestRefs, true))
+                ->map(fn($r) => (object) [
+                    'id' => 'rel-' . $r->id,
+                    'type' => 'interest_credit',
+                    'reference_no' => $r->reference_no,
+                    'transaction_date' => $r->created_at ?? $r->period_end,
+                    'amount' => (float) $r->amount,
+                    'status' => 'credited',
+                    'payment_method' => null,
+                    'gcash_reference_no' => null,
+                    'void_reason' => null,
+                    'period_label' => $r->period_label,
+                    'created_at' => $r->created_at ?? $r->period_end,
+                ]);
         }
 
-        $transactions = $transactionsQuery->paginate(10)->withQueryString();
+        // ── Merge, sort newest first, paginate (10 per page) ─────────────
+        $allTxs = $savingsTxs->concat($interestReleases)
+            ->sortByDesc(fn($tx) =>
+                Carbon::parse($tx->transaction_date)->format('Ymd')
+                . Carbon::parse($tx->created_at ?? $tx->transaction_date)->format('YmdHis'))
+            ->values();
+
+        $perPage = 10;
+        $page = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+
+        $transactions = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allTxs->forPage($page, $perPage)->values(),
+            $allTxs->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $totalMonths = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
             ->groupByRaw("DATE_FORMAT(transaction_date, '%Y-%m')")
@@ -1941,6 +2020,10 @@ class UsersHandle extends Controller
         $availableStatuses = savings_transaction_tbl::where('savings_account_id', $savingsAccount->id)
             ->whereNotNull('status')
             ->pluck('status')
+            ->when(
+                DB::table('savings_interest_releases_tbls')->where('savings_account_id', $savingsAccount->id)->exists(),
+                fn($c) => $c->push('credited')
+            )
             ->map(fn($s) => ucfirst($s))
             ->unique()
             ->sortBy(fn($s) => strtolower($s))

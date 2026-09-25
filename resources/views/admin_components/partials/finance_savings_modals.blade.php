@@ -1,5 +1,6 @@
 <!-- Hidden data for withdrawal breakdown JavaScript -->
-<div id="bladeWithdrawalData" style="display:none;" data-withdrawal-json="{{ json_encode($monthlyWithdrawalData) }}" data-highest-month-json="{{ json_encode($highestWithdrawalMonth) }}"></div>
+<div id="bladeWithdrawalData" style="display:none;" data-withdrawal-json="{{ json_encode($monthlyWithdrawalData) }}"
+    data-highest-month-json="{{ json_encode($highestWithdrawalMonth) }}"></div>
 
 <!-- Interest Eligibility Modal -->
 <div id="interestEligibilityModal" class="modal-overlay hidden">
@@ -12,10 +13,13 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-gray-900">Interest Eligibility</h2>
-                        <p class="text-xs text-gray-500">{{ $sirSettings->frequency_label }} · {{ $sirSettings->annual_rate }}% p.a. · Min balance: ₱{{ number_format($sirSettings->min_balance_for_interest, 2) }}</p>
+                        <p class="text-xs text-gray-500">{{ $sirSettings->frequency_label }} ·
+                            {{ $sirSettings->annual_rate }}% p.a. · Min balance:
+                            ₱{{ number_format($sirSettings->min_balance_for_interest, 2) }}</p>
                     </div>
                 </div>
-                <button data-action="closeModal" data-arg='["interestEligibilityModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["interestEligibilityModal"]'
+                    class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -28,35 +32,39 @@
                     ELIGIBLE ({{ $eligibleCount }})
                 </h3>
                 @if(count($eligibleAccounts) > 0)
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Member</th>
-                                <th class="text-right">Balance</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($eligibleAccounts as $account)
-                            <tr>
-                                <td>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-8 h-8 rounded-full bg-success-100 flex items-center justify-center">
-                                            <span class="text-xs text-success-600 font-medium">
-                                                {{ strtoupper(substr($account->user->first_name ?? 'U', 0, 1) . substr($account->user->last_name ?? '', 0, 1)) }}
-                                            </span>
-                                        </div>
-                                        <span class="text-sm text-gray-900">{{ $account->user->first_name ?? 'Unknown' }} {{ $account->user->last_name ?? '' }}</span>
-                                    </div>
-                                </td>
-                                <td class="text-right text-sm font-semibold text-gray-900">₱{{ number_format($account->balance, 2) }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Member</th>
+                                    <th class="text-right">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($eligibleAccounts as $account)
+                                    <tr>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-8 h-8 rounded-full bg-success-100 flex items-center justify-center">
+                                                    <span class="text-xs text-success-600 font-medium">
+                                                        {{ strtoupper(substr($account->user->first_name ?? 'U', 0, 1) . substr($account->user->last_name ?? '', 0, 1)) }}
+                                                    </span>
+                                                </div>
+                                                <span
+                                                    class="text-sm text-gray-900">{{ $account->user->first_name ?? 'Unknown' }}
+                                                    {{ $account->user->last_name ?? '' }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-right text-sm font-semibold text-gray-900">
+                                            ₱{{ number_format($account->balance, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @else
-                <p class="text-sm text-gray-500 text-center py-4">No eligible accounts</p>
+                    <p class="text-sm text-gray-500 text-center py-4">No eligible accounts</p>
                 @endif
             </div>
 
@@ -67,42 +75,47 @@
                     NOT ELIGIBLE ({{ $notEligibleCount }})
                 </h3>
                 @if(count($notEligibleAccounts) > 0)
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Member</th>
-                                <th class="text-right">Balance</th>
-                                <th>Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($notEligibleAccounts as $item)
-                            <tr>
-                                <td>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-8 h-8 rounded-full bg-danger-100 flex items-center justify-center">
-                                            <span class="text-xs text-danger-600 font-medium">
-                                                {{ strtoupper(substr($item['account']->user->first_name ?? 'U', 0, 1) . substr($item['account']->user->last_name ?? '', 0, 1)) }}
-                                            </span>
-                                        </div>
-                                        <span class="text-sm text-gray-900">{{ $item['account']->user->first_name ?? 'Unknown' }} {{ $item['account']->user->last_name ?? '' }}</span>
-                                    </div>
-                                </td>
-                                <td class="text-right text-sm font-semibold text-gray-900">₱{{ number_format($item['account']->balance, 2) }}</td>
-                                <td class="text-xs text-danger-600">{{ implode(', ', $item['reasons']) }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Member</th>
+                                    <th class="text-right">Balance</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($notEligibleAccounts as $item)
+                                    <tr>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-8 h-8 rounded-full bg-danger-100 flex items-center justify-center">
+                                                    <span class="text-xs text-danger-600 font-medium">
+                                                        {{ strtoupper(substr($item['account']->user->first_name ?? 'U', 0, 1) . substr($item['account']->user->last_name ?? '', 0, 1)) }}
+                                                    </span>
+                                                </div>
+                                                <span
+                                                    class="text-sm text-gray-900">{{ $item['account']->user->first_name ?? 'Unknown' }}
+                                                    {{ $item['account']->user->last_name ?? '' }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-right text-sm font-semibold text-gray-900">
+                                            ₱{{ number_format($item['account']->balance, 2) }}</td>
+                                        <td class="text-xs text-danger-600">{{ implode(', ', $item['reasons']) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @else
-                <p class="text-sm text-gray-500 text-center py-4">All accounts are eligible</p>
+                    <p class="text-sm text-gray-500 text-center py-4">All accounts are eligible</p>
                 @endif
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button data-action="closeModal" data-arg='["interestEligibilityModal"]' class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+            <button data-action="closeModal" data-arg='["interestEligibilityModal"]'
+                class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Close</button>
         </div>
     </div>
 </div>
@@ -121,7 +134,8 @@
                         <p class="text-xs text-gray-500" id="savingsBalanceSubtitle"></p>
                     </div>
                 </div>
-                <button data-action="closeModal" data-arg='["savingsBalanceModal"]' class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeModal" data-arg='["savingsBalanceModal"]'
+                    class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -130,15 +144,18 @@
             <table class="w-full">
                 <thead>
                     <tr class="border-b-2 border-gray-100">
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Member</th>
-                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Balance</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Member</th>
+                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Balance</th>
                     </tr>
                 </thead>
                 <tbody id="savingsBalanceBody"></tbody>
             </table>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end">
-            <button data-action="closeModal" data-arg='["savingsBalanceModal"]' class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Close</button>
+            <button data-action="closeModal" data-arg='["savingsBalanceModal"]'
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Close</button>
         </div>
     </div>
 </div>
@@ -147,18 +164,22 @@
 <div id="addContributionModal" class="modal-overlay hidden">
     <div class="modal max-w-lg" style="border-radius: 16px;">
         <!-- Header -->
-        <div class="modal-header" style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
+        <div class="modal-header"
+            style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="piggy-bank" class="w-5 h-5" style="color: #fff;"></i>
                     </div>
                     <div>
                         <h2 class="text-lg font-semibold" style="color: #fff; margin: 0;">Manage Savings</h2>
-                        <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Add or withdraw funds</p>
+                        <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Add or withdraw
+                            funds</p>
                     </div>
                 </div>
-                <button data-action="closeAddContributionModal" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button data-action="closeAddContributionModal"
+                    style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                 </button>
             </div>
@@ -169,16 +190,18 @@
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Member</label>
-                    <select name="member_id" id="memberSelect" class="select" style="width: 100%;" data-action="updateMemberBalance">
+                    <select name="member_id" id="memberSelect" class="select" style="width: 100%;"
+                        data-action="updateMemberBalance">
                         <option value="">Select member</option>
                         @foreach($allMembers as $member)
-                        <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
+                            <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <!-- Balance Pill -->
-                <div style="background: #f8f9f8; border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #1E2A4A;">
+                <div
+                    style="background: #f8f9f8; border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #1E2A4A;">
                     <span style="font-size: 13px; color: #666;">Current Balance</span>
                     <span id="currentBalance" style="font-size: 14px; font-weight: 700; color: #1E2A4A;">₱0.00</span>
                 </div>
@@ -186,7 +209,8 @@
                 <!-- Type -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                    <select name="type" id="savingsType" class="select" style="width: 100%;" data-action="toggleSavingsPaymentFields">
+                    <select name="type" id="savingsType" class="select" style="width: 100%;"
+                        data-action="toggleSavingsPaymentFields">
                         <option value="">Select type...</option>
                         <option value="deposit">Deposit</option>
                         <option value="withdrawal">Withdrawal</option>
@@ -198,14 +222,22 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₱</span>
-                        <input type="number" name="amount" id="savingsAmount" class="input pl-10" placeholder="0.00" style="width: 100%; padding-left: 2.5rem;">
+                        <input type="number" name="amount" id="savingsAmount" class="input pl-10" placeholder="0.00"
+                            style="width: 100%; padding-left: 2.5rem;">
                     </div>
                     <!-- Quick Amounts -->
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
-                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="500" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱500</button>
-                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="1000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱1,000</button>
-                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="2000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱2,000</button>
-                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="5000" style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱5,000</button>
+                        <button type="button" data-action="set-input-value" data-target="savingsAmount" data-value="500"
+                            style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱500</button>
+                        <button type="button" data-action="set-input-value" data-target="savingsAmount"
+                            data-value="1000"
+                            style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱1,000</button>
+                        <button type="button" data-action="set-input-value" data-target="savingsAmount"
+                            data-value="2000"
+                            style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱2,000</button>
+                        <button type="button" data-action="set-input-value" data-target="savingsAmount"
+                            data-value="5000"
+                            style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱5,000</button>
                     </div>
                 </div>
 
@@ -213,27 +245,33 @@
                 <div id="savingsPaymentField">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                     <input type="hidden" name="payment_method" id="savingsPaymentMethod" value="cash">
-                    <input type="text" value="Cash" readonly style="width: 100%; background: #f3f4f6; cursor: default; border: 1px solid #ddd; border-radius: 8px; padding: 8px; color: #555;">
+                    <input type="text" value="Cash" readonly
+                        style="width: 100%; background: #f3f4f6; cursor: default; border: 1px solid #ddd; border-radius: 8px; padding: 8px; color: #555;">
                 </div>
 
                 <!-- Mobile Number (withdrawal only) -->
                 <div id="savingsMobileField" class="hidden">
                     <label class="block text-sm font-medium text-gray-700 mb-1">GCash Number</label>
-                    <input type="text" id="savingsMobileDisplay" name="gcash_number" class="input" placeholder="Enter GCash number" style="width: 100%;">
+                    <input type="text" id="savingsMobileDisplay" name="gcash_number" class="input"
+                        placeholder="Enter GCash number" style="width: 100%;">
                 </div>
 
                 <!-- QR Code Display -->
                 <div id="savingsQrCodeDisplay" class="hidden">
                     <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
                         <p class="text-xs text-gray-500 mb-2 font-medium">Scan QR Code to Pay</p>
-                        <img id="savingsQrCodeImg" class="w-40 h-40 mx-auto rounded-lg object-cover border border-gray-200" src="" alt="Payment QR Code">
+                        <img id="savingsQrCodeImg"
+                            class="w-40 h-40 mx-auto rounded-lg object-cover border border-gray-200" src=""
+                            alt="Payment QR Code">
                     </div>
                 </div>
 
                 <!-- Notes -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Note <span style="color: #999;">(optional)</span></label>
-                    <textarea name="note" class="input" rows="2" placeholder="Add any notes..." style="width: 100%;"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Note <span
+                            style="color: #999;">(optional)</span></label>
+                    <textarea name="note" class="input" rows="2" placeholder="Add any notes..."
+                        style="width: 100%;"></textarea>
                 </div>
             </form>
 
@@ -254,18 +292,22 @@
 <!-- Convert to Share Capital Modal -->
 <div id="convertToSCModal" class="modal-overlay hidden">
     <div class="modal max-w-lg" style="border-radius: 16px;">
-        <div class="modal-header" style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
+        <div class="modal-header"
+            style="background: linear-gradient(135deg, #1E2A4A 0%, #25335A 100%); padding: 1.25rem 1.5rem;">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="refresh-cw" class="w-5 h-5" style="color: #fff;"></i>
                     </div>
                     <div>
                         <h2 class="text-lg font-semibold" style="color: #fff; margin: 0;">Convert to Share Capital</h2>
-                        <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Transfer savings to share capital</p>
+                        <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Transfer savings to
+                            share capital</p>
                     </div>
                 </div>
-                <button data-action="closeConvertToSCModal" style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button data-action="closeConvertToSCModal"
+                    style="background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="x" class="w-5 h-5" style="color: #fff;"></i>
                 </button>
             </div>
@@ -276,22 +318,25 @@
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Member</label>
-                    <select name="member_id" id="convertMemberSelect" class="select" style="width: 100%;" data-action="updateConvertBalances">
+                    <select name="member_id" id="convertMemberSelect" class="select" style="width: 100%;"
+                        data-action="updateConvertBalances">
                         <option value="">Select member</option>
                         @foreach($allMembers as $member)
-                        <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
+                            <option value="{{ $member->id }}">{{ $member->first_name }} {{ $member->last_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div style="background: #f0fdf4; border-radius: 10px; padding: 0.75rem 1rem; border: 1px dashed #22c55e;">
+                    <div
+                        style="background: #f0fdf4; border-radius: 10px; padding: 0.75rem 1rem; border: 1px dashed #22c55e;">
                         <span style="font-size: 12px; color: #666;">Savings Balance</span>
                         <div style="font-size: 16px; font-weight: 700; color: #16a34a; margin-top: 2px;">
                             ₱<span id="convertSavingsBalance">0.00</span>
                         </div>
                     </div>
-                    <div style="background: #eff6ff; border-radius: 10px; padding: 0.75rem 1rem; border: 1px dashed #3b82f6;">
+                    <div
+                        style="background: #eff6ff; border-radius: 10px; padding: 0.75rem 1rem; border: 1px dashed #3b82f6;">
                         <span style="font-size: 12px; color: #666;">Share Capital Balance</span>
                         <div style="font-size: 16px; font-weight: 700; color: #2563eb; margin-top: 2px;">
                             ₱<span id="convertSCBalance">0.00</span>
@@ -303,26 +348,36 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount to Convert</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₱</span>
-                        <input type="number" name="amount" id="convertAmount" class="input pl-10" placeholder="0.00" style="width: 100%; padding-left: 2.5rem;">
+                        <input type="number" name="amount" id="convertAmount" class="input pl-10" placeholder="0.00"
+                            style="width: 100%; padding-left: 2.5rem;">
                     </div>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
-                        <button type="button" data-action="setConvertAmount" data-arg='[500]' style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱500</button>
-                        <button type="button" data-action="setConvertAmount" data-arg='[200]' style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱200</button>
-                        <button type="button" data-action="setConvertAmount" data-arg='[2000]' style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱2,000</button>
-                        <button type="button" data-action="setConvertAmount" data-arg='[5000]' style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱5,000</button>
+                        <button type="button" data-action="setConvertAmount" data-arg='[500]'
+                            style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱500</button>
+                        <button type="button" data-action="setConvertAmount" data-arg='[200]'
+                            style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱200</button>
+                        <button type="button" data-action="setConvertAmount" data-arg='[2000]'
+                            style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱2,000</button>
+                        <button type="button" data-action="setConvertAmount" data-arg='[5000]'
+                            style="padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; color: #555; border: 1px solid #ddd;">₱5,000</button>
                     </div>
                 </div>
 
-                <div style="background: #f8f9f8; border-radius: 10px; padding: 0.75rem 1rem; border: 1px solid #e5e7eb;">
+                <div
+                    style="background: #f8f9f8; border-radius: 10px; padding: 0.75rem 1rem; border: 1px solid #e5e7eb;">
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
                         <span style="color: #666;">Share Price</span>
-                        <span style="font-weight: 600; color: #1E2A4A;">₱{{ number_format(\App\Http\Controllers\ShareCapital::PAR_VALUE, 2) }} / share</span>
+                        <span
+                            style="font-weight: 600; color: #1E2A4A;">₱{{ number_format(\App\Http\Controllers\ShareCapital::PAR_VALUE, 2) }}
+                            / share</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 4px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 4px;">
                         <span style="color: #666;">Estimated Shares</span>
                         <span id="estimatedShares" style="font-weight: 700; color: #1E2A4A;">0</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 4px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 4px;">
                         <span style="color: #666;">Remainder (not converted)</span>
                         <span id="convertRemainder" style="font-weight: 600; color: #dc2626;">₱0.00</span>
                     </div>
@@ -357,7 +412,8 @@
                         <p class="text-xs text-gray-500">Process the GCash disbursement to the member</p>
                     </div>
                 </div>
-                <button data-action="closeSavingsDisburseModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeSavingsDisburseModal"
+                    class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -387,16 +443,20 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">GCash Disbursement Receipt (Proof)</label>
                 <div class="flex items-center gap-3">
-                    <label class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors" id="disburseReceiptLabel">
+                    <label
+                        class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors"
+                        id="disburseReceiptLabel">
                         <i data-lucide="upload" class="w-5 h-5 text-gray-400"></i>
                         <span id="disburseReceiptText" class="text-sm text-gray-500">Upload receipt image</span>
-                        <input type="file" id="disburseReceipt" accept="image/jpg,image/jpeg,image/png" class="hidden" data-action="handleDisburseReceipt" data-arg='["|el|"]'>
+                        <input type="file" id="disburseReceipt" accept="image/jpg,image/jpeg,image/png" class="hidden"
+                            data-action="handleDisburseReceipt" data-arg='["|el|"]'>
                     </label>
                 </div>
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button data-action="closeSavingsDisburseModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+            <button data-action="closeSavingsDisburseModal"
+                class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
             <button id="disburseSubmitBtn" data-action="submitSavingsDisbursement" disabled
                 class="px-5 py-2.5 bg-success-600 text-white font-medium rounded-lg hover:bg-success-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
@@ -420,7 +480,8 @@
                         <p class="text-xs text-gray-500">Review and act on this deposit request</p>
                     </div>
                 </div>
-                <button data-action="closeDepositDetailModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button data-action="closeDepositDetailModal"
+                    class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
                 </button>
             </div>
@@ -463,8 +524,8 @@
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
             <button id="depositDetailVoidBtn" data-action="openVoidConfirmModal"
                 class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors flex items-center gap-2">
-                <i data-lucide="x-circle" class="w-4 h-4"></i>
-                Void Deposit
+                <i data-lucide="undo-2" class="w-4 h-4"></i>
+                Mark as Returned
             </button>
             <button id="depositDetailCompleteBtn" data-action="submitSavingsDepositCompletion"
                 class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
@@ -485,8 +546,8 @@
                         <i data-lucide="alert-triangle" class="w-5 h-5 text-danger-600"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-gray-900">Void Savings Deposit</h2>
-                        <p class="text-xs text-gray-500">Are you sure you want to void this deposit?</p>
+                        <h2 class="text-xl font-bold text-gray-900">Return Savings Deposit</h2>
+                        <p class="text-xs text-gray-500">Are you sure you want to mark this deposit as returned?</p>
                     </div>
                 </div>
                 <button data-action="closeVoidConfirmModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -510,7 +571,8 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Reason for Voiding</label>
-                <select id="voidConfirmReason" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-danger-500 focus:border-danger-500">
+                <select id="voidConfirmReason"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-danger-500 focus:border-danger-500">
                     <option value="" disabled selected>Select a reason...</option>
                     <option value="wrong_amount">Wrong amount entered</option>
                     <option value="duplicate_payment">Duplicate payment</option>
@@ -522,7 +584,9 @@
             </div>
         </div>
         <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-            <button data-action="goBackToDetailModal" class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go Back</button>
+            <button data-action="goBackToDetailModal"
+                class="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">Go
+                Back</button>
             <button id="voidConfirmSubmitBtn" data-action="submitSavingsDepositVoid" disabled
                 class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <i data-lucide="x-circle" class="w-4 h-4"></i>
@@ -559,13 +623,13 @@
                     + '</div>'
                     + '<span class="text-sm font-medium text-gray-900">' + fn + ' ' + ln + '</span>'
                     + '</div></td>'
-                    + '<td class="py-3 px-4 text-right text-sm font-semibold text-gray-900">₱' + bal.toLocaleString('en-PH', {minimumFractionDigits:2}) + '</td>';
+                    + '<td class="py-3 px-4 text-right text-sm font-semibold text-gray-900">₱' + bal.toLocaleString('en-PH', { minimumFractionDigits: 2 }) + '</td>';
                 tbody.appendChild(row);
             }
         }
 
         document.getElementById('savingsBalanceSubtitle').textContent =
-            'Total: ₱' + tot.toLocaleString('en-PH', {minimumFractionDigits:2}) + ' · ' + accts.length + ' account(s)';
+            'Total: ₱' + tot.toLocaleString('en-PH', { minimumFractionDigits: 2 }) + ' · ' + accts.length + ' account(s)';
 
         if (typeof lucide !== 'undefined') { lucide.createIcons(); }
         openModal('savingsBalanceModal');
@@ -623,26 +687,26 @@
             body: formData,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.success) {
-                closeSavingsDisburseModal();
-                showToast('Success', data.message || 'Withdrawal disbursed successfully.');
-                setTimeout(function() { window.location.reload(); }, 1200);
-            } else {
-                showToast('Error', data.message || 'Disbursement failed.');
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    closeSavingsDisburseModal();
+                    showToast('Success', data.message || 'Withdrawal disbursed successfully.');
+                    setTimeout(function () { window.location.reload(); }, 1200);
+                } else {
+                    showToast('Error', data.message || 'Disbursement failed.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Disbursed';
+                    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                }
+            })
+            .catch(function (error) {
+                console.error('Disburse error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Disbursed';
                 if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-            }
-        })
-        .catch(function(error) {
-            console.error('Disburse error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-            btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Disbursed';
-            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-        });
+            });
     }
 
     function openDepositDetailModal(id, name, balance, amount, contact, paymentMethod, proofPath, gcashRefNo) {
@@ -670,7 +734,7 @@
         closeModal('depositDetailModal');
     }
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         var row = e.target.closest('.js-deposit-detail');
         if (row) {
             openDepositDetailModal(
@@ -751,26 +815,26 @@
             body: formData,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.success) {
-                closeModal('voidConfirmModal');
-                showToast('Success', data.message || 'Deposit voided successfully.');
-                setTimeout(function() { window.location.reload(); }, 1200);
-            } else {
-                showToast('Error', data.message || 'Failed to void deposit.');
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    closeModal('voidConfirmModal');
+                    showToast('Success', data.message || 'Deposit voided successfully.');
+                    setTimeout(function () { window.location.reload(); }, 1200);
+                } else {
+                    showToast('Error', data.message || 'Failed to void deposit.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4"></i> Confirm Void';
+                    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                }
+            })
+            .catch(function (error) {
+                console.error('Void deposit error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4"></i> Confirm Void';
                 if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-            }
-        })
-        .catch(function(error) {
-            console.error('Void deposit error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-            btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4"></i> Confirm Void';
-            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-        });
+            });
     }
 
     function submitSavingsDepositCompletion() {
@@ -789,26 +853,26 @@
             body: formData,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.success) {
-                closeDepositDetailModal();
-                showToast('Success', data.message || 'Deposit confirmed successfully.');
-                setTimeout(function() { window.location.reload(); }, 1200);
-            } else {
-                showToast('Error', data.message || 'Failed to confirm deposit.');
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    closeDepositDetailModal();
+                    showToast('Success', data.message || 'Deposit confirmed successfully.');
+                    setTimeout(function () { window.location.reload(); }, 1200);
+                } else {
+                    showToast('Error', data.message || 'Failed to confirm deposit.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Complete';
+                    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                }
+            })
+            .catch(function (error) {
+                console.error('Complete deposit error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Complete';
                 if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-            }
-        })
-        .catch(function(error) {
-            console.error('Complete deposit error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-            btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Complete';
-            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-        });
+            });
     }
 
     function openInterestEligibilityModal() {
@@ -822,11 +886,11 @@
         try {
             const existing = document.getElementById('balanceBreakdownDynamic');
             if (existing) existing.remove();
-            
+
             const currentBalance = {{ $currentBalance }};
             const totalDeposits = {{ $totalDeposits }};
             const totalWithdrawals = {{ $totalWithdrawals }};
-            
+
             const modal = document.createElement('div');
             modal.id = 'balanceBreakdownDynamic';
             modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;';
@@ -847,14 +911,14 @@
                     <div style="padding:1.5rem;max-height:60vh;overflow-y:auto;">
                         <div style="background:#edf0f5;border-radius:0.5rem;padding:1rem;border:1px solid #d0d6e4;text-align:center;margin-bottom:1.5rem;">
                             <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.5rem;">Current Balance</p>
-                            <p style="font-size:1.875rem;font-weight:700;color:#3a4e7a;">₱${currentBalance.toLocaleString('en-PH', {minimumFractionDigits:2})}</p>
+                            <p style="font-size:1.875rem;font-weight:700;color:#3a4e7a;">₱${currentBalance.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                         </div>
                         
                         <div style="display:flex;flex-direction:column;gap:0.75rem;">
                             <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:#f0fdf4;border-radius:0.5rem;border-left:3px solid #3a4e7a;">
                                 <div>
                                     <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">Deposits</p>
-                                    <p style="font-size:0.875rem;font-weight:600;color:#111;">₱${totalDeposits.toLocaleString('en-PH', {minimumFractionDigits:2})}</p>
+                                    <p style="font-size:0.875rem;font-weight:600;color:#111;">₱${totalDeposits.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                                 </div>
                                 <i data-lucide="arrow-up" style="color:#3a4e7a;width:20px;height:20px;"></i>
                             </div>
@@ -862,7 +926,7 @@
                             <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:#fef2f2;border-radius:0.5rem;border-left:3px solid #dc2626;">
                                 <div>
                                     <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">Withdrawals</p>
-                                    <p style="font-size:0.875rem;font-weight:600;color:#111;">₱${totalWithdrawals.toLocaleString('en-PH', {minimumFractionDigits:2})}</p>
+                                    <p style="font-size:0.875rem;font-weight:600;color:#111;">₱${totalWithdrawals.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                                 </div>
                                 <i data-lucide="arrow-down" style="color:#dc2626;width:20px;height:20px;"></i>
                             </div>
@@ -885,7 +949,7 @@
         try {
             const existing = document.getElementById('monthlyBreakdownDynamic');
             if (existing) existing.remove();
-            
+
             const rawData = @json($monthlyData);
             const monthlyData = rawData.map(m => ({
                 name: m.name || '',
@@ -899,24 +963,24 @@
                 name: highestMonthRaw.name || '',
                 amount: parseFloat(highestMonthRaw.amount) || 0
             };
-        
-        let chartHtml = '';
-        const maxAmount = Math.max(...monthlyData.map(m => m.amount), 1);
-        monthlyData.forEach(month => {
-            const height = (month.amount / maxAmount) * 150;
-            const hasAmount = month.amount > 0;
-            chartHtml += `
+
+            let chartHtml = '';
+            const maxAmount = Math.max(...monthlyData.map(m => m.amount), 1);
+            monthlyData.forEach(month => {
+                const height = (month.amount / maxAmount) * 150;
+                const hasAmount = month.amount > 0;
+                chartHtml += `
                 <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
                     <div style="width:100%;${hasAmount ? 'background:#d0d6e4;cursor:pointer;' : 'background:#f3f4f6;border:2px dashed #d1d5db;'}border-radius:0.5rem;height:${Math.max(height, 5)}px;" title="₱${month.amount.toLocaleString()}"></div>
-                    <span style="font-size:0.75rem;color:#6b7280;">${month.name.substring(0,3)}</span>
+                    <span style="font-size:0.75rem;color:#6b7280;">${month.name.substring(0, 3)}</span>
                 </div>
             `;
-        });
+            });
 
-        const modal = document.createElement('div');
-        modal.id = 'monthlyBreakdownDynamic';
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;';
-        modal.innerHTML = `
+            const modal = document.createElement('div');
+            modal.id = 'monthlyBreakdownDynamic';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;';
+            modal.innerHTML = `
             <div style="background:white;border-radius:12px;max-width:42rem;width:90%;max-height:90vh;overflow:auto;">
                 <div style="padding:1.5rem;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
                     <div style="display:flex;align-items:center;gap:0.75rem;">
@@ -934,11 +998,11 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
                         <div style="background:#edf0f5;border-radius:0.5rem;padding:1rem;border:1px solid #d0d6e4;text-align:center;">
                             <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">Average Monthly</p>
-                            <p style="font-size:1.25rem;font-weight:700;color:#111;">₱${monthlyAvg.toLocaleString('en-PH', {minimumFractionDigits:2})}</p>
+                            <p style="font-size:1.25rem;font-weight:700;color:#111;">₱${monthlyAvg.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                         </div>
                         <div style="background:#d0d6e4;border-radius:0.5rem;padding:1rem;border:1px solid #a8b3cc;text-align:center;">
                             <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">Highest Month</p>
-                            <p style="font-size:1.25rem;font-weight:700;color:#111;">₱${(highestMonth.amount || 0).toLocaleString('en-PH', {minimumFractionDigits:2})}</p>
+                            <p style="font-size:1.25rem;font-weight:700;color:#111;">₱${(highestMonth.amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             <p style="font-size:0.75rem;color:#6b7280;">${highestMonth.name || 'N/A'}</p>
                         </div>
                     </div>
@@ -951,11 +1015,11 @@
                             <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:#f9fafb;border-radius:0.5rem;margin-bottom:0.5rem;">
                                 <div style="display:flex;align-items:center;gap:0.75rem;">
                                     <div style="width:2rem;height:2rem;background:#d0d6e4;border-radius:0.5rem;display:flex;align-items:center;justify-content:center;">
-                                        <span style="font-size:0.75rem;font-weight:600;color:#3a4e7a;">${month.name.substring(0,3)}</span>
+                                        <span style="font-size:0.75rem;font-weight:600;color:#3a4e7a;">${month.name.substring(0, 3)}</span>
                                     </div>
                                     <span style="font-size:0.875rem;font-weight:500;color:#111;">${month.name} ${month.year || new Date().getFullYear()}</span>
                                 </div>
-                                <span style="font-size:0.875rem;font-weight:600;${month.amount > 0 ? 'color:#111;' : 'color:#9ca3af;'}">₱${month.amount.toLocaleString('en-PH', {minimumFractionDigits:2})}</span>
+                                <span style="font-size:0.875rem;font-weight:600;${month.amount > 0 ? 'color:#111;' : 'color:#9ca3af;'}">₱${month.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
                             </div>
                          `).join('')}
                      </div>
@@ -966,18 +1030,18 @@
         } catch (error) {
             console.error('Error opening monthly breakdown modal:', error);
         }
-     }
+    }
 
-     function openLastContributionModal() {
+    function openLastContributionModal() {
         const existing = document.getElementById('lastContributionDynamic');
         if (existing) existing.remove();
-        
+
         const lastContribution = @json($lastContribution);
-        
-        const memberName = lastContribution?.savings_account?.user 
-            ? lastContribution.savings_account.user.first_name + ' ' + lastContribution.savings_account.user.last_name 
+
+        const memberName = lastContribution?.savings_account?.user
+            ? lastContribution.savings_account.user.first_name + ' ' + lastContribution.savings_account.user.last_name
             : 'Unknown';
-        
+
         const modal = document.createElement('div');
         modal.id = 'lastContributionDynamic';
         modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;';
@@ -998,7 +1062,7 @@
                 <div style="padding:1.5rem;max-height:60vh;overflow-y:auto;">
                     ${lastContribution ? `
                         <div style="background:linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);border-radius:0.75rem;padding:1.5rem;border:1px solid #fef9c3;margin-bottom:1.5rem;text-align:center;">
-                            <p style="font-size:1.875rem;font-weight:700;color:#111;">₱${parseFloat(lastContribution.amount).toLocaleString('en-PH', {minimumFractionDigits:2})}</p>
+                            <p style="font-size:1.875rem;font-weight:700;color:#111;">₱${parseFloat(lastContribution.amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             <span style="display:inline-block;margin-top:0.5rem;padding:0.25rem 0.75rem;background:#d0d6e4;color:#1E2A4A;font-size:0.875rem;font-weight:600;border-radius:9999px;text-transform:capitalize;">
                                 ${lastContribution.type}
                             </span>
@@ -1041,46 +1105,46 @@
         document.body.style.overflow = '';
     }
 
-     function openWithdrawalBreakdownModal() {
-          try {
-              const existing = document.getElementById('withdrawalBreakdownDynamic');
-              if (existing) existing.remove();
-              
-              const dataElement = document.getElementById('bladeWithdrawalData');
-              const jsonStr = dataElement.getAttribute('data-withdrawal-json');
-              const rawData = JSON.parse(jsonStr);
-              const highestMonthStr = dataElement.getAttribute('data-highest-month-json');
-              const highestMonthRaw = JSON.parse(highestMonthStr);
-              
-              const monthlyData = rawData.map(m => ({
-                  name: m.name || '',
-                  year: m.year || new Date().getFullYear().toString(),
-                  amount: parseFloat(m.amount) || 0,
-                  bar_height: parseFloat(m.bar_height) || 0
-              }));
-              const monthlyAvg = {{ $monthlyWithdrawalAvg ?? 0 }};
-              const highestMonth = {
-                  name: highestMonthRaw.name || '',
-                  amount: parseFloat(highestMonthRaw.amount) || 0
-              };
-        
-        let chartHtml = '';
-        const maxAmount = Math.max(...monthlyData.map(m => m.amount), 1);
-        monthlyData.forEach(month => {
-            const height = (month.amount / maxAmount) * 150;
-            const hasAmount = month.amount > 0;
-            chartHtml += `
+    function openWithdrawalBreakdownModal() {
+        try {
+            const existing = document.getElementById('withdrawalBreakdownDynamic');
+            if (existing) existing.remove();
+
+            const dataElement = document.getElementById('bladeWithdrawalData');
+            const jsonStr = dataElement.getAttribute('data-withdrawal-json');
+            const rawData = JSON.parse(jsonStr);
+            const highestMonthStr = dataElement.getAttribute('data-highest-month-json');
+            const highestMonthRaw = JSON.parse(highestMonthStr);
+
+            const monthlyData = rawData.map(m => ({
+                name: m.name || '',
+                year: m.year || new Date().getFullYear().toString(),
+                amount: parseFloat(m.amount) || 0,
+                bar_height: parseFloat(m.bar_height) || 0
+            }));
+            const monthlyAvg = {{ $monthlyWithdrawalAvg ?? 0 }};
+            const highestMonth = {
+                name: highestMonthRaw.name || '',
+                amount: parseFloat(highestMonthRaw.amount) || 0
+            };
+
+            let chartHtml = '';
+            const maxAmount = Math.max(...monthlyData.map(m => m.amount), 1);
+            monthlyData.forEach(month => {
+                const height = (month.amount / maxAmount) * 150;
+                const hasAmount = month.amount > 0;
+                chartHtml += `
                 <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
                     <div style="width:100%;${hasAmount ? 'background:#fee2e2;cursor:pointer;' : 'background:#f3f4f6;border:2px dashed #d1d5db;'}border-radius:0.5rem;height:${Math.max(height, 5)}px;" title="₱${month.amount.toLocaleString()}"></div>
-                    <span style="font-size:0.75rem;color:#6b7280;">${month.name.substring(0,3)}</span>
+                    <span style="font-size:0.75rem;color:#6b7280;">${month.name.substring(0, 3)}</span>
                 </div>
             `;
-        });
+            });
 
-        const modal = document.createElement('div');
-        modal.id = 'withdrawalBreakdownDynamic';
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;';
-        modal.innerHTML = `
+            const modal = document.createElement('div');
+            modal.id = 'withdrawalBreakdownDynamic';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;';
+            modal.innerHTML = `
             <div style="background:white;border-radius:12px;max-width:42rem;width:90%;max-height:90vh;overflow:auto;">
                 <div style="padding:1.5rem;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
                     <div style="display:flex;align-items:center;gap:0.75rem;">
@@ -1098,11 +1162,11 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
                         <div style="background:#fef2f2;border-radius:0.5rem;padding:1rem;border:1px solid #fee2e2;text-align:center;">
                             <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">Average Monthly</p>
-                            <p style="font-size:1.25rem;font-weight:700;color:#111;">₱${monthlyAvg.toLocaleString('en-PH', {minimumFractionDigits:2})}</p>
+                            <p style="font-size:1.25rem;font-weight:700;color:#111;">₱${monthlyAvg.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                         </div>
                         <div style="background:#fee2e2;border-radius:0.5rem;padding:1rem;border:1px solid #fecaca;text-align:center;">
                             <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">Highest Month</p>
-                            <p style="font-size:1.25rem;font-weight:700;color:#111;">₱${(highestMonth.amount || 0).toLocaleString('en-PH', {minimumFractionDigits:2})}</p>
+                            <p style="font-size:1.25rem;font-weight:700;color:#111;">₱${(highestMonth.amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             <p style="font-size:0.75rem;color:#6b7280;">${highestMonth.name || 'N/A'}</p>
                         </div>
                     </div>
@@ -1115,24 +1179,24 @@
                               <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:#f9fafb;border-radius:0.5rem;margin-bottom:0.5rem;">
                                   <div style="display:flex;align-items:center;gap:0.75rem;">
                                       <div style="width:2rem;height:2rem;background:#fee2e2;border-radius:0.5rem;display:flex;align-items:center;justify-content:center;">
-                                          <span style="font-size:0.75rem;font-weight:600;color:#dc2626;">${month.name.substring(0,3)}</span>
+                                          <span style="font-size:0.75rem;font-weight:600;color:#dc2626;">${month.name.substring(0, 3)}</span>
                                       </div>
                                       <span style="font-size:0.875rem;font-weight:500;color:#111;">${month.name} ${month.year || new Date().getFullYear()}</span>
                                   </div>
-                                  <span style="font-size:0.875rem;font-weight:600;${month.amount > 0 ? 'color:#111;' : 'color:#9ca3af;'}">₱${month.amount.toLocaleString('en-PH', {minimumFractionDigits:2})}</span>
+                                  <span style="font-size:0.875rem;font-weight:600;${month.amount > 0 ? 'color:#111;' : 'color:#9ca3af;'}">₱${month.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
                                </div>
                            `).join('')}
                        </div>
                   </div>
               </div>
           `;
-             document.body.appendChild(modal);
+            document.body.appendChild(modal);
         } catch (error) {
             console.error('Error opening withdrawal breakdown modal:', error);
         }
-     }
+    }
 
-     function closeWithdrawalBreakdownModal() {
+    function closeWithdrawalBreakdownModal() {
         document.getElementById('withdrawalBreakdownDynamic')?.remove();
         document.body.style.overflow = '';
     }
@@ -1150,12 +1214,12 @@
     }
 
     function showMonthDetail(monthName, amount) {
-        const formattedAmount = amount.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        const formattedAmount = amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         showToast(monthName + ' ' + new Date().getFullYear(), 'Savings: ₱' + formattedAmount, 'info');
     }
 
     // Initialize icons when modal opens
-    document.getElementById('addContributionModal')?.addEventListener('transitionend', function() {
+    document.getElementById('addContributionModal')?.addEventListener('transitionend', function () {
         if (!this.classList.contains('hidden') && typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
@@ -1174,15 +1238,15 @@
 
     let currentSavingsReceipt = null;
 
-    window.showSavingsVoidReason = function(d) {
+    window.showSavingsVoidReason = function (d) {
         d = d || {};
         const label = getVoidLabel(d.reason);
         const existingModal = document.getElementById('voidReasonModal');
         if (existingModal) { existingModal.remove(); }
 
-        const amountFmt = Number(d.amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+        const amountFmt = Number(d.amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         const balanceFmt = 'data-balance' in d && d.balance !== '' && d.balance !== undefined
-            ? Number(d.balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2})
+            ? Number(d.balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })
             : null;
 
         function row(label2, value) {
@@ -1208,14 +1272,8 @@
                     <div style="width:60px;height:60px;background:#c0392b;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
                     </div>
-                    <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">Transaction Voided</h2>
-                    <p style="color:#6b7280; font-size:0.82rem; margin:0;">This transaction has been voided by the admin.</p>
-                </div>
-                <div style="padding:1.25rem 1.5rem 0.25rem;">
-                    <div style="background:#fdecec; border:1px solid #f5c6c6; border-radius:12px; padding:0.9rem 1rem; text-align:center;">
-                        <div style="font-size:0.72rem; color:#a94442; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.2rem;">Voided Amount</div>
-                        <div style="font-size:1.5rem; font-weight:800; color:#c0392b; line-height:1.2;">&#8369;${amountFmt}</div>
-                    </div>
+                    <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">Transaction Returned</h2>
+                    <p style="color:#6b7280; font-size:0.82rem; margin:0;">This transaction has been returned by the admin.</p>
                 </div>
                 <div style="padding:0.75rem 1.5rem 0;">
                     <div style="background:#fafafa; border-radius:12px; padding:0.25rem 1rem;">
@@ -1239,7 +1297,7 @@
         document.body.appendChild(modal);
     };
 
-    window.openSavingsRow = function(e, row) {
+    window.openSavingsRow = function (e, row) {
         if (e && e.target && e.target.closest && e.target.closest('a, button')) return;
         const d = row.dataset;
         if (d.void === '1') {
@@ -1270,14 +1328,14 @@
         return '<span style="display:inline-flex; align-items:center; gap:6px; background:#d1fae5; border:1.5px solid #a7f3d0; color:#065f46; border-radius:20px; padding:0.2rem 0.75rem; font-size:0.75rem; font-weight:700;"><span style="width:7px; height:7px; background:#059669; border-radius:50%; flex-shrink:0;"></span> Completed</span>';
     }
 
-    window.viewReceipt = function(referenceNo, member, type, amount, method, date, balance, note) {
+    window.viewReceipt = function (referenceNo, member, type, amount, method, date, balance, note) {
         const existingModal = document.getElementById('receiptModal');
         if (existingModal) { existingModal.remove(); }
 
         currentSavingsReceipt = { referenceNo: referenceNo, member: member, type: type, amount: amount, method: method, date: date, balance: balance, note: note };
 
-        const amountFmt = Number(amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
-        const balanceFmt = Number(balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+        const amountFmt = Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+        const balanceFmt = Number(balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         const isDeposit = String(type).toLowerCase() === 'deposit';
 
         const modal = document.createElement('div');
@@ -1303,12 +1361,12 @@
                 <div style="padding:1.5rem;">
                     ${svReceiptRow('Organization', 'KMPCATS')}
                     ${svReceiptRow('Member', member)}
-                    ${svReceiptRow('Transaction Type', '<strong>'+type+'</strong>')}
-                    ${svReceiptRow('Amount', '&#8369;'+amountFmt, {highlight: true})}
+                    ${svReceiptRow('Transaction Type', '<strong>' + type + '</strong>')}
+                    ${svReceiptRow('Amount', '&#8369;' + amountFmt, { highlight: true })}
                     ${svReceiptRow('Payment Method', method)}
                     ${svReceiptRow('Reference No.', svRefBadge(referenceNo))}
                     ${svReceiptRow('Date & Time', date)}
-                    ${svReceiptRow('Balance After', '&#8369;'+balanceFmt)}
+                    ${svReceiptRow('Balance After', '&#8369;' + balanceFmt)}
                     ${svReceiptRow('Note', note)}
                     ${svReceiptRow('Status', svStatusBadge())}
                 </div>
@@ -1325,7 +1383,7 @@
         document.body.appendChild(modal);
     };
 
-    window.downloadSavingsReceipt = function() {
+    window.downloadSavingsReceipt = function () {
         const d = currentSavingsReceipt || {};
         const referenceNo = d.referenceNo || '';
         const member = d.member || '';
@@ -1336,7 +1394,7 @@
         const balance = d.balance || '';
         const note = d.note || 'N/A';
 
-        const amountFmt = Number(amount || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
+        const amountFmt = Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         const isDeposit = String(type).toLowerCase() === 'deposit';
 
         const wrapper = document.createElement('div');
@@ -1352,8 +1410,8 @@
             <div style="padding:1.5rem;">
                 ${svReceiptRow('Organization', 'KMPCATS')}
                 ${svReceiptRow('Member', member)}
-                ${svReceiptRow('Transaction Type', '<strong>'+type+'</strong>')}
-                ${svReceiptRow('Amount', '&#8369;'+amountFmt, {highlight: true})}
+                ${svReceiptRow('Transaction Type', '<strong>' + type + '</strong>')}
+                ${svReceiptRow('Amount', '&#8369;' + amountFmt, { highlight: true })}
                 ${svReceiptRow('Payment Method', method)}
                 ${svReceiptRow('Reference No.', svRefBadge(referenceNo))}
                 ${svReceiptRow('Date & Time', date)}
@@ -1386,21 +1444,21 @@
     };
 
     // Get member balance via AJAX
-    window.updateMemberBalance = function() {
+    window.updateMemberBalance = function () {
         const memberId = document.getElementById('memberSelect').value;
         const balanceEl = document.getElementById('currentBalance');
         const mobileEl = document.getElementById('savingsMobileDisplay');
-        
+
         if (!memberId) {
             balanceEl.textContent = '₱0.00';
             if (mobileEl) mobileEl.value = '';
             return;
         }
-        
+
         fetch('/savings/admin/balance/' + memberId)
             .then(response => response.json())
             .then(data => {
-                balanceEl.textContent = '₱' + parseFloat(data.balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                balanceEl.textContent = '₱' + parseFloat(data.balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 if (mobileEl) mobileEl.value = data.contact_no || '';
             })
             .catch(error => {
@@ -1459,10 +1517,10 @@
     }
 
     // Submit admin savings form
-    window.submitAdminSavings = function() {
+    window.submitAdminSavings = function () {
         const form = document.getElementById('adminSavingsForm');
         const formData = new FormData(form);
-        
+
         if (!formData.get('member_id')) {
             showToast('Error', 'Please select a member');
             return;
@@ -1487,28 +1545,28 @@
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                closeAddContributionModal();
-                showToast('Success', data.message);
-                form.reset();
-                document.getElementById('currentBalance').textContent = '₱0.00';
-                document.getElementById('savingsMobileDisplay').value = '';
-                toggleSavingsPaymentFields();
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                showToast('Error', data.message || 'Transaction failed');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeAddContributionModal();
+                    showToast('Success', data.message);
+                    form.reset();
+                    document.getElementById('currentBalance').textContent = '₱0.00';
+                    document.getElementById('savingsMobileDisplay').value = '';
+                    toggleSavingsPaymentFields();
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('Error', data.message || 'Transaction failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
+            });
     };
 
     // ============ Convert to Share Capital Functions ============
-    window.openConvertToSCModal = function() {
+    window.openConvertToSCModal = function () {
         const modal = document.getElementById('convertToSCModal');
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
@@ -1525,12 +1583,12 @@
         convertIdempotencyKey = generateConvertKey();
     };
 
-    window.closeConvertToSCModal = function() {
+    window.closeConvertToSCModal = function () {
         document.getElementById('convertToSCModal').classList.add('hidden');
         document.body.style.overflow = '';
     };
 
-    window.updateConvertBalances = function() {
+    window.updateConvertBalances = function () {
         const memberId = document.getElementById('convertMemberSelect').value;
         if (!memberId) {
             document.getElementById('convertSavingsBalance').textContent = '0.00';
@@ -1540,12 +1598,12 @@
         fetch('/savings/admin/balance/' + memberId)
             .then(r => r.json())
             .then(data => {
-                document.getElementById('convertSavingsBalance').textContent = parseFloat(data.balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('convertSavingsBalance').textContent = parseFloat(data.balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             });
         fetch('/savings/admin/sc-balance/' + memberId)
             .then(r => r.json())
             .then(data => {
-                document.getElementById('convertSCBalance').textContent = parseFloat(data.balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('convertSCBalance').textContent = parseFloat(data.balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             });
     };
 
@@ -1556,22 +1614,22 @@
         return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
     }
 
-    window.setConvertAmount = function(val) {
+    window.setConvertAmount = function (val) {
         document.getElementById('convertAmount').value = val;
         updateConvertEstimate();
     };
 
-    window.updateConvertEstimate = function() {
+    window.updateConvertEstimate = function () {
         const amount = parseFloat(document.getElementById('convertAmount').value) || 0;
         const shares = Math.floor(amount / scPerShareValue);
         const remainder = amount - (shares * scPerShareValue);
         document.getElementById('estimatedShares').textContent = shares;
-        document.getElementById('convertRemainder').textContent = '₱' + remainder.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('convertRemainder').textContent = '₱' + remainder.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     document.getElementById('convertAmount')?.addEventListener('input', updateConvertEstimate);
 
-    window.submitConvertToSC = function() {
+    window.submitConvertToSC = function () {
         const form = document.getElementById('convertToSCForm');
         const formData = new FormData(form);
         const amount = parseFloat(formData.get('amount')) || 0;
@@ -1586,7 +1644,7 @@
             return;
         }
         if (shares < 1) {
-            showToast('Error', 'Minimum conversion amount is ₱' + scPerShareValue.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' (1 share)');
+            showToast('Error', 'Minimum conversion amount is ₱' + scPerShareValue.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (1 share)');
             return;
         }
 
@@ -1599,25 +1657,25 @@
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                closeConvertToSCModal();
-                showToast('Success', data.message);
-                form.reset();
-                convertIdempotencyKey = null;
-                document.getElementById('convertSavingsBalance').textContent = '0.00';
-                document.getElementById('convertSCBalance').textContent = '0.00';
-                document.getElementById('estimatedShares').textContent = '0';
-                document.getElementById('convertRemainder').textContent = '₱0.00';
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                showToast('Error', data.message || 'Conversion failed');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Error', 'An error occurred. Please try again.');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeConvertToSCModal();
+                    showToast('Success', data.message);
+                    form.reset();
+                    convertIdempotencyKey = null;
+                    document.getElementById('convertSavingsBalance').textContent = '0.00';
+                    document.getElementById('convertSCBalance').textContent = '0.00';
+                    document.getElementById('estimatedShares').textContent = '0';
+                    document.getElementById('convertRemainder').textContent = '₱0.00';
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('Error', data.message || 'Conversion failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred. Please try again.');
+            });
     };
 </script>

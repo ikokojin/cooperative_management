@@ -661,7 +661,7 @@
         }
 
         .fin-void-body {
-            padding: 1.5rem;
+            padding: 1.5rem 1.5rem 1.5rem 1.5rem;
             text-align: center;
         }
 
@@ -815,7 +815,7 @@
                             <span class="label">Payment Method</span>
                             <span class="value">{{ session('sc_receipt_method', '—') }}</span>
                         </div>
-                        <div class="sc-receipt-row" id="sc-row-receipt-ref-row">
+                        <div class="sc-receipt-row">
                             <span class="label">Reference No.</span>
                             <span class="value"><span
                                     class="sc-ref-badge">{{ session('sc_receipt_ref', '—') }}</span></span>
@@ -956,14 +956,17 @@
                                             style="display:none; background:#fff8e1; border:1.5px solid #ffe082; border-radius:10px; padding:0.65rem 1rem; margin-bottom:0.9rem; font-size:12px; color:#856404; line-height:1.5;">
                                             <i class="fa fa-circle-info" style="margin-right:6px;"></i>
                                             Withdrawal requests are subject to admin approval. Your current share
-                                            balance will <strong>not</strong> be reduced until the request is approved.
+                                            balance will <strong>not</strong> be reduced until the request is
+                                            approved.
                                         </div>
 
                                         <div id="tx-sc-full-withdrawal-warning"
                                             style="display:none; background:#fef2f2; border:1.5px solid #fecaca; border-radius:10px; padding:0.65rem 1rem; margin-bottom:0.9rem; font-size:12px; color:#991b1b; line-height:1.5;">
                                             <i class="fa fa-circle-exclamation" style="margin-right:6px;"></i>
-                                            <strong>Notice:</strong> Fully withdrawing your share capital is equivalent
-                                            to resigning. This action will submit a resignation request and is subject
+                                            <strong>Notice:</strong> Fully withdrawing your share capital is
+                                            equivalent
+                                            to resigning. This action will submit a resignation request and is
+                                            subject
                                             to a 60-day holding period upon approval.
                                         </div>
 
@@ -1000,13 +1003,15 @@
                                                     style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4ff 100%); border: 1.5px solid #c2deff; border-radius: 12px; padding: 1rem 1.2rem; text-align: center;">
                                                     <p id="tx-qr-title"
                                                         style="margin: 0 0 10px; font-size: 14px; font-weight: 700; color: #0056b3;">
-                                                        <i class="fa-solid fa-mobile-screen-button"></i> Scan to Pay via
+                                                        <i class="fa-solid fa-mobile-screen-button"></i> Scan to Pay
+                                                        via
                                                     </p>
                                                     <img id="tx-qr-img" src="" alt="QR Code"
                                                         style="width: 220px; height: 220px; max-width: 100%; object-fit: contain; border-radius: 10px; border: 1px solid #c2deff; background: #fff; padding: 12px; display: block; margin: 0 auto;">
                                                     <p id="tx-qr-hint"
                                                         style="margin: 10px 0 0; font-size: 11px; color: #5a8ac4;">
-                                                        Scan this using your app, then upload your payment screenshot
+                                                        Scan this using your app, then upload your payment
+                                                        screenshot
                                                         below.
                                                     </p>
                                                     <p style="margin: 6px 0 0; font-size: 11px;">
@@ -1036,7 +1041,8 @@
                                                 </label>
                                                 <p id="tx-ref-used-msg"
                                                     style="display:none; margin:0 0 6px; color:#e53e3e; font-size:12px; font-weight:600;">
-                                                    <i class="fa fa-circle-exclamation"></i> This reference number has
+                                                    <i class="fa fa-circle-exclamation"></i> This reference number
+                                                    has
                                                     already been used for a transaction.
                                                 </p>
                                                 <input type="text" name="gcash_reference_no" id="tx-gcash-ref-input"
@@ -1123,8 +1129,10 @@
                                             </div>
 
                                             <p style="font-size: 12px; color: #888888; margin-bottom: 1.2rem;">
-                                                Cost: <strong id="tx-cost" style="color: var(--teal);">₱200</strong> ·
-                                                <strong id="tx-sc-share-count">1</strong> shares · ₱200 per Share (Par
+                                                Cost: <strong id="tx-cost" style="color: var(--teal);">₱200</strong>
+                                                ·
+                                                <strong id="tx-sc-share-count">1</strong> shares · ₱200 per Share
+                                                (Par
                                                 Value)
                                             </p>
                                         </div>
@@ -1169,13 +1177,21 @@
                                 <h3>Financial</h3>
                                 <p>Track your Share Capital contributions and Savings activity in one place.</p>
                             </div>
-                            <div class="parent-download">
+                            <div class="parent-download" style="display:flex; gap:10px;">
                                 <div class="share">
                                     <button data-bs-toggle="modal" data-bs-target="#unifiedTxModal">
                                         <i class="fa fa-right-left"></i>
                                         <span>New Transaction</span>
                                     </button>
                                 </div>
+                                @if($activeTab === 'savings')
+                                    <div class="share">
+                                        <button type="button" data-bs-toggle="modal" data-bs-target="#convertScModal">
+                                            <i class="fa fa-arrows-rotate"></i>
+                                            <span>Convert to Share Capital</span>
+                                        </button>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -1183,7 +1199,8 @@
                             <a href="{{ route('Financial', ['tab' => 'savings']) }}"
                                 class="fin-tab {{ $activeTab === 'savings' ? 'active' : '' }}">Savings</a>
                             <a href="{{ route('Financial', ['tab' => 'share_capital']) }}"
-                                class="fin-tab {{ $activeTab === 'share_capital' ? 'active' : '' }}">Share Capital</a>
+                                class="fin-tab {{ $activeTab === 'share_capital' ? 'active' : '' }}">Share
+                                Capital</a>
                         </div>
 
                         {{-- ═══════════════════════════════════════════════════════════
@@ -1202,7 +1219,8 @@
                                             <div class="sc-stat-icon blue"><i class="fa fa-bullseye"></i></div>
                                         </div>
                                         <div class="sc-stat-value green">₱{{ number_format($targetAmount, 0) }}</div>
-                                        <div class="sc-stat-sub">Target · {{ $targetShares }} shares ₱{{ $parValue }} per value
+                                        <div class="sc-stat-sub">Target · {{ $targetShares }} shares ₱{{ $parValue }} per
+                                            value
                                         </div>
                                     </div>
                                 @endunless
@@ -1269,12 +1287,14 @@
                                             </span>
                                         </p>
                                         <p class="sc-journey-sub">Every member subscribes
-                                            ₱{{ number_format($targetAmount, 0) }} in share capital, payable over 8 quarters
+                                            ₱{{ number_format($targetAmount, 0) }} in share capital, payable over 8
+                                            quarters
                                             (2 years). Miss a quarter and it simply shifts your certificate date — no
                                             penalty applies.</p>
                                     </div>
                                     <span class="sc-journey-target-chip"><i class="fa fa-bullseye"
-                                            style="margin-right:5px;"></i>Target ₱{{ number_format($targetAmount, 0) }} by
+                                            style="margin-right:5px;"></i>Target ₱{{ number_format($targetAmount, 0) }}
+                                        by
                                         Q4 · Year 2</span>
                                 </div>
 
@@ -1343,8 +1363,8 @@
                             ═══════════════════════════════════════ --}}
                             <h3 class="sc-split-heading">
                                 <!-- Dividend Earnings — The 60/40 Split
-                                                                                                                                                            <span class="sc-split-note">Distributed once a year, after audited annual surplus is
-                                                                                                                                                                approved by the General Assembly</span> -->
+                                                                                                                                                                                                                        <span class="sc-split-note">Distributed once a year, after audited annual surplus is
+                                                                                                                                                                                                                            approved by the General Assembly</span> -->
                                 <div>
                                     <h4>Dividend Earnings — The 60/40 Split</h4>
                                     <p>Distributed once a year, after audited annual surplus is approved by the General
@@ -1364,7 +1384,8 @@
                                     </div>
                                     <div class="sc-split-desc">of allocated annual surplus. Computed on <strong>how much
                                             capital you hold</strong> — your Average Monthly Balance across the year,
-                                        multiplied by the board-approved dividend rate. The more shares you build up, the
+                                        multiplied by the board-approved dividend rate. The more shares you build up,
+                                        the
                                         larger your ISC share.</div>
                                     {{-- <div class="sc-split-est"><span>Est. ISC this
                                             cycle</span><strong>₱{{ number_format($iscAmount, 2) }}</strong></div> --}}
@@ -1376,9 +1397,12 @@
                                     <div class="sc-split-pct">
                                         {{ number_format(\App\Http\Controllers\ShareCapital::PATRONAGE_SPLIT * 100, 0) }}%
                                     </div>
-                                    <div class="sc-split-desc">of allocated annual surplus. Computed on <strong>how much you
-                                            transacted with the cooperative</strong> — loan interest paid, service fees, and
-                                        other patronage — regardless of how many shares you hold. Rewards active members.
+                                    <div class="sc-split-desc">of allocated annual surplus. Computed on <strong>how much
+                                            you
+                                            transacted with the cooperative</strong> — loan interest paid, service fees,
+                                        and
+                                        other patronage — regardless of how many shares you hold. Rewards active
+                                        members.
                                     </div>
                                     {{-- <div class="sc-split-est"><span>Est. Patronage this
                                             cycle</span><strong>₱{{ number_format($patronageAmount, 2) }}</strong></div>
@@ -1388,7 +1412,8 @@
                                 {{-- <div class="sc-split-card transparent">
                                     <div class="sc-split-tag">Transparent Basis</div>
                                     <div class="sc-split-pct">₱{{ number_format($projectedNextDividend, 0) }}</div>
-                                    <div class="sc-split-desc">Your Average Monthly Balance (AMB) — the running average of
+                                    <div class="sc-split-desc">Your Average Monthly Balance (AMB) — the running average
+                                        of
                                         your paid-up capital across the 12-month period. This is the figure your ISC is
                                         computed from.</div>
                                     <div class="sc-split-formula">
@@ -1409,9 +1434,11 @@
                                         <div>
                                             <strong class="title">Non-Withdrawable Fund<span class="tag">INVESTMENT /
                                                     SOSYO</span></strong><br>
-                                            Share capital is your <strong>investment (sosyo)</strong> in the cooperative,
+                                            Share capital is your <strong>investment (sosyo)</strong> in the
+                                            cooperative,
                                             not a
-                                            savings account. It cannot be withdrawn on demand — it earns dividends annually
+                                            savings account. It cannot be withdrawn on demand — it earns dividends
+                                            annually
                                             and
                                             builds your ownership stake instead of sitting as liquid, on-call funds.
                                         </div>
@@ -1419,9 +1446,12 @@
                                     <div class="sc-notice-box danger">
                                         <div class="sc-notice-icon"><i class="fa fa-triangle-exclamation"></i></div>
                                         <div>
-                                            <strong class="title">Applied to Outstanding Loans on Resignation</strong><br>
-                                            If you resign or your membership is terminated, your share capital balance will
-                                            first be used to <strong>offset any outstanding loan balance</strong> before the
+                                            <strong class="title">Applied to Outstanding Loans on
+                                                Resignation</strong><br>
+                                            If you resign or your membership is terminated, your share capital balance
+                                            will
+                                            first be used to <strong>offset any outstanding loan balance</strong> before
+                                            the
                                             remainder — if any — is refunded to you, per cooperative bylaws.
                                         </div>
                                     </div>
@@ -1530,14 +1560,20 @@
                                                         </td>
                                                         <td>{{ $row->shares ? number_format((float) $row->shares, 2) . ' shares' : '— shares' }}
                                                         </td>
-                                                        <td>₱{{ number_format($row->total_amount, 2) }}</td>
+                                                        <td>
+                                                            @if(strtolower($row->status ?? '') === 'voided')
+                                                                <span style="color:#aaa;">—</span>
+                                                            @else
+                                                                ₱{{ number_format($row->total_amount, 2) }}
+                                                            @endif
+                                                        </td>
                                                         <td>
                                                             @if($row->status === 'Completed' || $row->status === null)
                                                                 <span class="sc-status-pill posted">Completed</span>
                                                             @elseif($isPending)
                                                                 <span class="sc-status-pill pending">Pending</span>
                                                             @elseif(strtolower($row->status ?? '') === 'voided')
-                                                                <span class="sc-status-pill voided">Voided</span>
+                                                                <span class="sc-status-pill voided">Returned</span>
                                                             @else
                                                                 <span class="sc-status-pill failed">{{ $row->status }}</span>
                                                             @endif
@@ -1575,14 +1611,6 @@
                             ═══════════════════════════════════════════════════════════ --}}
                             @if($activeTab === 'savings')
 
-                                <div class="main-head">
-                                    <button type="button" data-bs-toggle="modal" data-bs-target="#convertScModal"
-                                        style="margin-top:14px; display:inline-flex; align-items:center; gap:8px; padding:9px 16px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-size:13.5px; font-weight:600; cursor:pointer;">
-                                        <i class="fa fa-arrows-rotate"></i>
-                                        <span>Convert to Share Capital</span>
-                                    </button>
-                                </div>
-
                                 <main class="main">
                                     <div class="card-box-parent">
                                         <div class="card-box-text">
@@ -1614,7 +1642,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="card-box tw:bg-white" style="cursor:pointer;"
+                                            {{-- <div class="card-box tw:bg-white" style="cursor:pointer;"
                                                 data-action="openContributionModal">
                                                 <div class="card-header-icon">
                                                     <p>Last Contribution</p>
@@ -1626,7 +1654,7 @@
                                                     <h4>₱ {{ number_format($lastContributionAmount, 2) }}</h4>
                                                     <span>{{ $lastContributionDate }}</span>
                                                 </div>
-                                            </div>
+                                            </div> --}}
 
                                             <div class="card-box tw:bg-white">
                                                 <div class="card-header-icon">
@@ -1648,7 +1676,8 @@
                                             <div class="gate-lock"><i class="fa-solid fa-lock"></i></div>
                                             <div class="gate-msg">Savings stats are locked</div>
                                             <div class="gate-sub">
-                                                Please subscribe to Share Capital first to unlock your savings stats — use the
+                                                Please subscribe to Share Capital first to unlock your savings stats — use
+                                                the
                                                 <a href="{{ route('Financial', ['tab' => 'share_capital']) }}">Share Capital
                                                     tab</a> above.
                                             </div>
@@ -1663,7 +1692,8 @@
                                         <div class="ask-card">
                                             <div class="ask-card-text">
                                                 <h3>Secure your savings with Time Deposit</h3>
-                                                <p>Grow your money with higher returns and guaranteed earnings over a fixed
+                                                <p>Grow your money with higher returns and guaranteed earnings over a
+                                                    fixed
                                                     term.
                                                 </p>
                                             </div>
@@ -1707,7 +1737,8 @@
                                                     <div class="bar-col {{ $month['is_current'] ? 'active' : '' }}">
                                                         <div class="bar" style="height:{{ $month['height_percent'] }}%">
                                                             <div class="bar-tooltip">
-                                                                <div class="bar-tooltip-title">{{ $month['label'] }}</div>
+                                                                <div class="bar-tooltip-title">{{ $month['label'] }}
+                                                                </div>
                                                                 <div class="bar-tooltip-row">
                                                                     <span
                                                                         class="bar-tooltip-dot {{ $month['is_current'] ? 'dot-gold' : 'dot-blue' }}"></span>
@@ -1789,7 +1820,8 @@
                                                     data-action="sm-submit-tx-filter">
 
                                                 <select name="status" class="sm-filter-select" data-submit-on-change>
-                                                    <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All Status
+                                                    <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All
+                                                        Status
                                                     </option>
                                                     @foreach($availableStatuses as $s)
                                                         <option value="{{ strtolower($s) }}" {{ $status === strtolower($s) ? 'selected' : '' }}>{{ $s }}</option>
@@ -1819,7 +1851,9 @@
                                                                 @php
                                                                     $rowMethod = !empty($tx->payment_method)
                                                                         ? $tx->payment_method
-                                                                        : (!empty($tx->gcash_reference_no) ? 'GCash' : '—');
+                                                                        : ($tx->type === 'interest_credit'
+                                                                            ? 'Auto-credited'
+                                                                            : (!empty($tx->gcash_reference_no) ? 'GCash' : '—'));
                                                                     $rowDisplayStatus = $tx->status ?? 'completed';
                                                                     $rowRefPref = $tx->reference_no ?? '';
                                                                     if ($tx->type === 'deposit' && str_starts_with($rowRefPref, 'DISB')) {
@@ -1867,7 +1901,8 @@
                                                                             <div class="deposit">Savings Deposit</div>
 
                                                                         @elseif(str_starts_with($tx->reference_no ?? '', 'CNV'))
-                                                                            <div class="withdraw">Converted to Share Capital</div>
+                                                                            <div class="withdraw">Converted to Share Capital
+                                                                            </div>
                                                                         @elseif(str_starts_with($tx->reference_no ?? '', 'LNPAY'))
                                                                             <div class="withdraw">Loan Repay</div>
                                                                         @else
@@ -1875,19 +1910,23 @@
                                                                         @endif
                                                                     </td>
                                                                     <td class="text-start">
-                                                                        @if ($tx->reference_no)
+                                                                        @if ($tx->reference_no && !str_starts_with($tx->reference_no, 'CNV'))
                                                                             <span class="tx-ref">{{ $tx->reference_no }}</span>
                                                                         @else
-                                                                            <span style="color:#000000;font-size:0.78rem">—</span>
+                                                                            <span style="color:#aaa;">—</span>
                                                                         @endif
                                                                     </td>
                                                                     <td class="text-start">
                                                                         {{ \Carbon\Carbon::parse($tx->transaction_date)->format('m/d/Y') }}
                                                                     </td>
                                                                     <td class="text-start"
-                                                                        style="font-weight:700; color:{{ $tx->type === 'withdrawal' ? 'var(--red)' : 'var(--green)' }}">
-                                                                        {{ $tx->type === 'withdrawal' ? '-' : '+' }} ₱
-                                                                        {{ number_format($tx->amount, 2) }}
+                                                                        style="font-weight:700; color:{{ strtolower($tx->status ?? '') === 'voided' ? 'var(--muted)' : ($tx->type === 'withdrawal' ? 'var(--red)' : 'var(--green)') }}">
+                                                                        @if(strtolower($tx->status ?? '') === 'voided')
+                                                                            <span style="color:#aaa; font-weight:400;">—</span>
+                                                                        @else
+                                                                            {{ $tx->type === 'withdrawal' ? '-' : '+' }}
+                                                                            ₱{{ number_format($tx->amount, 2) }}
+                                                                        @endif
                                                                     </td>
                                                                     <td>
                                                                         @php
@@ -1908,7 +1947,7 @@
                                                                         @elseif ($displayStatus === 'credited')
                                                                             <span class="status credited">Credited</span>
                                                                         @elseif ($displayStatus === 'voided')
-                                                                            <span class="status voided">Voided</span>
+                                                                            <span class="status voided">Returned</span>
                                                                         @elseif ($displayStatus === 'locked')
                                                                             <span class="status locked">Locked</span>
                                                                         @else
@@ -2003,12 +2042,12 @@
         @if(session('error'))
             <div
                 style="position: fixed; top: 1.2rem; right: 1.2rem; z-index: 9999;
-                                                                                                                                                                                background: #fff; border: 1.5px solid #f5c6c6; border-radius: 14px;
-                                                                                                                                                                                padding: 1rem 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-                                                                                                                                                                                display: flex; align-items: center; gap: 12px; max-width: 360px;">
+                                                                                                                                                                                                                                            background: #fff; border: 1.5px solid #f5c6c6; border-radius: 14px;
+                                                                                                                                                                                                                                            padding: 1rem 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+                                                                                                                                                                                                                                            display: flex; align-items: center; gap: 12px; max-width: 360px;">
                 <div
                     style="width: 36px; height: 36px; background: #fef0f0; border-radius: 50%;
-                                                                                                                                                                                    display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                                                                                                                                                                                                                display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <i class="fa fa-times" style="color: #e03131; font-size: 15px;"></i>
                 </div>
                 <div>
@@ -2023,12 +2062,12 @@
         @if(session('warning'))
             <div
                 style="position: fixed; top: 1.2rem; right: 1.2rem; z-index: 9999;
-                                                                                                                                                                                background: #fff; border: 1.5px solid #ffe082; border-radius: 14px;
-                                                                                                                                                                                padding: 1rem 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-                                                                                                                                                                                display: flex; align-items: center; gap: 12px; max-width: 380px;">
+                                                                                                                                                                                                                                            background: #fff; border: 1.5px solid #ffe082; border-radius: 14px;
+                                                                                                                                                                                                                                            padding: 1rem 1.25rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+                                                                                                                                                                                                                                            display: flex; align-items: center; gap: 12px; max-width: 380px;">
                 <div
                     style="width: 36px; height: 36px; background: #fff8e1; border-radius: 50%;
-                                                                                                                                                                                    display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                                                                                                                                                                                                                display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <i class="fa fa-triangle-exclamation" style="color: #b8860b; font-size: 15px;"></i>
                 </div>
                 <div>
@@ -2187,9 +2226,11 @@
                 <div
                     style="padding:1.5rem; border-bottom:1px solid #e8e8e8; display:flex; align-items:center; justify-content:space-between;">
                     <div>
-                        <h2 style="margin:0 0 4px; font-size:1.1rem; font-weight:700; color:#1a1a1a;">Contribution Breakdown
+                        <h2 style="margin:0 0 4px; font-size:1.1rem; font-weight:700; color:#1a1a1a;">Contribution
+                            Breakdown
                         </h2>
-                        <p style="margin:0; font-size:0.8rem; color:var(--muted,#888);">Your savings contribution history
+                        <p style="margin:0; font-size:0.8rem; color:var(--muted,#888);">Your savings contribution
+                            history
                         </p>
                     </div>
                     <button type="button" data-action="closeContributionModal"
@@ -2212,7 +2253,8 @@
                             Last Posted</div>
                         <div style="font-size:1.15rem; font-weight:700; color:#1a1a1a;">
                             ₱{{ number_format($lastContributionAmount, 2) }}</div>
-                        <div style="font-size:0.72rem; color:var(--muted,#888); margin-top:2px;">{{ $lastContributionDate }}
+                        <div style="font-size:0.72rem; color:var(--muted,#888); margin-top:2px;">
+                            {{ $lastContributionDate }}
                         </div>
                     </div>
                 </div>
@@ -2249,15 +2291,15 @@
                 if (!grid) return;
                 const months = MONTHLY_BREAKDOWN[year] || [];
                 grid.innerHTML = months.map(m => `
-                                                                                        <div style="text-align:center; padding:8px 4px; border-radius:10px;
-                                                                                            background:${m.paid ? '#e7f6ec' : '#f7f7f8'};
-                                                                                            border:1px solid ${m.paid ? '#b7e4c3' : '#eee'};">
-                                                                                            <div style="font-size:11px; font-weight:600; color:${m.paid ? '#1a7f37' : '#aaa'};">${m.label}</div>
-                                                                                            <div style="font-size:10px; margin-top:2px; color:${m.paid ? '#1a7f37' : '#bbb'};">
-                                                                                                ${m.paid ? '₱' + Number(m.amount).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    `).join('');
+                                                                                                                                                    <div style="text-align:center; padding:8px 4px; border-radius:10px;
+                                                                                                                                                        background:${m.paid ? '#e7f6ec' : '#f7f7f8'};
+                                                                                                                                                        border:1px solid ${m.paid ? '#b7e4c3' : '#eee'};">
+                                                                                                                                                        <div style="font-size:11px; font-weight:600; color:${m.paid ? '#1a7f37' : '#aaa'};">${m.label}</div>
+                                                                                                                                                        <div style="font-size:10px; margin-top:2px; color:${m.paid ? '#1a7f37' : '#bbb'};">
+                                                                                                                                                            ${m.paid ? '₱' + Number(m.amount).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
+                                                                                                                                                        </div>
+                                                                                                                                                    </div>
+                                                                                                                                                `).join('');
             }
 
             function openContributionModal() {
@@ -2298,8 +2340,10 @@
                         </div>
                         <div>
                             <h5 class="modal-title mb-0" id="convertScModalLabel"
-                                style="color:#1a1a1a; font-size:15px; font-weight:600;">Convert to Share Capital</h5>
-                            <p style="margin:0; color:var(--muted); font-size:13.5px;">Move money from your savings into
+                                style="color:#1a1a1a; font-size:15px; font-weight:600;">Convert to Share Capital
+                            </h5>
+                            <p style="margin:0; color:var(--muted); font-size:13.5px;">Move money from your savings
+                                into
                                 share capital</p>
                         </div>
                     </div>
@@ -2321,7 +2365,8 @@
                             <div
                                 style="flex:1; background:#eef4ff; border:1.5px dashed #9bbcf5; border-radius:12px; padding:0.8rem 1rem;">
                                 <div style="font-size:12px; color:#666;">Share Capital Balance</div>
-                                <div id="cv-sc-balance" style="font-size:1.15rem; font-weight:700; color:#1d4ed8;">₱0.00
+                                <div id="cv-sc-balance" style="font-size:1.15rem; font-weight:700; color:#1d4ed8;">
+                                    ₱0.00
                                 </div>
                             </div>
                         </div>
@@ -2390,7 +2435,8 @@
                     style="background:#f8f9fa; border-top:1px solid rgba(0,0,0,0.1); padding:1rem 1.6rem; display:flex; flex-direction:column; gap:8px;">
                     <button type="button" id="cv-submit"
                         style="width:100%; padding:0.75rem; background:var(--teal); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-                        <i class="fa fa-arrows-rotate"></i> <span id="cv-submit-label">Convert to Share Capital</span>
+                        <i class="fa fa-arrows-rotate"></i> <span id="cv-submit-label">Convert to Share
+                            Capital</span>
                     </button>
                     <button type="button" id="cv-cancel" class="btn w-100 text-center" data-bs-dismiss="modal"
                         style="border-radius:8px; font-size:14px; padding:10px 18px; border:1.5px solid #e0e0e0; color:var(--muted);">
@@ -2592,7 +2638,7 @@
                         <span class="label">Payment Method</span>
                         <span class="value" id="sc-row-receipt-method">—</span>
                     </div>
-                    <div class="sc-receipt-row">
+                    <div class="sc-receipt-row" id="sc-row-receipt-ref-row">
                         <span class="label">Reference No.</span>
                         <span class="value"><span class="sc-ref-badge" id="sc-row-receipt-ref">—</span></span>
                     </div>
@@ -2682,14 +2728,10 @@
         <div id="fin-void-modal">
             <div class="fin-void-header">
                 <div class="fin-void-circle"><i class="fa-solid fa-ban"></i></div>
-                <h2>Transaction Voided</h2>
-                <p>This transaction has been voided and cannot be viewed as a receipt.</p>
+                <h2>Transaction Returned</h2>
+                <p>This transaction has been returned and cannot be viewed as a receipt.</p>
             </div>
             <div class="fin-void-body">
-                <div class="fin-void-amount-wrap">
-                    <div class="fin-void-label">Voided Amount</div>
-                    <div class="fin-void-amount" id="fin-void-amount-text">—</div>
-                </div>
                 <div class="fin-void-details">
                     <div class="fin-void-row">
                         <span class="fin-void-row-label">Type</span>
@@ -2716,7 +2758,7 @@
                         <span class="fin-void-row-value" id="fin-void-method-text">—</span>
                     </div>
                 </div>
-                <div class="fin-void-label">Void Reason</div>
+                <div class="fin-void-label">Returned Reason</div>
                 <div class="fin-void-value" id="fin-void-reason-text">—</div>
             </div>
             <div class="fin-void-footer">
@@ -2785,7 +2827,7 @@
 
             const PAY_METHODS = {
                 @foreach($paymentMethods as $pm)
-                                                                                                                            "{{ strtolower($pm->method_name) }}": {
+                                                                                                                                                                                        "{{ strtolower($pm->method_name) }}": {
                         name: "{{ $pm->method_name }}",
                         hasQr: {{ $pm->has_qr_code ? 'true' : 'false' }},
                         qrPath: "{{ $pm->qr_code_image_path ? asset('storage/' . $pm->qr_code_image_path) : '' }}"
@@ -3207,48 +3249,48 @@
 
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText = `
-                                                                                                                                                                            position: fixed; left: -9999px; top: 0;
-                                                                                                                                                                            width: 400px; background: #fff;
-                                                                                                                                                                            border-radius: 20px; overflow: hidden;
-                                                                                                                                                                            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
-                                                                                                                                                                        `;
+                                                                                                                                                                                                                                        position: fixed; left: -9999px; top: 0;
+                                                                                                                                                                                                                                        width: 400px; background: #fff;
+                                                                                                                                                                                                                                        border-radius: 20px; overflow: hidden;
+                                                                                                                                                                                                                                        box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+                                                                                                                                                                                                                                    `;
 
                 wrapper.innerHTML = `
-                                                                                                                                                                            <div style="background:linear-gradient(135deg,#1a4a3a,#2d6a4f);padding:2rem 1.5rem 1.2rem;text-align:center;">
-                                                                                                                                                                                <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
-                                                                                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                                                                                                                                                </div>
-                                                                                                                                                                                <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
-                                                                                                                                                                                <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">
-                                                                                                                                                                                    ${d.type === 'Deposit'
+                                                                                                                                                                                                                                        <div style="background:linear-gradient(135deg,#1a4a3a,#2d6a4f);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                                                                                                                                                                                                                                            <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                                                                                                                                                                                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                            <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
+                                                                                                                                                                                                                                            <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">
+                                                                                                                                                                                                                                                ${d.type === 'Deposit'
                         ? (isCompleted
                             ? 'Your deposit has been recorded successfully.'
                             : 'Your deposit request is pending for approval.')
                         : (isCompleted
                             ? 'Your withdrawal has been processed successfully.'
                             : 'Your withdrawal request is pending for approval.')}
-                                                                                                                                                                                </div>
-                                                                                                                                                                            </div>
-                                                                                                                                                                            <div style="padding:1.2rem 1.5rem;">
-                                                                                                                                                                                <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
-                                                                                                                                                                                    ${scReceiptRow('Organization', 'KMPCATS')}
-                                                                                                                                                                                    ${scReceiptRow('Member', d.member)}
-                                                                                                                                                                                    ${scReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
-                                                                                                                                                                                    ${scReceiptRow('Shares', '<strong style="color:#1a4a3a">' + d.shares + ' shares</strong>')}
-                                                                                                                                                                                    ${scReceiptRow('Amount', '<strong style="color:#1a4a3a">&#8369;' + d.amount + '</strong>')}
-                                                                                                                                                                                    ${scReceiptRow('Payment Method', d.method)}
-                                                                                                                                                                                    ${scReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
-                                                                                                                                                                                    ${scReceiptRow('Date & Time', d.date)}
-                                                                                                                                                                                    ${scReceiptRow('Status', isCompleted
+                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        <div style="padding:1.2rem 1.5rem;">
+                                                                                                                                                                                                                                            <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
+                                                                                                                                                                                                                                                ${scReceiptRow('Organization', 'KMPCATS')}
+                                                                                                                                                                                                                                                ${scReceiptRow('Member', d.member)}
+                                                                                                                                                                                                                                                ${scReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                                                                                                                                                                                                                                                ${scReceiptRow('Shares', '<strong style="color:#1a4a3a">' + d.shares + ' shares</strong>')}
+                                                                                                                                                                                                                                                ${scReceiptRow('Amount', '<strong style="color:#1a4a3a">&#8369;' + d.amount + '</strong>')}
+                                                                                                                                                                                                                                                ${scReceiptRow('Payment Method', d.method)}
+                                                                                                                                                                                                                                                ${scReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                                                                                                                                                                                                                                                ${scReceiptRow('Date & Time', d.date)}
+                                                                                                                                                                                                                                                ${scReceiptRow('Status', isCompleted
                                 ? '<span style="color:#2e7d32;font-weight:700;font-size:0.72rem;">✓ Completed</span>'
                                 : '<span style="color:#b8860b;font-weight:700;font-size:0.72rem;">• Pending Approval</span>')}
-                                                                                                                                                                                </table>
-                                                                                                                                                                            </div>
-                                                                                                                                                                            <div style="padding:0.8rem 1.5rem 1.2rem;text-align:center;border-top:1px dashed #e8e8e8;">
-                                                                                                                                                                                <div style="color:#aaa;font-size:0.72rem;">This is an official transaction receipt from KMPCATS.</div>
-                                                                                                                                                                                <div style="color:#bbb;font-size:0.68rem;margin-top:2px;">Keep this for your records.</div>
-                                                                                                                                                                            </div>
-                                                                                                                                                                        `;
+                                                                                                                                                                                                                                            </table>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        <div style="padding:0.8rem 1.5rem 1.2rem;text-align:center;border-top:1px dashed #e8e8e8;">
+                                                                                                                                                                                                                                            <div style="color:#aaa;font-size:0.72rem;">This is an official transaction receipt from KMPCATS.</div>
+                                                                                                                                                                                                                                            <div style="color:#bbb;font-size:0.68rem;margin-top:2px;">Keep this for your records.</div>
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                    `;
 
                 document.body.appendChild(wrapper);
 
@@ -3263,11 +3305,11 @@
 
             function scReceiptRow(label, value) {
                 return `
-                                                                                                                                                                            <tr style="border-bottom:1px dashed #ebebeb;">
-                                                                                                                                                                                <td style="color:#888;font-weight:500;padding:0.55rem 0.5rem 0.55rem 0;vertical-align:middle;white-space:nowrap;">${label}</td>
-                                                                                                                                                                                <td style="color:#1a1a1a;font-weight:600;text-align:right;padding:0.55rem 0 0.55rem 0.5rem;vertical-align:middle;">${value}</td>
-                                                                                                                                                                            </tr>
-                                                                                                                                                                        `;
+                                                                                                                                                                                                                                        <tr style="border-bottom:1px dashed #ebebeb;">
+                                                                                                                                                                                                                                            <td style="color:#888;font-weight:500;padding:0.55rem 0.5rem 0.55rem 0;vertical-align:middle;white-space:nowrap;">${label}</td>
+                                                                                                                                                                                                                                            <td style="color:#1a1a1a;font-weight:600;text-align:right;padding:0.55rem 0 0.55rem 0.5rem;vertical-align:middle;">${value}</td>
+                                                                                                                                                                                                                                        </tr>
+                                                                                                                                                                                                                                    `;
             }
 
             /* CONTRIBUTION HISTORY — SEARCH + FILTERS + PAGINATION */
@@ -3357,9 +3399,9 @@
                             emptyRow = document.createElement('tr');
                             emptyRow.id = 'sc-filter-empty-row';
                             emptyRow.innerHTML = `<td colspan="6" style="text-align:center;color:#aaa;padding:2rem;font-size:13px;">
-                                                                                                                                                                            <i class="fa fa-filter-circle-xmark" style="font-size:24px;display:block;margin-bottom:8px;"></i>
-                                                                                                                                                                            No contributions match your filters.
-                                                                                                                                                                        </td>`;
+                                                                                                                                                                                                                                        <i class="fa fa-filter-circle-xmark" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+                                                                                                                                                                                                                                        No contributions match your filters.
+                                                                                                                                                                                                                                    </td>`;
                             tbody.appendChild(emptyRow);
                         }
                         emptyRow.style.display = '';
@@ -3440,9 +3482,9 @@
 
             function svReceiptRow(label, value) {
                 return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
-                                                                                                                            <span style="color:#888;">${label}</span>
-                                                                                                                            <span style="color:#1a1a1a;font-weight:700;">${value}</span>
-                                                                                                                        </div>`;
+                                                                                                                                                                                        <span style="color:#888;">${label}</span>
+                                                                                                                                                                                        <span style="color:#1a1a1a;font-weight:700;">${value}</span>
+                                                                                                                                                                                    </div>`;
             }
 
             function svDownloadReceipt() {
@@ -3451,32 +3493,32 @@
 
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText = `
-                                                                                                                            position: fixed; left: -9999px; top: 0;
-                                                                                                                            width: 400px; background: #fff;
-                                                                                                                            border-radius: 20px; overflow: hidden;
-                                                                                                                            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
-                                                                                                                        `;
+                                                                                                                                                                                        position: fixed; left: -9999px; top: 0;
+                                                                                                                                                                                        width: 400px; background: #fff;
+                                                                                                                                                                                        border-radius: 20px; overflow: hidden;
+                                                                                                                                                                                        box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+                                                                                                                                                                                    `;
 
                 wrapper.innerHTML = `
-                                                                                                                            <div style="background-color:var(--teal, #0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
-                                                                                                                                <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
-                                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                                                                                                </div>
-                                                                                                                                <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
-                                                                                                                                <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">Your deposit request is pending for approval.</div>
-                                                                                                                            </div>
-                                                                                                                            <div style="padding:1.2rem 1.5rem;">
-                                                                                                                                ${svReceiptRow('Organization', 'KMPCATS')}
-                                                                                                                                ${svReceiptRow('Member', d.member)}
-                                                                                                                                ${svReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
-                                                                                                                                ${svReceiptRow('Amount', '<strong style="color:var(--teal, #0d9488)">&#8369;' + d.amount + '</strong>')}
-                                                                                                                                ${svReceiptRow('Payment Method', d.method)}
-                                                                                                                                ${svReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
-                                                                                                                                ${svReceiptRow('Date & Time', d.date)}
-                                                                                                                                ${svReceiptRow('Status', '<span style="color:#b8860b;font-weight:700;font-size:0.72rem;">&#9203; Pending Approval</span>')}
-                                                                                                                                <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">KMPCATS Savings Receipt</div>
-                                                                                                                            </div>
-                                                                                                                        `;
+                                                                                                                                                                                        <div style="background-color:var(--teal, #0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                                                                                                                                                                                            <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                                                                                                                                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                                                                                                                                                            </div>
+                                                                                                                                                                                            <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
+                                                                                                                                                                                            <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">Your deposit request is pending for approval.</div>
+                                                                                                                                                                                        </div>
+                                                                                                                                                                                        <div style="padding:1.2rem 1.5rem;">
+                                                                                                                                                                                            ${svReceiptRow('Organization', 'KMPCATS')}
+                                                                                                                                                                                            ${svReceiptRow('Member', d.member)}
+                                                                                                                                                                                            ${svReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                                                                                                                                                                                            ${svReceiptRow('Amount', '<strong style="color:var(--teal, #0d9488)">&#8369;' + d.amount + '</strong>')}
+                                                                                                                                                                                            ${svReceiptRow('Payment Method', d.method)}
+                                                                                                                                                                                            ${svReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                                                                                                                                                                                            ${svReceiptRow('Date & Time', d.date)}
+                                                                                                                                                                                            ${svReceiptRow('Status', '<span style="color:#b8860b;font-weight:700;font-size:0.72rem;">&#9203; Pending Approval</span>')}
+                                                                                                                                                                                            <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">KMPCATS Savings Receipt</div>
+                                                                                                                                                                                        </div>
+                                                                                                                                                                                    `;
 
                 document.body.appendChild(wrapper);
 
@@ -3509,9 +3551,9 @@
 
             function wvReceiptRow(label, value) {
                 return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
-                                                                                                                            <span style="color:#888;">${label}</span>
-                                                                                                                            <span style="color:#1a1a1a;font-weight:700;">${value}</span>
-                                                                                                                        </div>`;
+                                                                                                                                                                                        <span style="color:#888;">${label}</span>
+                                                                                                                                                                                        <span style="color:#1a1a1a;font-weight:700;">${value}</span>
+                                                                                                                                                                                    </div>`;
             }
 
             function wvDownloadReceipt() {
@@ -3520,32 +3562,32 @@
 
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText = `
-                                                                                                                            position: fixed; left: -9999px; top: 0;
-                                                                                                                            width: 400px; background: #fff;
-                                                                                                                            border-radius: 20px; overflow: hidden;
-                                                                                                                            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
-                                                                                                                        `;
+                                                                                                                                                                                        position: fixed; left: -9999px; top: 0;
+                                                                                                                                                                                        width: 400px; background: #fff;
+                                                                                                                                                                                        border-radius: 20px; overflow: hidden;
+                                                                                                                                                                                        box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+                                                                                                                                                                                    `;
 
                 wrapper.innerHTML = `
-                                                                                                                            <div style="background-color:var(--teal, #0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
-                                                                                                                                <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
-                                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                                                                                                </div>
-                                                                                                                                <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
-                                                                                                                                <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">Your withdrawal request is pending for approval.</div>
-                                                                                                                            </div>
-                                                                                                                            <div style="padding:1.2rem 1.5rem;">
-                                                                                                                                ${wvReceiptRow('Organization', 'KMPCATS')}
-                                                                                                                                ${wvReceiptRow('Member', d.member)}
-                                                                                                                                ${wvReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
-                                                                                                                                ${wvReceiptRow('Amount', '<strong style="color:var(--teal, #0d9488)">&#8369;' + d.amount + '</strong>')}
-                                                                                                                                ${wvReceiptRow('Payment Method', d.method)}
-                                                                                                                                ${wvReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
-                                                                                                                                ${wvReceiptRow('Date & Time', d.date)}
-                                                                                                                                ${wvReceiptRow('Status', '<span style="color:#b8860b;font-weight:700;font-size:0.72rem;">&#9203; Pending Approval</span>')}
-                                                                                                                                <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">KMPCATS Savings Receipt</div>
-                                                                                                                            </div>
-                                                                                                                        `;
+                                                                                                                                                                                        <div style="background-color:var(--teal, #0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                                                                                                                                                                                            <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                                                                                                                                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                                                                                                                                                            </div>
+                                                                                                                                                                                            <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Request Submitted!</div>
+                                                                                                                                                                                            <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">Your withdrawal request is pending for approval.</div>
+                                                                                                                                                                                        </div>
+                                                                                                                                                                                        <div style="padding:1.2rem 1.5rem;">
+                                                                                                                                                                                            ${wvReceiptRow('Organization', 'KMPCATS')}
+                                                                                                                                                                                            ${wvReceiptRow('Member', d.member)}
+                                                                                                                                                                                            ${wvReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                                                                                                                                                                                            ${wvReceiptRow('Amount', '<strong style="color:var(--teal, #0d9488)">&#8369;' + d.amount + '</strong>')}
+                                                                                                                                                                                            ${wvReceiptRow('Payment Method', d.method)}
+                                                                                                                                                                                            ${wvReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                                                                                                                                                                                            ${wvReceiptRow('Date & Time', d.date)}
+                                                                                                                                                                                            ${wvReceiptRow('Status', '<span style="color:#b8860b;font-weight:700;font-size:0.72rem;">&#9203; Pending Approval</span>')}
+                                                                                                                                                                                            <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">KMPCATS Savings Receipt</div>
+                                                                                                                                                                                        </div>
+                                                                                                                                                                                    `;
 
                 document.body.appendChild(wrapper);
 
@@ -3577,16 +3619,16 @@
         <script nonce="{{ csp_nonce() }}">
             function scRowReceiptRow(label, value) {
                 return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
-                                                                                                                                    <span style="color:#888;">${label}</span>
-                                                                                                                                    <span style="color:#1a1a1a;font-weight:700;text-align:right;">${value}</span>
-                                                                                                                                </div>`;
+                                                                                                                                                                                                <span style="color:#888;">${label}</span>
+                                                                                                                                                                                                <span style="color:#1a1a1a;font-weight:700;text-align:right;">${value}</span>
+                                                                                                                                                                                            </div>`;
             }
 
             function svRowReceiptRow(label, value) {
                 return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e8e8e8;font-size:0.84rem;">
-                                                                                                                                    <span style="color:#888;">${label}</span>
-                                                                                                                                    <span style="color:#1a1a1a;font-weight:700;text-align:right;">${value}</span>
-                                                                                                                                </div>`;
+                                                                                                                                                                                                <span style="color:#888;">${label}</span>
+                                                                                                                                                                                                <span style="color:#1a1a1a;font-weight:700;text-align:right;">${value}</span>
+                                                                                                                                                                                            </div>`;
             }
 
             function scStatusBadge(status) {
@@ -3631,12 +3673,11 @@
             function handleTxnRowClick(e, row, which) {
                 if (row.dataset.void === '1') {
                     const d = row.dataset;
-                    // Strip thousands-separator commas before parsing, and fall back to 0
-                    // if the value is missing/unparsable — this is what was producing ₱NaN.
-                    const voidedAmount = parseFloat(String(d.amount || '0').replace(/,/g, '')) || 0;
+                    // Returned transactions always display ₱0.00 — the funds were
+                    // reversed, so nothing is owed regardless of the original amount.
 
                     document.getElementById('fin-void-reason-text').textContent = getVoidLabel(d.reason);
-                    document.getElementById('fin-void-amount-text').textContent = '₱' + voidedAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+
                     document.getElementById('fin-void-type-text').textContent = d.type || '—';
                     document.getElementById('fin-void-member-text').textContent = d.member || '—';
                     document.getElementById('fin-void-ref-text').textContent = d.ref || '—';
@@ -3743,26 +3784,26 @@
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15);';
                 wrapper.innerHTML = `
-                                                                                                                                    <div style="background:linear-gradient(135deg,#1a4a3a,#2d6a4f);padding:2rem 1.5rem 1.2rem;text-align:center;">
-                                                                                                                                        <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
-                                                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                                                                                                        </div>
-                                                                                                                                        <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Transaction Receipt</div>
-                                                                                                                                        <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">KMPCATS Share Capital</div>
-                                                                                                                                    </div>
-                                                                                                                                    <div style="padding:1.2rem 1.5rem;">
-                                                                                                                                        ${scRowReceiptRow('Organization', 'KMPCATS')}
-                                                                                                                                        ${scRowReceiptRow('Member', d.member)}
-                                                                                                                                        ${scRowReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
-                                                                                                                                        ${scRowReceiptRow('Shares', '<strong>' + d.shares + '</strong>')}
-                                                                                                                                        ${scRowReceiptRow('Amount', '<strong style="color:#1a4a3a">&#8369;' + d.amount + '</strong>')}
-                                                                                                                                        ${scRowReceiptRow('Payment Method', d.method)}
-                                                                                                                                        ${d.type === 'Savings to Share Capital Conversion' ? '' : scRowReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
-                                                                                                                                        ${scRowReceiptRow('Date & Time', d.date)}
-                                                                                                                                        ${scRowReceiptRow('Status', statusBadge)}
-                                                                                                                                        <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">This is an official transaction receipt from KMPCATS.</div>
-                                                                                                                                    </div>
-                                                                                                                                `;
+                                                                                                                                                                                                <div style="background:linear-gradient(135deg,#1a4a3a,#2d6a4f);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                                                                                                                                                                                                    <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                                                                                                                                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                    <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Transaction Receipt</div>
+                                                                                                                                                                                                    <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">KMPCATS Share Capital</div>
+                                                                                                                                                                                                </div>
+                                                                                                                                                                                                <div style="padding:1.2rem 1.5rem;">
+                                                                                                                                                                                                    ${scRowReceiptRow('Organization', 'KMPCATS')}
+                                                                                                                                                                                                    ${scRowReceiptRow('Member', d.member)}
+                                                                                                                                                                                                    ${scRowReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                                                                                                                                                                                                    ${scRowReceiptRow('Shares', '<strong>' + d.shares + '</strong>')}
+                                                                                                                                                                                                    ${scRowReceiptRow('Amount', '<strong style="color:#1a4a3a">&#8369;' + d.amount + '</strong>')}
+                                                                                                                                                                                                    ${scRowReceiptRow('Payment Method', d.method)}
+                                                                                                                                                                                                    ${d.type === 'Savings to Share Capital Conversion' ? '' : scRowReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                                                                                                                                                                                                    ${scRowReceiptRow('Date & Time', d.date)}
+                                                                                                                                                                                                    ${scRowReceiptRow('Status', statusBadge)}
+                                                                                                                                                                                                    <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">This is an official transaction receipt from KMPCATS.</div>
+                                                                                                                                                                                                </div>
+                                                                                                                                                                                            `;
                 document.body.appendChild(wrapper);
                 if (typeof html2canvas !== 'undefined') {
                     html2canvas(wrapper, { scale: 2, useCORS: true }).then(canvas => {
@@ -3785,25 +3826,25 @@
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15);';
                 wrapper.innerHTML = `
-                                                                                                                                    <div style="background-color:var(--teal,#0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
-                                                                                                                                        <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
-                                                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                                                                                                        </div>
-                                                                                                                                        <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Transaction Receipt</div>
-                                                                                                                                        <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">KMPCATS Savings</div>
-                                                                                                                                    </div>
-                                                                                                                                    <div style="padding:1.2rem 1.5rem;">
-                                                                                                                                        ${svRowReceiptRow('Organization', 'KMPCATS')}
-                                                                                                                                        ${svRowReceiptRow('Member', d.member)}
-                                                                                                                                        ${svRowReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
-                                                                                                                                        ${svRowReceiptRow('Amount', '<strong style="color:var(--teal,#0d9488)">&#8369;' + d.amount + '</strong>')}
-                                                                                                                                        ${svRowReceiptRow('Payment Method', d.method)}
-                                                                                                                                        ${d.type === 'Converted to Share Capital' ? '' : svRowReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
-                                                                                                                                        ${svRowReceiptRow('Date & Time', d.date)}
-                                                                                                                                        ${svRowReceiptRow('Status', statusBadge)}
-                                                                                                                                        <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">This is an official transaction receipt from KMPCATS.</div>
-                                                                                                                                    </div>
-                                                                                                                                `;
+                                                                                                                                                                                                <div style="background-color:var(--teal,#0d9488);padding:2rem 1.5rem 1.2rem;text-align:center;">
+                                                                                                                                                                                                    <div style="width:56px;height:56px;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                                                                                                                                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                    <div style="color:#fff;font-size:1.2rem;font-weight:800;margin-bottom:4px;">Transaction Receipt</div>
+                                                                                                                                                                                                    <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;">KMPCATS Savings</div>
+                                                                                                                                                                                                </div>
+                                                                                                                                                                                                <div style="padding:1.2rem 1.5rem;">
+                                                                                                                                                                                                    ${svRowReceiptRow('Organization', 'KMPCATS')}
+                                                                                                                                                                                                    ${svRowReceiptRow('Member', d.member)}
+                                                                                                                                                                                                    ${svRowReceiptRow('Transaction Type', '<strong>' + d.type + '</strong>')}
+                                                                                                                                                                                                    ${svRowReceiptRow('Amount', '<strong style="color:var(--teal,#0d9488)">&#8369;' + d.amount + '</strong>')}
+                                                                                                                                                                                                    ${svRowReceiptRow('Payment Method', d.method)}
+                                                                                                                                                                                                    ${d.type === 'Converted to Share Capital' ? '' : svRowReceiptRow('Reference No.', '<span style="font-size:0.76rem;">' + d.ref + '</span>')}
+                                                                                                                                                                                                    ${svRowReceiptRow('Date & Time', d.date)}
+                                                                                                                                                                                                    ${svRowReceiptRow('Status', statusBadge)}
+                                                                                                                                                                                                    <div style="text-align:center;margin-top:12px;color:#aaa;font-size:0.72rem;">This is an official transaction receipt from KMPCATS.</div>
+                                                                                                                                                                                                </div>
+                                                                                                                                                                                            `;
                 document.body.appendChild(wrapper);
                 if (typeof html2canvas !== 'undefined') {
                     html2canvas(wrapper, { scale: 2, useCORS: true }).then(canvas => {

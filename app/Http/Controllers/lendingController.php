@@ -42,6 +42,59 @@ class lendingController extends Controller
         ];
     }
 
+    /**
+     * Single source of truth for a loan's display status (Active / Overdue / Completed).
+     * Used by BOTH the loan grid cards and the loan detail hero so they can never
+     * disagree on the same loan's status again.
+     */
+    private function resolveLoanStatusLabel($loan, $status): string
+    {
+        if ($loan->status === 'Completed') {
+            return 'Completed';
+        }
+
+        if (!$status) {
+            return 'Active';
+        }
+
+        $totalPayments = (int) ($status->total_payments ?? 0);
+        $paymentsMade = (int) ($status->payments_made ?? 0);
+
+        if ($totalPayments <= 0 || $paymentsMade >= $totalPayments) {
+            return 'Active';
+        }
+
+        $today = now()->timezone('Asia/Manila');
+
+        $scheduleByNumber = DB::table('lending_installment_schedules_tbls')
+            ->where('lending_id', $loan->id)
+            ->get()
+            ->keyBy('payment_number');
+
+        $nextInstallmentNumber = $paymentsMade + 1;
+        $anchorDueDate = $status->due_date
+            ? \Carbon\Carbon::parse($status->due_date)
+            : \Carbon\Carbon::parse($loan->created_at)->addDays($nextInstallmentNumber * self::PAYMENT_INTERVAL_DAYS);
+
+        for ($i = 1; $i <= $totalPayments; $i++) {
+            $row = $scheduleByNumber[$i] ?? null;
+            $isPaid = $row
+                ? (float) $row->amount_paid >= (float) $row->amount_due
+                : $i <= $paymentsMade;
+
+            if ($isPaid) {
+                continue;
+            }
+
+            $dueDateForRow = $anchorDueDate->copy()
+                ->addDays(($i - $nextInstallmentNumber) * self::PAYMENT_INTERVAL_DAYS);
+
+            return $dueDateForRow->lt($today) ? 'Overdue' : 'Active';
+        }
+
+        return 'Active';
+    }
+
     // ─── Shared helper ────────────────────────────────────────────────────────────
     private function getLoanPageData(): array
     {
@@ -97,7 +150,7 @@ class lendingController extends Controller
             ->leftJoin('lending_status_tbls as s', 's.lending_id', '=', 'l.id')
             ->where('l.user_id', $memberId)
             ->where('l.status', 'Approved')
-            ->select('l.*', 's.due_date', 's.remaining_balance', 's.status as loan_status') 
+            ->select('l.*', 's.due_date', 's.remaining_balance', 's.status as loan_status')
             ->get();
 
         $typeMapApproved = [
@@ -1074,13 +1127,7 @@ class lendingController extends Controller
             ->map(function ($loan) use ($typeMap, $today) {
                 $loan->display_type = $typeMap[$loan->lending_type] ?? $loan->lending_type;
 
-                if ($loan->status === 'Completed') {
-                    $loan->card_status = 'Completed';
-                } elseif ($loan->due_date && $loan->due_date < $today && ($loan->remaining_balance ?? 0) > 0) {
-                    $loan->card_status = 'Overdue';
-                } else {
-                    $loan->card_status = 'Active';
-                }
+                $loan->card_status = $this->resolveLoanStatusLabel($loan, $loan);
 
                 $totalPayments = (int) ($loan->total_payments ?? 0);
                 $paymentsMade = (int) ($loan->payments_made ?? 0);
@@ -1168,6 +1215,16 @@ class lendingController extends Controller
             : [];
 
         $pendingCount = count($pendingInstallmentNumbers);
+
+        $voidedInstallmentNumbers = $selectedLoan
+            ? $paymentHistory
+                ->where('status', 'voided')
+                ->pluck('payment_number')
+                ->map(fn($n) => (int) $n)
+                ->unique()
+                ->values()
+                ->toArray()
+            : [];
 
         // ── Build computed hero/breakdown data ──────────────────────────────────
         $paymentSchedule = collect();
@@ -1318,12 +1375,16 @@ class lendingController extends Controller
                     }
                 }
 
+                $isPending = !$isPaid && in_array($i, $pendingInstallmentNumbers, true);
+                $isVoided = !$isPaid && !$isPending && in_array($i, $voidedInstallmentNumbers, true);
+
                 $paymentSchedule->push([
                     'number' => $i,
                     'date' => $dueDateForRow->format('M d, Y'),
                     'amount' => $installmentAmount,
                     'paid' => $isPaid,
-                    'pending' => !$isPaid && in_array($i, $pendingInstallmentNumbers, true),
+                    'pending' => $isPending,
+                    'voided' => $isVoided,
                     'overdue' => $isOverdue,
                     'is_next' => $isNext,
                     'penalty' => $rowPenalty,
@@ -1376,13 +1437,7 @@ class lendingController extends Controller
             // $displayNextDueDate stays null and the box falls back to "—".
 
             // Real hero status: Completed / Overdue / Active
-            if ($selectedLoan->status === 'Completed') {
-                $loanStatusLabel = 'Completed';
-            } elseif ($nextDueDate && $nextDueDate->lt($today)) {
-                $loanStatusLabel = 'Overdue';
-            } else {
-                $loanStatusLabel = 'Active';
-            }
+            $loanStatusLabel = $this->resolveLoanStatusLabel($selectedLoan, $lendingStatus);
 
             // ── Live penalty preview ──────────────────────────────────────────
             // penalty_amount in the DB only gets written once a payment is
