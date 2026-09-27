@@ -1163,6 +1163,28 @@ class UserController extends Controller
             $query->whereIn('role', ['member', 'pending', 'inactive']);
         }
 
+        $search = trim((string) $request->get('search', ''));
+        if ($search !== '') {
+            // Support searching by the displayed ID too, e.g. "MEM-0004" or "ADM-0002"
+            $numericId = null;
+            if (preg_match('/^(?:MEM|ADM)-0*(\d+)$/i', $search, $m)) {
+                $numericId = (int) $m[1];
+            } elseif (ctype_digit($search)) {
+                $numericId = (int) $search;
+            }
+
+            $query->where(function ($q) use ($search, $numericId) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$search}%"]);
+
+                if ($numericId !== null) {
+                    $q->orWhere('id', $numericId);
+                }
+            });
+        }
+
         $status = $request->get('filter', 'all');
         if ($status === 'pending') {
             $query->where('role', 'pending');
@@ -1178,7 +1200,114 @@ class UserController extends Controller
             });
         }
 
-        $members = $query->orderBy('id', 'asc')->paginate(10);
+        // ---------------------------------------------------------------
+        // Advanced filters: category, role, sex, age group, address
+        // (profile details live in otherinfo_tbls)
+        // ---------------------------------------------------------------
+        $usersTable = $query->getModel()->getTable();
+        $memberRoles = ['member', 'pending', 'inactive'];
+
+        $whereOtherInfo = function ($q, callable $conditions, bool $exists = true) use ($usersTable) {
+            $method = $exists ? 'whereExists' : 'whereNotExists';
+            $q->{$method}(function ($sub) use ($conditions, $usersTable) {
+                $sub->select(DB::raw(1))
+                    ->from('otherinfo_tbls')
+                    ->whereColumn('otherinfo_tbls.user_id', $usersTable . '.id');
+                $conditions($sub);
+            });
+        };
+
+        $categoryFilter = trim((string) $request->get('category', ''));
+        $roleFilter = trim((string) $request->get('role', ''));
+        $sexFilter = trim((string) $request->get('sex', ''));
+        $ageFilter = trim((string) $request->get('age_group', ''));
+        $addressFilter = trim((string) $request->get('address', ''));
+
+        // Membership category (matches what the table's "Category" column shows)
+        if ($categoryFilter === 'staff') {
+            $query->whereNotIn('role', $memberRoles);
+        } elseif ($categoryFilter === 'Investor Associate') {
+            // Members with no category saved are shown as Investor Associate
+            $query->whereIn('role', $memberRoles);
+            $whereOtherInfo($query, function ($s) {
+                $s->whereNotNull('membership_category')
+                    ->where('membership_category', '!=', '')
+                    ->where('membership_category', '!=', 'Investor Associate');
+            }, false);
+        } elseif ($categoryFilter !== '') {
+            $query->whereIn('role', $memberRoles);
+            $whereOtherInfo($query, fn($s) => $s->where('membership_category', $categoryFilter));
+        }
+
+        // Account role (member, admin, general-manager, ...)
+        if ($roleFilter !== '') {
+            $query->where('role', $roleFilter);
+        }
+
+        // Sex
+        if (in_array($sexFilter, ['Male', 'Female'], true)) {
+            $whereOtherInfo($query, fn($s) => $s->where('sex', $sexFilter));
+        } elseif ($sexFilter === 'unspecified') {
+            $whereOtherInfo($query, fn($s) => $s->whereIn('sex', ['Male', 'Female']), false);
+        }
+
+        // Age group (computed from date_of_birth)
+        $ageGroups = [
+            '18-25' => [18, 25],
+            '26-35' => [26, 35],
+            '36-45' => [36, 45],
+            '46-59' => [46, 59],
+            '60+' => [60, null],
+        ];
+        if (isset($ageGroups[$ageFilter])) {
+            [$minAge, $maxAge] = $ageGroups[$ageFilter];
+            $whereOtherInfo($query, function ($s) use ($minAge, $maxAge) {
+                $s->whereNotNull('date_of_birth')
+                    ->whereDate('date_of_birth', '<=', now()->subYears($minAge)->toDateString());
+                if ($maxAge !== null) {
+                    $s->whereDate('date_of_birth', '>', now()->subYears($maxAge + 1)->toDateString());
+                }
+            });
+        } elseif ($ageFilter === 'under-18') {
+            $whereOtherInfo($query, fn($s) => $s->whereNotNull('date_of_birth')
+                ->whereDate('date_of_birth', '>', now()->subYears(18)->toDateString()));
+        } elseif ($ageFilter === 'unknown') {
+            $whereOtherInfo($query, fn($s) => $s->whereNotNull('date_of_birth'), false);
+        }
+
+        // Address (present or permanent)
+        if ($addressFilter !== '') {
+            $whereOtherInfo($query, function ($s) use ($addressFilter) {
+                $s->where(function ($w) use ($addressFilter) {
+                    $w->where('present_address', 'like', "%{$addressFilter}%")
+                        ->orWhere('permanent_address', 'like', "%{$addressFilter}%");
+                });
+            });
+        }
+
+        // Suggestions for the address box (distinct saved addresses)
+        $addressOptions = DB::table('otherinfo_tbls')
+            ->whereNotNull('present_address')
+            ->where('present_address', '!=', '')
+            ->distinct()
+            ->orderBy('present_address')
+            ->limit(100)
+            ->pluck('present_address');
+
+        $activeFilterCount = collect([$categoryFilter, $roleFilter, $sexFilter, $ageFilter, $addressFilter])
+            ->filter(fn($v) => $v !== '')
+            ->count();
+
+        // Counts for the "Filtered Results" card (respects every filter above)
+        $resultStats = ['total' => (clone $query)->count()];
+        foreach (['male' => 'Male', 'female' => 'Female'] as $key => $sexValue) {
+            $countQuery = clone $query;
+            $whereOtherInfo($countQuery, fn($s) => $s->where('sex', $sexValue));
+            $resultStats[$key] = $countQuery->count();
+        }
+        $resultStats['unspecified'] = max(0, $resultStats['total'] - $resultStats['male'] - $resultStats['female']);
+
+        $members = $query->orderBy('id', 'asc')->paginate(10)->withQueryString();
         $pendingRequests = Users_tbl::where('role', 'pending')->orderBy('id', 'asc')->get();
 
         $adminList = Users_tbl::whereNotIn('role', ['member', 'pending', 'inactive'])
@@ -1312,6 +1441,26 @@ class UserController extends Controller
             $member->profile_picture = $other->profile_picture ?? null;
             $member->skills = $other->skills ?? null;
             $member->membership_category = $other->membership_category ?? 'Investor Associate';
+            $member->signature = $other->signature ?? null;
+
+            // Personal details the member fills out (stored in otherinfo_tbls)
+            foreach ([
+                'date_of_birth',
+                'place_of_birth',
+                'sex',
+                'civil_status',
+                'citizenship',
+                'contact_no',
+                'present_address',
+                'permanent_address',
+                'blood_type',
+                'height',
+                'weight',
+                'monthly_income',
+                'membership_status',
+            ] as $field) {
+                $member->{$field} = $other->{$field} ?? $member->{$field} ?? null;
+            }
 
             $spouse = $spouseInfo->get($member->id);
             $member->spouse_name = $spouse->spouse_name ?? null;
@@ -1367,7 +1516,7 @@ class UserController extends Controller
             return $member;
         });
 
-        return view('admin_components.members', compact('members', 'pendingRequests', 'adminList', 'memberCategoryCounts', 'adminCategoryCounts', 'resignationRequests', 'inProcessResignations', 'resignees', 'rejectedResignations', 'reactivationRequests', 'roles', 'roleCounts'));
+        return view('admin_components.members', compact('members', 'pendingRequests', 'adminList', 'memberCategoryCounts', 'adminCategoryCounts', 'resignationRequests', 'inProcessResignations', 'resignees', 'rejectedResignations', 'reactivationRequests', 'roles', 'roleCounts', 'addressOptions', 'activeFilterCount', 'resultStats'));
     }
 
     public function dashboard_savings(Request $request)

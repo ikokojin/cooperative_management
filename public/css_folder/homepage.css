@@ -2675,6 +2675,20 @@
     border-bottom: none;
 }
 
+.card-box.card-locked {
+    cursor: not-allowed;
+    opacity: 0.55;
+    position: relative;
+}
+
+.card-box.card-locked:hover {
+    transform: none !important;
+}
+
+.card-box.card-locked .update i {
+    color: #9ca3af;
+}
+
 /* .container-fluid section .card-box-parent {
     width: 100%;
     height: 742px;

@@ -341,6 +341,45 @@
                         <p class="text-xs text-gray-500 mt-1" id="modalNetProceedsHint">Amount released to borrower</p>
                     </div>
 
+                    <!-- Loan Charges Breakdown -->
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-3">Loan Charges</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3 border border-gray-200 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Processing Fee</p>
+                                    <p class="text-xs text-gray-500">Processing & collection</p>
+                                </div>
+                                <p class="text-sm font-semibold text-gray-900" id="modalProcessingFee">₱0.00</p>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Service &amp; Legal Fee</p>
+                                    <p class="text-xs text-gray-500">One-time fee</p>
+                                </div>
+                                <p class="text-sm font-semibold text-gray-900" id="modalServiceFee">₱0.00</p>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Loan Protection Plan</p>
+                                    <p class="text-xs text-gray-500">Per month of term</p>
+                                </div>
+                                <p class="text-sm font-semibold text-gray-900" id="modalProtectionFee">₱0.00</p>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Retention / CBU</p>
+                                    <p class="text-xs text-gray-500">Held as capital build-up</p>
+                                </div>
+                                <p class="text-sm font-semibold text-gray-900" id="modalRetentionFee">₱0.00</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mt-3 pt-3 border-t border-dashed border-gray-200">
+                            <span class="text-sm font-semibold text-gray-700">Total Charges</span>
+                            <span class="text-base font-bold text-red-600" id="modalTotalCharges">₱0.00</span>
+                        </div>
+                    </div>
+
                     <div>
                         <p class="text-sm text-gray-500 mb-2">Purpose</p>
                         <p class="text-gray-900" id="modalPurpose">Purpose description</p>
@@ -682,6 +721,25 @@
             loan.net_proceeds_adjustment_type === 'add'
                 ? 'Charges added back — full loan released'
                 : 'Amount released to borrower';
+
+        // Loan Charges breakdown — mirrors member LoanStatus page
+        const processingFee = parseFloat(loan.processing_fee_rate || 0);
+        const serviceFee = parseFloat(loan.service_fee_rate || 0);
+        const protectionFee = parseFloat(loan.loan_protection_fee || 0);
+        const retentionFee = parseFloat(loan.retention_paid_rate || 0) + parseFloat(loan.retention_unpaid_rate || 0);
+        const feesOnly = processingFee + serviceFee + protectionFee + retentionFee;
+
+        // Total Charges = Interest + Fees, matching the member LoanStatus hero stat
+        const loanInterest = parseFloat(loan.total_interest || 0);
+        const totalChargesWithInterest = feesOnly + loanInterest;
+
+        const chargeMoney = n => '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        document.getElementById('modalProcessingFee').textContent = chargeMoney(processingFee);
+        document.getElementById('modalServiceFee').textContent = chargeMoney(serviceFee);
+        document.getElementById('modalProtectionFee').textContent = chargeMoney(protectionFee);
+        document.getElementById('modalRetentionFee').textContent = chargeMoney(retentionFee);
+        document.getElementById('modalTotalCharges').textContent = chargeMoney(totalChargesWithInterest);
 
         // Payment progress (payments made vs total term)
         const paymentsMade = Array.isArray(loan.repayments) ? loan.repayments.length : 0;

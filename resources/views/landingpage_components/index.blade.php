@@ -191,13 +191,13 @@
                             </p>
 
                             <div class="button-group">
-                                <a href="#">
+                                <a href="{{ route("LoginPage") }}">
                                     Apply Now
 
                                     <i class="fa fa-arrow-right"></i>
                                 </a>
 
-                                <a href="#">
+                                <a href="#how-it-works-parent">
                                     See How it Works
 
                                     <i class="fa fa-arrow-right"></i>
@@ -468,14 +468,14 @@
             <div class="section3-parent" id="section3-parent">
                 <div class="section-image reveal reveal-delay-1">
                     <!-- <img src="images/benefits.jpg" alt=""> -->
-                    <img src="images/about-us.jpg" alt="">
+                    <img src="images/about.jpg" alt="">
 
                     <div class="how-many-years">
                         <div class="years-icon">
                             <i class="fa fa-chart-simple"></i>
                         </div>
                         <div class="years-text">
-                            <p>20+ yrs</p>
+                            <p>34 yrs</p>
                             <span>Serving members & drivers</span>
                         </div>
                     </div>

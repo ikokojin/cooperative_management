@@ -209,30 +209,30 @@
                         <h2>Good day, {{ $username }}! <span>Here's your overview</span></h2>
 
                         {{-- @if ($username)
-                            <div class="main-header">
-                                <div class="main-intro">
-                                    <div class="main-intro-icon"></div>
-                                    <div class="main-intro-text">
-                                        <div class="main-intro-header">
-                                            <span>I'm, Judith</span>
-                                            <button type="button" class="btn-report-problem" data-bs-toggle="modal"
-                                                data-bs-target="#reportProblemModal"
-                                                style=" display:inline-flex; align-items:center; gap:8px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
-                                                <i class="fa-solid fa-flag"></i>
-                                                <span>Report a Problem</span>
-                                            </button>
-                                        </div>
-                                        <p>Got a question about your balance, a loan, or a payment that doesn't look right?
-                                            I can help — or you can send a report straight to our team.</p>
+                        <div class="main-header">
+                            <div class="main-intro">
+                                <div class="main-intro-icon"></div>
+                                <div class="main-intro-text">
+                                    <div class="main-intro-header">
+                                        <span>I'm, Judith</span>
                                         <button type="button" class="btn-report-problem" data-bs-toggle="modal"
                                             data-bs-target="#reportProblemModal"
-                                            style="margin-top:10px; display:inline-flex; align-items:center; gap:8px; padding:9px 16px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
+                                            style=" display:inline-flex; align-items:center; gap:8px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
                                             <i class="fa-solid fa-flag"></i>
                                             <span>Report a Problem</span>
                                         </button>
                                     </div>
+                                    <p>Got a question about your balance, a loan, or a payment that doesn't look right?
+                                        I can help — or you can send a report straight to our team.</p>
+                                    <button type="button" class="btn-report-problem" data-bs-toggle="modal"
+                                        data-bs-target="#reportProblemModal"
+                                        style="margin-top:10px; display:inline-flex; align-items:center; gap:8px; padding:9px 16px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
+                                        <i class="fa-solid fa-flag"></i>
+                                        <span>Report a Problem</span>
+                                    </button>
                                 </div>
                             </div>
+                        </div>
                         @endif --}}
 
 
@@ -240,10 +240,18 @@
                         <div class="card-parent">
 
                             {{-- Savings Balance --}}
-                            <div class="card-box" data-action="navigate" data-url="{{ route('Financial') }}">
+                            <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}" @if($seminarsUnlocked)
+                            data-action="navigate" data-url="{{ route('Financial') }}" @else
+                                data-action="show-locked-toast" @endif>
                                 <div class="card-header">
                                     <p>Savings Balance</p>
-                                    <div class="update"><i class="fa fa-layer-group"></i></div>
+                                    <div class="update">
+                                        @if(!$seminarsUnlocked)
+                                            <i class="fa-solid fa-lock"></i>
+                                        @else
+                                            <i class="fa fa-layer-group"></i>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <h5>₱ {{ number_format($savingsAccount->balance ?? 0, 2) }}</h5>
@@ -253,10 +261,18 @@
                             </div>
 
                             {{-- Share Capital --}}
-                            <div class="card-box" data-action="navigate" data-url="{{ route('Financial') }}">
+                            <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}" @if($seminarsUnlocked)
+                                data-action="navigate" data-url="{{ route('Financial', ['tab' => 'share_capital']) }}"
+                            @else data-action="show-locked-toast" @endif>
                                 <div class="card-header">
                                     <p>Share Capital</p>
-                                    <div class="update"><i class="fa fa-coins"></i></div>
+                                    <div class="update">
+                                        @if(!$seminarsUnlocked)
+                                            <i class="fa-solid fa-lock"></i>
+                                        @else
+                                            <i class="fa fa-coins"></i>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <h5>₱ {{ number_format($shareCapitalBalance ?? 0, 2) }}</h5>
@@ -264,7 +280,7 @@
                                 </div>
                             </div>
 
-                            {{-- Seminars --}}
+                            {{-- Seminars (unchanged, always unlocked) --}}
                             <div class="card-box" data-action="show-modal" data-target="seminarsModal">
                                 <div class="card-header">
                                     <p>Seminars</p>
@@ -283,10 +299,18 @@
                             </div>
 
                             {{-- Active Loans --}}
-                            <div class="card-box" data-action="navigate" data-url="{{ route('LoanStatus') }}">
+                            <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}" @if($seminarsUnlocked)
+                            data-action="navigate" data-url="{{ route('LoanStatus') }}" @else
+                                data-action="show-locked-toast" @endif>
                                 <div class="card-header">
                                     <p>Active Loans</p>
-                                    <div class="update"><i class="fa fa-piggy-bank"></i></div>
+                                    <div class="update">
+                                        @if(!$seminarsUnlocked)
+                                            <i class="fa-solid fa-lock"></i>
+                                        @else
+                                            <i class="fa fa-piggy-bank"></i>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <h5>{{ $activeLoansCount }} Loan(s)</h5>
@@ -295,10 +319,18 @@
                             </div>
 
                             {{-- Upcoming Dues --}}
-                            <div class="card-box" data-action="show-modal" data-target="upcomingDuesModal">
+                            <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}" @if($seminarsUnlocked)
+                            data-action="show-modal" data-target="upcomingDuesModal" @else
+                                data-action="show-locked-toast" @endif>
                                 <div class="card-header">
                                     <p>Upcoming Dues</p>
-                                    <div class="update"><i class="fa fa-calendar-day"></i></div>
+                                    <div class="update">
+                                        @if(!$seminarsUnlocked)
+                                            <i class="fa-solid fa-lock"></i>
+                                        @else
+                                            <i class="fa fa-calendar-day"></i>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <h5>{{ $upcomingDues->count() }} Due(s)</h5>
@@ -307,11 +339,17 @@
                             </div>
 
                             {{-- Overdue Loans --}}
-                            <div class="card-box" data-action="show-modal" data-target="overdueLoansModal">
+                            <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}" @if($seminarsUnlocked)
+                            data-action="show-modal" data-target="overdueLoansModal" @else
+                                data-action="show-locked-toast" @endif>
                                 <div class="card-header">
                                     <p>Overdue Loans</p>
                                     <div class="update">
-                                        <i class="fa fa-triangle-exclamation"></i>
+                                        @if(!$seminarsUnlocked)
+                                            <i class="fa-solid fa-lock"></i>
+                                        @else
+                                            <i class="fa fa-triangle-exclamation"></i>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -327,10 +365,18 @@
 
                             <div class="card-1">
                                 {{-- Savings Balance --}}
-                                <div class="card-box" data-action="navigate" data-url="{{ route('savings.index') }}">
+                                <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}"
+                                    @if($seminarsUnlocked) data-action="navigate" data-url="{{ route('Financial') }}"
+                                    @else data-action="show-locked-toast" @endif>
                                     <div class="card-header">
                                         <p>Savings Balance</p>
-                                        <div class="update"><i class="fa fa-layer-group"></i></div>
+                                        <div class="update">
+                                            @if(!$seminarsUnlocked)
+                                                <i class="fa-solid fa-lock"></i>
+                                            @else
+                                                <i class="fa fa-layer-group"></i>
+                                            @endif
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         <h5>₱ {{ number_format($savingsAccount->balance ?? 0, 2) }}</h5>
@@ -340,10 +386,19 @@
                                 </div>
 
                                 {{-- Share Capital --}}
-                                <div class="card-box" data-action="navigate" data-url="{{ route('Financial') }}">
+                                <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}"
+                                    @if($seminarsUnlocked) data-action="navigate"
+                                    data-url="{{ route('Financial', ['tab' => 'share_capital']) }}" @else
+                                    data-action="show-locked-toast" @endif>
                                     <div class="card-header">
                                         <p>Share Capital</p>
-                                        <div class="update"><i class="fa fa-coins"></i></div>
+                                        <div class="update">
+                                            @if(!$seminarsUnlocked)
+                                                <i class="fa-solid fa-lock"></i>
+                                            @else
+                                                <i class="fa fa-coins"></i>
+                                            @endif
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         <h5>₱ {{ number_format($shareCapitalBalance ?? 0, 2) }}</h5>
@@ -372,10 +427,18 @@
 
                             <div class="card-2">
                                 {{-- Active Loans --}}
-                                <div class="card-box" data-action="navigate" data-url="{{ route('LoanStatus') }}">
+                                <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}"
+                                    @if($seminarsUnlocked) data-action="navigate" data-url="{{ route('LoanStatus') }}"
+                                    @else data-action="show-locked-toast" @endif>
                                     <div class="card-header">
                                         <p>Active Loans</p>
-                                        <div class="update"><i class="fa fa-piggy-bank"></i></div>
+                                        <div class="update">
+                                            @if(!$seminarsUnlocked)
+                                                <i class="fa-solid fa-lock"></i>
+                                            @else
+                                                <i class="fa fa-piggy-bank"></i>
+                                            @endif
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         <h5>{{ $activeLoansCount }} Loan(s)</h5>
@@ -384,10 +447,18 @@
                                 </div>
 
                                 {{-- Upcoming Dues --}}
-                                <div class="card-box" data-action="show-modal" data-target="upcomingDuesModal">
+                                <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}"
+                                    @if($seminarsUnlocked) data-action="show-modal" data-target="upcomingDuesModal"
+                                    @else data-action="show-locked-toast" @endif>
                                     <div class="card-header">
                                         <p>Upcoming Dues</p>
-                                        <div class="update"><i class="fa fa-calendar-day"></i></div>
+                                        <div class="update">
+                                            @if(!$seminarsUnlocked)
+                                                <i class="fa-solid fa-lock"></i>
+                                            @else
+                                                <i class="fa fa-calendar-day"></i>
+                                            @endif
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         <h5>{{ $upcomingDues->count() }} Due(s)</h5>
@@ -396,11 +467,17 @@
                                 </div>
 
                                 {{-- Overdue Loans --}}
-                                <div class="card-box" data-action="show-modal" data-target="overdueLoansModal">
+                                <div class="card-box {{ $seminarsUnlocked ? '' : 'card-locked' }}"
+                                    @if($seminarsUnlocked) data-action="show-modal" data-target="overdueLoansModal"
+                                    @else data-action="show-locked-toast" @endif>
                                     <div class="card-header">
                                         <p>Overdue Loans</p>
                                         <div class="update">
-                                            <i class="fa fa-triangle-exclamation"></i>
+                                            @if(!$seminarsUnlocked)
+                                                <i class="fa-solid fa-lock"></i>
+                                            @else
+                                                <i class="fa fa-triangle-exclamation"></i>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="card-body">
@@ -507,9 +584,9 @@
                                                         </div>
                                                     @endif
                                                     {{-- @if(($tx['status_class'] ?? '') === 'pending')
-                                                        <span style="" class="pending-transaction">
-                                                            Pending
-                                                        </span>
+                                                    <span style="" class="pending-transaction">
+                                                        Pending
+                                                    </span>
                                                     @endif --}}
                                                 </div>
                                             </div>
@@ -1208,8 +1285,8 @@
 
             <div style="padding: 0 24px; overflow-y:auto; height: 368px;">
                 @forelse ($upcomingDues as $due)
-                    <div
-                        style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border);">
+                    <a href="{{ route('LoanStatus', ['loan_id' => $due['loan_id']]) }}"
+                        style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); cursor:pointer;">
                         <div class="tx-icon {{ $due['icon'] }}"><i class="fa-solid {{ $due['icon_fa'] }}"></i></div>
                         <div style="flex:1;">
                             <strong style="display:block; font-size:14px; color:#111827;">{{ $due['title'] }}</strong>
@@ -1219,7 +1296,7 @@
                         <div style="font-size: 14px;font-weight:700; color:#DC2626;">
                             ₱{{ number_format($due['amount'], 2) }}
                         </div>
-                    </div>
+                    </a>
                 @empty
                     <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
                         <i class="fa fa-circle-check" style="font-size:24px; display:block; margin-bottom:8px;"></i>
@@ -1249,8 +1326,8 @@
 
             <div style="padding: 0 24px; overflow-y:auto; height: 368px;">
                 @forelse ($overdueLoansDisplay as $overdue)
-                    <div
-                        style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border);">
+                    <a href="{{ route('LoanStatus', ['loan_id' => $overdue['loan_id']]) }}"
+                        style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); cursor:pointer;">
                         <div class="tx-icon {{ $overdue['icon'] }}"><i class="fa-solid {{ $overdue['icon_fa'] }}"></i></div>
                         <div style="flex:1;">
                             <strong style="display:block; font-size:14px; color:#111827;">{{ $overdue['title'] }}</strong>
@@ -1260,7 +1337,7 @@
                         <div style="font-size: 14px;font-weight:700; color:#DC2626;">
                             +₱{{ number_format($overdue['amount'], 2) }}
                         </div>
-                    </div>
+                    </a>
                 @empty
                     <div style="text-align:center; color:#aaa; padding:2rem; font-size:13px;">
                         <i class="fa fa-circle-check" style="font-size:24px; display:block; margin-bottom:8px;"></i>
@@ -1760,6 +1837,29 @@
             });
         </script>
     @endif
+
+    <script nonce="{{ csp_nonce() }}">
+        (function () {
+            var A = window.CSP_actions;
+            if (!A) return;
+
+            A.register('show-locked-toast', function () {
+                var existing = document.getElementById('lockedToast');
+                if (existing) existing.remove();
+
+                var toast = document.createElement('div');
+                toast.className = 'toast-message';
+                toast.id = 'lockedToast';
+                toast.innerHTML = '<i class="fa-solid fa-lock"></i><p>Complete all 3 seminars to unlock this section.</p>';
+                document.body.appendChild(toast);
+
+                setTimeout(function () {
+                    toast.classList.add('hide');
+                    setTimeout(function () { toast.remove(); }, 400);
+                }, 3500);
+            });
+        })();
+    </script>
 
 </body>
 

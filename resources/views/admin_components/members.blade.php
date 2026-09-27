@@ -49,27 +49,115 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
-        <div class="flex flex-col md:flex-row gap-4 items-center">
+    @php
+        $mfCategories = [
+            'Investor Associate' => 'Investor Associate',
+            'Operator' => 'Operator',
+            'Driver' => 'Driver',
+            'Dispatcher' => 'Dispatcher',
+            'Driver-Operator' => 'Driver-Operator',
+            'Transport Entrepreneur' => 'Transport Entrepreneur',
+            'Allied Worker' => 'Allied Worker',
+            'staff' => 'Allied Workers (Staff / Admins)',
+        ];
+        $mfRoles = ['member' => 'Member'];
+        if (auth()->user()?->isMainAdmin()) {
+            foreach ($roles as $r) {
+                if (!in_array($r->slug, ['member', 'pending', 'inactive'])) {
+                    $mfRoles[$r->slug] = $r->name;
+                }
+            }
+        }
+        $mfSexes = ['' => 'All', 'Male' => 'Male', 'Female' => 'Female', 'unspecified' => 'Not set'];
+        $mfAges = [
+            'under-18' => 'Below 18',
+            '18-25' => '18 – 25 yrs',
+            '26-35' => '26 – 35 yrs',
+            '36-45' => '36 – 45 yrs',
+            '46-59' => '46 – 59 yrs',
+            '60+' => '60+ (Senior)',
+            'unknown' => 'No birthdate',
+        ];
+        $mfActive = [];
+        if (request('category'))
+            $mfActive['category'] = ['Category', $mfCategories[request('category')] ?? request('category')];
+        if (request('role'))
+            $mfActive['role'] = ['Role', $mfRoles[request('role')] ?? ucwords(str_replace('-', ' ', request('role')))];
+        if (request('sex'))
+            $mfActive['sex'] = ['Sex', $mfSexes[request('sex')] ?? request('sex')];
+        if (request('age_group'))
+            $mfActive['age_group'] = ['Age', $mfAges[request('age_group')] ?? request('age_group')];
+        if (request('address'))
+            $mfActive['address'] = ['Address', request('address')];
+        $mfKeep = fn(array $extra = [], array $drop = []) => route('dashboard.members', array_merge(request()->except(array_merge(['page'], $drop)), $extra));
+    @endphp
+
+    <style>
+        .mf-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .mf-panel[open] .mf-chevron {
+            transform: rotate(180deg);
+        }
+
+        .mf-pill input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mf-pill span {
+            display: block;
+            padding: .45rem .9rem;
+            font-size: .8125rem;
+            font-weight: 500;
+            color: #4b5563;
+            border-radius: .375rem;
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+
+        .mf-pill span:hover {
+            color: #111827;
+        }
+
+        .mf-pill input:checked+span {
+            background: #fff;
+            color: #111827;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+        }
+
+        .mf-pill input:focus-visible+span {
+            outline: 2px solid #6366f1;
+            outline-offset: 1px;
+        }
+    </style>
+
+    <form action="{{ route('dashboard.members') }}" method="GET"
+        class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+        <input type="hidden" name="filter" value="{{ request('filter', 'all') }}">
+
+        <!-- Row 1: search + status tabs -->
+        <div class="p-4 flex flex-col md:flex-row gap-4 items-center">
             <div class="flex-1 w-full">
-                <form action="{{ route('dashboard.members') }}" method="GET">
-                    <div class="relative">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                        <input type="text" name="search" placeholder="Search by name, ID, or email..."
-                            class="input pl-10 w-full" value="{{ request('search') }}">
-                    </div>
-                </form>
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" name="search" placeholder="Search by name, ID, or email..."
+                        class="input pl-10 w-full" value="{{ request('search') }}">
+                </div>
             </div>
             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                <a href="{{ route('dashboard.members', ['filter' => 'all']) }}"
+                <a href="{{ $mfKeep(['filter' => 'all']) }}"
                     class="px-4 py-2 text-sm font-medium rounded-md transition-all {{ request('filter', 'all') === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     All
                 </a>
-                <a href="{{ route('dashboard.members', ['filter' => 'active']) }}"
+                <a href="{{ $mfKeep(['filter' => 'active']) }}"
                     class="px-4 py-2 text-sm font-medium rounded-md transition-all {{ request('filter') === 'active' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Active
                 </a>
-                <a href="{{ route('dashboard.members', ['filter' => 'pending']) }}"
+                <a href="{{ $mfKeep(['filter' => 'pending']) }}"
                     class="px-4 py-2 text-sm font-medium rounded-md transition-all {{ request('filter') === 'pending' ? 'bg-white text-yellow-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Pending
                     @if($pendingRequests->count() > 0)
@@ -77,19 +165,151 @@
                             class="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">{{ $pendingRequests->count() }}</span>
                     @endif
                 </a>
-                <a href="{{ route('dashboard.members', ['filter' => 'inactive']) }}"
+                <a href="{{ $mfKeep(['filter' => 'inactive']) }}"
                     class="px-4 py-2 text-sm font-medium rounded-md transition-all {{ request('filter') === 'inactive' ? 'bg-white text-gray-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Inactive
                 </a>
             </div>
         </div>
-    </div>
+
+        <!-- Row 2: advanced filters (collapsible) -->
+        <details class="mf-panel border-t border-gray-100" {{ ($activeFilterCount ?? 0) > 0 ? 'open' : '' }}>
+            <summary
+                class="mf-summary list-none px-4 py-3 flex items-center justify-between cursor-pointer select-none hover:bg-gray-50 transition-colors">
+                <span class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <i data-lucide="sliders-horizontal" class="w-4 h-4 text-gray-500"></i>
+                    Advanced Filters
+                    @if(($activeFilterCount ?? 0) > 0)
+                        <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-semibold rounded-full">
+                            {{ $activeFilterCount }} active
+                        </span>
+                    @endif
+                </span>
+                <span class="flex items-center gap-2 text-xs text-gray-400">
+                    <span class="hidden sm:inline">Category · Role · Sex · Age · Address</span>
+                    <i data-lucide="chevron-down" class="mf-chevron w-4 h-4 transition-transform"></i>
+                </span>
+            </summary>
+
+            <div class="px-4 pb-4 pt-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Membership category -->
+                    <div>
+                        <label
+                            class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                            <i data-lucide="id-card" class="w-3.5 h-3.5"></i> Membership Category
+                        </label>
+                        <select name="category" class="input w-full">
+                            <option value="">All categories</option>
+                            @foreach($mfCategories as $value => $label)
+                                <option value="{{ $value }}" {{ request('category') === $value ? 'selected' : '' }}>{{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Role -->
+                    <div>
+                        <label
+                            class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Role
+                        </label>
+                        <select name="role" class="input w-full">
+                            <option value="">All roles</option>
+                            @foreach($mfRoles as $value => $label)
+                                <option value="{{ $value }}" {{ request('role') === $value ? 'selected' : '' }}>{{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Age group -->
+                    <div>
+                        <label
+                            class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                            <i data-lucide="cake" class="w-3.5 h-3.5"></i> Age Group
+                        </label>
+                        <select name="age_group" class="input w-full">
+                            <option value="">All ages</option>
+                            @foreach($mfAges as $value => $label)
+                                <option value="{{ $value }}" {{ request('age_group') === $value ? 'selected' : '' }}>{{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Address -->
+                    <div>
+                        <label
+                            class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Address
+                        </label>
+                        <input type="text" name="address" list="mf-address-options" class="input w-full"
+                            placeholder="Barangay, town or city..." value="{{ request('address') }}" autocomplete="off">
+                        <datalist id="mf-address-options">
+                            @foreach(($addressOptions ?? []) as $addr)
+                                <option value="{{ $addr }}"></option>
+                            @endforeach
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    <!-- Sex -->
+                    <div>
+                        <label
+                            class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                            <i data-lucide="users" class="w-3.5 h-3.5"></i> Sex
+                        </label>
+                        <div class="inline-flex gap-1 bg-gray-100 p-1 rounded-lg">
+                            @foreach($mfSexes as $value => $label)
+                                <label class="mf-pill relative">
+                                    <input type="radio" name="sex" value="{{ $value }}" {{ (string) request('sex', '') === (string) $value ? 'checked' : '' }}>
+                                    <span>{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('dashboard.members', array_filter(['filter' => request('filter'), 'search' => request('search')])) }}"
+                            class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                            Reset
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-lucide="filter" class="w-4 h-4"></i>
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </details>
+
+        <!-- Active filter chips -->
+        @if(count($mfActive) > 0)
+            <div class="px-4 py-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
+                <span class="text-xs text-gray-500 mr-1">
+                    {{ $members->total() }} {{ \Illuminate\Support\Str::plural('result', $members->total()) }} for:
+                </span>
+                @foreach($mfActive as $key => $chip)
+                    <a href="{{ $mfKeep([], [$key]) }}" title="Remove this filter"
+                        class="inline-flex items-center gap-1.5 pl-3 pr-2 py-1 bg-primary-50 text-primary-700 text-xs font-medium rounded-full border border-primary-100 hover:bg-primary-100 transition-colors">
+                        <span class="text-primary-400">{{ $chip[0] }}:</span> {{ $chip[1] }}
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </a>
+                @endforeach
+                <a href="{{ route('dashboard.members', array_filter(['filter' => request('filter'), 'search' => request('search')])) }}"
+                    class="text-xs font-medium text-gray-500 hover:text-red-600 ml-1">Clear all</a>
+            </div>
+        @endif
+    </form>
 
     <!-- Category Cards -->
     <div class="grid grid-cols-2 gap-6 mb-6">
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group"
+        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-primary-200 transition-all group flex items-center justify-center w-full"
             data-action="open-member-category-modal">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between w-full">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Members</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $memberCategoryCounts->sum() }}</p>
@@ -105,20 +325,57 @@
             </div>
         </div>
 
-        <div class="stat-card cursor-pointer hover:shadow-lg hover:border-blue-200 transition-all group"
-            data-action="openAdminCategoryModal">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500 mb-1">Admins</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $adminList->count() }}</p>
-                    <p class="text-xs text-blue-500 mt-1 flex items-center">
-                        <i data-lucide="shield" class="w-3 h-3 mr-1"></i>
-                        Click to view breakdown
+        <!-- Filtered Results card (count follows the active filters) -->
+        @php
+            $rs = $resultStats ?? ['total' => $members->total(), 'male' => 0, 'female' => 0, 'unspecified' => 0];
+            $rsHasFilters = count($mfActive ?? []) > 0 || request('search') || request('filter', 'all') !== 'all';
+            $rsStatusLabels = ['active' => 'Active', 'pending' => 'Pending', 'inactive' => 'Inactive'];
+            $rsParts = [];
+            if (isset($rsStatusLabels[request('filter')]))
+                $rsParts[] = $rsStatusLabels[request('filter')];
+            foreach (($mfActive ?? []) as $chip)
+                $rsParts[] = $chip[1];
+            if (request('search'))
+                $rsParts[] = '"' . request('search') . '"';
+            $rsPct = fn($n) => $rs['total'] > 0 ? round($n / $rs['total'] * 100) : 0;
+            $rsSexUrl = fn($sex) => route('dashboard.members', array_merge(request()->except(['page', 'sex']), $sex !== '' ? ['sex' => $sex] : []));
+        @endphp
+        <div class="stat-card {{ $rsHasFilters ? 'border-primary-200' : '' }}">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm text-gray-500 mb-1">{{ $rsHasFilters ? 'Filtered Results' : 'All Accounts' }}</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($rs['total']) }}</p>
+                    <p class="text-xs mt-1 flex items-center {{ $rsHasFilters ? 'text-primary-600' : 'text-gray-400' }}">
+                        <i data-lucide="filter" class="w-3 h-3 mr-1 shrink-0"></i>
+                        <span class="truncate">{{ $rsHasFilters ? implode(' · ', $rsParts) : 'No filters applied' }}</span>
                     </p>
                 </div>
-                <div
-                    class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                    <i data-lucide="shield" class="w-6 h-6 text-blue-600"></i>
+                <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
+                    <i data-lucide="list-filter" class="w-6 h-6 text-primary-600"></i>
+                </div>
+            </div>
+
+            <!-- Sex breakdown of the current results -->
+            <div class="mt-4">
+                <div class="flex h-1.5 rounded-full overflow-hidden bg-gray-100">
+                    <div style="width: {{ $rsPct($rs['male']) }}%; background:#3b82f6"></div>
+                    <div style="width: {{ $rsPct($rs['female']) }}%; background:#ec4899"></div>
+                    <div style="width: {{ $rsPct($rs['unspecified']) }}%; background:#cbd5e1"></div>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                    <a href="{{ $rsSexUrl('Male') }}" class="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
+                        <span class="w-2 h-2 rounded-full" style="background:#3b82f6"></span>
+                        Male <strong class="text-gray-900">{{ $rs['male'] }}</strong>
+                    </a>
+                    <a href="{{ $rsSexUrl('Female') }}" class="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
+                        <span class="w-2 h-2 rounded-full" style="background:#ec4899"></span>
+                        Female <strong class="text-gray-900">{{ $rs['female'] }}</strong>
+                    </a>
+                    <a href="{{ $rsSexUrl('unspecified') }}"
+                        class="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
+                        <span class="w-2 h-2 rounded-full" style="background:#cbd5e1"></span>
+                        Not set <strong class="text-gray-900">{{ $rs['unspecified'] }}</strong>
+                    </a>
                 </div>
             </div>
         </div>
@@ -333,11 +590,11 @@
             </div>
         </div>
         <script type="application/json" id="admin-list-data">
-                                                                                                                                {!! json_encode($adminList, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
-                                                                                                                            </script>
+                                                                                                                                                                                                                                {!! json_encode($adminList, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
+                                                                                                                                                                                                                            </script>
         <script type="application/json" id="roles-data">
-                                                                                                                                {!! json_encode($roles->map(fn($r) => ['slug' => $r->slug, 'name' => $r->name, 'sidebar_permissions' => $r->sidebar_permissions]), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
-                                                                                                                            </script>
+                                                                                                                                                                                                                                {!! json_encode($roles->map(fn($r) => ['slug' => $r->slug, 'name' => $r->name, 'sidebar_permissions' => $r->sidebar_permissions]), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
+                                                                                                                                                                                                                            </script>
     @endif
 
     <!-- Resignation Requests -->
@@ -1176,7 +1433,7 @@
                     </div>
 
                     <!-- Balance Cards -->
-                    <div class="space-y-4">
+                    <div class="space-y-4 mt-5">
                         <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
                             <button data-action="filterBalanceCards" data-arg='["all"]'
                                 class="balance-filter-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors bg-slate-900 text-white"
@@ -1303,6 +1560,16 @@
                                     <span class="text-xs text-slate-400">Address</span>
                                     <span id="detail-address"
                                         class="text-xs font-semibold text-slate-800 text-right max-w-[200px]">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-xs text-slate-400">Present Address</span>
+                                    <span id="detail-present-address"
+                                        class="text-xs font-semibold text-slate-800 text-right max-w-[220px]">--</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5">
+                                    <span class="text-xs text-slate-400">Permanent Address</span>
+                                    <span id="detail-permanent-address-2"
+                                        class="text-xs font-semibold text-slate-800 text-right max-w-[220px]">--</span>
                                 </div>
                             </div>
                         </div>
@@ -1614,6 +1881,21 @@
                     </div>
                 </div>
 
+                <!-- Signature on File -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3 md:col-span-2">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center">
+                            <i data-lucide="pen-tool" class="w-3.5 h-3.5 text-slate-600"></i>
+                        </div>
+                        Signature on File
+                    </h4>
+                    <div class="flex justify-center items-center py-4">
+                        <img id="detail-signature-img" src="" alt="Signature"
+                            class="max-w-full max-h-32 border border-slate-200 rounded-lg bg-white hidden">
+                        <span id="detail-signature-empty" class="text-xs text-slate-400">No signature on file.</span>
+                    </div>
+                </div>
+
                 <!-- Tab: Government IDs -->
                 <div id="tab-govids" class="member-tab-panel hidden">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1625,10 +1907,6 @@
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">SSS ID</p>
                                 <p id="detail-sss-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
                             </div>
-                            <button data-action="copy-target" data-target="detail-sss-id-2"
-                                class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
-                                <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
-                            </button>
                         </div>
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
                             <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
@@ -1639,10 +1917,6 @@
                                 <p id="detail-philhealth-id-2" class="text-sm font-bold text-slate-800 truncate">Not
                                     provided</p>
                             </div>
-                            <button data-action="copy-target" data-target="detail-philhealth-id-2"
-                                class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
-                                <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
-                            </button>
                         </div>
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
                             <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
@@ -1653,10 +1927,6 @@
                                 <p id="detail-pagibig-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided
                                 </p>
                             </div>
-                            <button data-action="copy-target" data-target="detail-pagibig-id-2"
-                                class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
-                                <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
-                            </button>
                         </div>
                         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
                             <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
@@ -1666,10 +1936,6 @@
                                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">TIN ID</p>
                                 <p id="detail-tin-id-2" class="text-sm font-bold text-slate-800 truncate">Not provided</p>
                             </div>
-                            <button data-action="copy-target" data-target="detail-tin-id-2"
-                                class="p-2 hover:bg-slate-100 rounded-lg transition-colors shrink-0" title="Copy">
-                                <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -2075,8 +2341,8 @@
     </div>
 
     <script type="application/json" id="members-data">
-                                                                    {!! json_encode($members, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
-                                                                </script>
+                                            {!! json_encode($members, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) !!}
+                                            </script>
 
 
 
@@ -2110,7 +2376,7 @@
                                                 <span
                                                     class="text-white font-bold text-sm">{{ strtoupper(substr($rr->user->first_name ?? '', 0, 1)) }}{{ strtoupper(substr($rr->user->last_name ?? '', 0, 1)) }}</span>
                                             </div>
-                                            <span class="text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }}
+                                            <span class=" text-sm font-medium text-gray-900">{{ $rr->user->first_name ?? '' }}
                                                 {{ $rr->user->last_name ?? '' }}</span>
                                         </div>
                                     </td>
@@ -2221,6 +2487,22 @@
 
         const membersData = {{ Js::from($members->items()) }};
         const adminsData = {{ Js::from($adminList) }};
+
+        function setGovIdChip(el, path) {
+            el.textContent = path ? 'Uploaded' : 'Not provided';
+        }
+
+        function setGovIdFull(el, path) {
+            el.innerHTML = '';
+            if (!path) { el.textContent = 'Not provided'; return; }
+            const a = document.createElement('a');
+            a.href = '/storage/' + path;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.className = 'text-indigo-600 hover:underline';
+            a.textContent = 'View uploaded file';
+            el.appendChild(a);
+        }
 
         function closeAllDropdowns() {
             document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.add('hidden'));
@@ -2345,6 +2627,7 @@
                 const isAdmin = !['member', 'pending', 'inactive'].includes(String(member.role || '').toLowerCase());
                 document.getElementById('detail-member-id').textContent = (isAdmin ? 'ADM-' : 'MEM-') + String(member.id).padStart(4, '0');
                 document.getElementById('detail-email').textContent = member.email || 'N/A';
+                document.getElementById('detail-present-address').textContent = member.present_address || 'N/A';
                 document.getElementById('detail-phone').textContent = member.contact_no || 'N/A';
                 document.getElementById('detail-dob').textContent = member.date_of_birth || 'N/A';
                 document.getElementById('detail-sex').textContent = member.sex || 'N/A';
@@ -2356,6 +2639,7 @@
                 document.getElementById('detail-blood-type').textContent = member.blood_type || 'N/A';
                 document.getElementById('detail-height').textContent = member.height || 'N/A';
                 document.getElementById('detail-weight').textContent = member.weight || 'N/A';
+                document.getElementById('detail-permanent-address-2').textContent = member.permanent_address || 'N/A';
 
                 // Duplicate fields in Personal & Family tab
                 document.getElementById('detail-dob-2').textContent = member.date_of_birth || 'N/A';
@@ -2373,12 +2657,24 @@
                 const profilePic = document.getElementById('detail-profile-pic');
                 const avatar = document.getElementById('detail-avatar');
                 if (member.profile_picture) {
-                    profilePic.src = '/' + member.profile_picture;
+                    profilePic.src = '/storage/' + member.profile_picture;
                     profilePic.classList.remove('hidden');
                     avatar.classList.add('hidden');
                 } else {
                     profilePic.classList.add('hidden');
                     avatar.classList.remove('hidden');
+                }
+
+                // Signature
+                const sigImg = document.getElementById('detail-signature-img');
+                const sigEmpty = document.getElementById('detail-signature-empty');
+                if (member.signature) {
+                    sigImg.src = member.signature;
+                    sigImg.classList.remove('hidden');
+                    sigEmpty.classList.add('hidden');
+                } else {
+                    sigImg.classList.add('hidden');
+                    sigEmpty.classList.remove('hidden');
                 }
 
                 // Join date
@@ -2410,16 +2706,16 @@
                     skillsEl.textContent = 'No skills specified';
                 }
 
-                // Gov IDs — primary
-                document.getElementById('detail-sss-id').textContent = member.sss_id || 'Not provided';
-                document.getElementById('detail-philhealth-id').textContent = member.philhealth_id || 'Not provided';
-                document.getElementById('detail-pagibig-id').textContent = member.pagibig_id || 'Not provided';
-                document.getElementById('detail-tin-id').textContent = member.tin_id || 'Not provided';
-                // Gov IDs — duplicate tab
-                document.getElementById('detail-sss-id-2').textContent = member.sss_id || 'Not provided';
-                document.getElementById('detail-philhealth-id-2').textContent = member.philhealth_id || 'Not provided';
-                document.getElementById('detail-pagibig-id-2').textContent = member.pagibig_id || 'Not provided';
-                document.getElementById('detail-tin-id-2').textContent = member.tin_id || 'Not provided';
+                // Gov IDs — quick chips (Overview)
+                setGovIdChip(document.getElementById('detail-sss-id'), member.sss_id);
+                setGovIdChip(document.getElementById('detail-philhealth-id'), member.philhealth_id);
+                setGovIdChip(document.getElementById('detail-pagibig-id'), member.pagibig_id);
+                setGovIdChip(document.getElementById('detail-tin-id'), member.tin_id);
+                // Gov IDs — full tab with view links
+                setGovIdFull(document.getElementById('detail-sss-id-2'), member.sss_id);
+                setGovIdFull(document.getElementById('detail-philhealth-id-2'), member.philhealth_id);
+                setGovIdFull(document.getElementById('detail-pagibig-id-2'), member.pagibig_id);
+                setGovIdFull(document.getElementById('detail-tin-id-2'), member.tin_id);
 
                 // Vehicles
                 const vehiclesBody = document.getElementById('detail-vehicles-body');
@@ -2430,12 +2726,12 @@
                 };
                 if (member.vehicles && member.vehicles.length > 0) {
                     vehiclesBody.innerHTML = member.vehicles.map(v => `
-                                                                                <tr class="border-t border-slate-100">
-                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
-                                                                                    <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
-                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
-                                                                                </tr>
-                                                                            `).join('');
+                                                                                                                                <tr class="border-t border-slate-100">
+                                                                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
+                                                                                                                                    <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
+                                                                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
+                                                                                                                                </tr>
+                                                                                                                            `).join('');
                 } else {
                     vehiclesBody.innerHTML = '<tr><td colspan="3" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="car" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No vehicles registered</p></td></tr>';
                 }
@@ -2528,14 +2824,14 @@
                 const loansBody = document.getElementById('fin-loans-body');
                 if (member.active_loans && member.active_loans.length > 0) {
                     loansBody.innerHTML = member.active_loans.map(l => `
-                                                                                <tr class="border-t border-slate-100 hover:bg-slate-50">
-                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-indigo-600">${l.reference_no || 'N/A'}</td>
-                                                                                    <td class="px-4 py-3 text-xs font-semibold text-slate-800">${l.lending_type || 'N/A'}</td>
-                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-slate-800 text-right">₱${(l.lending_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
-                                                                                    <td class="px-4 py-3 text-xs font-mono font-semibold text-slate-600 text-right">₱${(l.monthly_payment || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
-                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-amber-600 text-right">₱${(l.total_payment || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
-                                                                                </tr>
-                                                                            `).join('');
+                                                                                                                                <tr class="border-t border-slate-100 hover:bg-slate-50">
+                                                                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-indigo-600">${l.reference_no || 'N/A'}</td>
+                                                                                                                                    <td class="px-4 py-3 text-xs font-semibold text-slate-800">${l.lending_type || 'N/A'}</td>
+                                                                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-slate-800 text-right">₱${(l.lending_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                                                                                                                    <td class="px-4 py-3 text-xs font-mono font-semibold text-slate-600 text-right">₱${(l.monthly_payment || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                                                                                                                    <td class="px-4 py-3 text-xs font-mono font-bold text-amber-600 text-right">₱${(l.total_payment || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                                                                                                                </tr>
+                                                                                                                            `).join('');
                 } else {
                     loansBody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center"><div class="w-12 h-12 mx-auto mb-2 rounded-xl bg-slate-100 flex items-center justify-center"><i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i></div><p class="text-xs font-semibold text-slate-400">No active loans</p></td></tr>';
                 }
@@ -2655,7 +2951,7 @@
             const reviewProfilePic = document.getElementById('review-profile-pic');
             const reviewAvatar = document.getElementById('review-avatar');
             if (member.profile_picture) {
-                reviewProfilePic.src = '/' + member.profile_picture;
+                reviewProfilePic.src = '/storage/' + member.profile_picture;
                 reviewProfilePic.classList.remove('hidden');
                 reviewAvatar.classList.add('hidden');
             } else {
@@ -2677,14 +2973,11 @@
             document.getElementById('review-address').textContent = member.present_address || 'N/A';
             document.getElementById('review-permanent-address').textContent = member.permanent_address || 'N/A';
 
-            document.getElementById('review-sss').textContent = member.sss_id || 'Not provided';
-            document.getElementById('review-philhealth').textContent = member.philhealth_id || 'Not provided';
-            document.getElementById('review-pagibig').textContent = member.pagibig_id || 'Not provided';
-            document.getElementById('review-tin').textContent = member.tin_id || 'Not provided';
 
-            document.getElementById('review-spouse').textContent = member.spouse_name || 'Not specified';
-            document.getElementById('review-sons').textContent = member.number_son || 0;
-            document.getElementById('review-daughters').textContent = member.number_daughter || 0;
+            setGovIdFull(document.getElementById('review-sss'), member.sss_id);
+            setGovIdFull(document.getElementById('review-philhealth'), member.philhealth_id);
+            setGovIdFull(document.getElementById('review-pagibig'), member.pagibig_id);
+            setGovIdFull(document.getElementById('review-tin'), member.tin_id);
 
             const recordVehiclesBody = document.getElementById('review-vehicles-body');
             const esc = (value) => {
@@ -2694,12 +2987,12 @@
             };
             if (member.vehicles && member.vehicles.length > 0) {
                 recordVehiclesBody.innerHTML = member.vehicles.map(v => `
-                                                                                <tr class="border-t border-slate-100">
-                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
-                                                                                    <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
-                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
-                                                                                </tr>
-                                                                            `).join('');
+                                                                                                                                <tr class="border-t border-slate-100">
+                                                                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800">${esc(v.vehicle_type || 'N/A')}</td>
+                                                                                                                                    <td class="px-5 py-3 text-xs font-mono font-bold text-slate-800">${esc(v.plate_no || 'N/A')}</td>
+                                                                                                                                    <td class="px-5 py-3 text-xs font-semibold text-slate-800 text-center">${esc(v.quantity || 1)}</td>
+                                                                                                                                </tr>
+                                                                                                                            `).join('');
             } else {
                 recordVehiclesBody.innerHTML = '<tr><td colspan="3" class="px-5 py-6 text-center"><p class="text-xs font-semibold text-slate-400">No vehicles registered</p></td></tr>';
             }
@@ -2791,13 +3084,13 @@
             const loans = Array.isArray(member.active_loans) ? member.active_loans : [];
             const loanRows = loans.length > 0
                 ? loans.map(l => `
-                                                                                <tr>
-                                                                                    <td>${soaEsc(l.reference_no || '—')}</td>
-                                                                                    <td>${soaEsc(l.lending_type || '—')}</td>
-                                                                                    <td class="num">${fmt(l.lending_amount)}</td>
-                                                                                    <td class="num">${fmt(l.monthly_payment)}</td>
-                                                                                    <td class="num">${fmt(l.total_payment)}</td>
-                                                                                </tr>`).join('')
+                                                                                                                                <tr>
+                                                                                                                                    <td>${soaEsc(l.reference_no || '—')}</td>
+                                                                                                                                    <td>${soaEsc(l.lending_type || '—')}</td>
+                                                                                                                                    <td class="num">${fmt(l.lending_amount)}</td>
+                                                                                                                                    <td class="num">${fmt(l.monthly_payment)}</td>
+                                                                                                                                    <td class="num">${fmt(l.total_payment)}</td>
+                                                                                                                                </tr>`).join('')
                 : '<tr><td colspan="5">No active loans</td></tr>';
 
             const scAmount = Number(member.sc_total_amount) || 0;
@@ -2805,114 +3098,114 @@
             const scrOpen = '<scr' + 'ipt>';
 
             const html = `<!DOCTYPE html>
-                                                            <html lang="en">
-                                                            <head>
-                                                                <meta charset="UTF-8">
-                                                                <title>Statement of Account - ${fullName}</title>
-                                                                <style>
-                                                                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                                                                    body { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000; padding: 15px 20px; background: #fff; }
-                                                                    .header { margin-bottom: 18px; text-align: center; }
-                                                                    .header .coop-name { font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-                                                                    .header .title { font-size: 13px; font-weight: 700; margin-top: 4px; }
-                                                                    .header .subtitle { font-size: 10px; color: #333; margin-top: 2px; }
-                                                                    table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 16px; }
-                                                                    thead th { background: #e0e0e0; border: 1px solid #000; padding: 5px 8px; font-weight: 700; text-align: center; text-transform: uppercase; font-size: 9px; }
-                                                                    tbody td { border: 1px solid #000; padding: 4px 8px; }
-                                                                    .num { text-align: right; font-family: 'Courier New', Courier, monospace; }
-                                                                    .totals-row td { font-weight: 700; background: #e8e8e8; border-top: 2px solid #000; }
-                                                                    .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 14px 0 4px; letter-spacing: 0.5px; }
-                                                                    .toolbar { margin-bottom: 12px; }
-                                                                    .toolbar button { padding: 6px 18px; font-size: 12px; cursor: pointer; background: #1E2A4A; color: #fff; border: none; border-radius: 4px; margin-right: 6px; }
-                                                                    .toolbar .close { background: #6c757d; }
-                                                                    .footer { margin-top: 14px; padding-top: 6px; border-top: 1px solid #000; display: flex; justify-content: space-between; font-size: 8px; color: #555; }
-                                                                    @@media print {
-                                                                        body { padding: 10px 15px; font-size: 9px; }
-                                                                        thead th { font-size: 8px; padding: 4px 6px; }
-                                                                        tbody td { padding: 3px 6px; }
-                                                                        .toolbar { display: none !important; }
-                                                                    }
-                                                                    @@page { size: portrait; margin: 15mm; }
-                                                                </style>
-                                                            </head>
-                                                            <body>
-                                                                <div class="toolbar">
-                                                                    <button id="btn-print">Print / Save as PDF</button>
-                                                                    <button id="btn-close" class="close">Close</button>
-                                                                </div>
+                                                                                                            <html lang="en">
+                                                                                                            <head>
+                                                                                                                <meta charset="UTF-8">
+                                                                                                                <title>Statement of Account - ${fullName}</title>
+                                                                                                                <style>
+                                                                                                                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                                                                                                                    body { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000; padding: 15px 20px; background: #fff; }
+                                                                                                                    .header { margin-bottom: 18px; text-align: center; }
+                                                                                                                    .header .coop-name { font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+                                                                                                                    .header .title { font-size: 13px; font-weight: 700; margin-top: 4px; }
+                                                                                                                    .header .subtitle { font-size: 10px; color: #333; margin-top: 2px; }
+                                                                                                                    table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 16px; }
+                                                                                                                    thead th { background: #e0e0e0; border: 1px solid #000; padding: 5px 8px; font-weight: 700; text-align: center; text-transform: uppercase; font-size: 9px; }
+                                                                                                                    tbody td { border: 1px solid #000; padding: 4px 8px; }
+                                                                                                                    .num { text-align: right; font-family: 'Courier New', Courier, monospace; }
+                                                                                                                    .totals-row td { font-weight: 700; background: #e8e8e8; border-top: 2px solid #000; }
+                                                                                                                    .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 14px 0 4px; letter-spacing: 0.5px; }
+                                                                                                                    .toolbar { margin-bottom: 12px; }
+                                                                                                                    .toolbar button { padding: 6px 18px; font-size: 12px; cursor: pointer; background: #1E2A4A; color: #fff; border: none; border-radius: 4px; margin-right: 6px; }
+                                                                                                                    .toolbar .close { background: #6c757d; }
+                                                                                                                    .footer { margin-top: 14px; padding-top: 6px; border-top: 1px solid #000; display: flex; justify-content: space-between; font-size: 8px; color: #555; }
+                                                                                                                    @@media print {
+                                                                                                                        body { padding: 10px 15px; font-size: 9px; }
+                                                                                                                        thead th { font-size: 8px; padding: 4px 6px; }
+                                                                                                                        tbody td { padding: 3px 6px; }
+                                                                                                                        .toolbar { display: none !important; }
+                                                                                                                    }
+                                                                                                                    @@page { size: portrait; margin: 15mm; }
+                                                                                                                </style>
+                                                                                                            </head>
+                                                                                                            <body>
+                                                                                                                <div class="toolbar">
+                                                                                                                    <button id="btn-print">Print / Save as PDF</button>
+                                                                                                                    <button id="btn-close" class="close">Close</button>
+                                                                                                                </div>
 
-                                                                <div class="header">
-                                                                    <div class="coop-name">Kingsland Pala-Pala Multi-Purpose Cooperative</div>
-                                                                    <div class="title">STATEMENT OF ACCOUNT</div>
-                                                                    <div class="subtitle">${fullName} &middot; ${memberId} &middot; As of ${asOf}</div>
-                                                                </div>
+                                                                                                                <div class="header">
+                                                                                                                    <div class="coop-name">Kingsland Pala-Pala Multi-Purpose Cooperative</div>
+                                                                                                                    <div class="title">STATEMENT OF ACCOUNT</div>
+                                                                                                                    <div class="subtitle">${fullName} &middot; ${memberId} &middot; As of ${asOf}</div>
+                                                                                                                </div>
 
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr><td><strong>MEMBER NAME</strong></td><td>${fullName}</td></tr>
-                                                                        <tr><td><strong>MEMBERSHIP NO.</strong></td><td>${memberId}</td></tr>
-                                                                        <tr><td><strong>MEMBERSHIP CATEGORY</strong></td><td>${soaEsc(member.membership_category || 'Investor Associate')}</td></tr>
-                                                                        <tr><td><strong>EMAIL</strong></td><td>${soaEsc(member.email)}</td></tr>
-                                                                        <tr><td><strong>CONTACT NO.</strong></td><td>${soaEsc(member.contact_no)}</td></tr>
-                                                                        <tr><td><strong>PRESENT ADDRESS</strong></td><td>${soaEsc(member.present_address)}</td></tr>
-                                                                        <tr><td><strong>MEMBER SINCE</strong></td><td>${memberSince}</td></tr>
-                                                                        <tr><td><strong>STATEMENT DATE</strong></td><td>${asOf}</td></tr>
-                                                                    </tbody>
-                                                                </table>
+                                                                                                                <table>
+                                                                                                                    <tbody>
+                                                                                                                        <tr><td><strong>MEMBER NAME</strong></td><td>${fullName}</td></tr>
+                                                                                                                        <tr><td><strong>MEMBERSHIP NO.</strong></td><td>${memberId}</td></tr>
+                                                                                                                        <tr><td><strong>MEMBERSHIP CATEGORY</strong></td><td>${soaEsc(member.membership_category || 'Investor Associate')}</td></tr>
+                                                                                                                        <tr><td><strong>EMAIL</strong></td><td>${soaEsc(member.email)}</td></tr>
+                                                                                                                        <tr><td><strong>CONTACT NO.</strong></td><td>${soaEsc(member.contact_no)}</td></tr>
+                                                                                                                        <tr><td><strong>PRESENT ADDRESS</strong></td><td>${soaEsc(member.present_address)}</td></tr>
+                                                                                                                        <tr><td><strong>MEMBER SINCE</strong></td><td>${memberSince}</td></tr>
+                                                                                                                        <tr><td><strong>STATEMENT DATE</strong></td><td>${asOf}</td></tr>
+                                                                                                                    </tbody>
+                                                                                                                </table>
 
-                                                                <div class="section-label">Account Balances</div>
-                                                                <table>
-                                                                    <thead>
-                                                                        <tr><th>Account</th><th>Details</th><th>Status</th><th>Amount</th></tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td>Share Capital</td>
-                                                                            <td>${Number(member.sc_total_shares) || 0} shares</td>
-                                                                            <td>${soaEsc(member.sc_status || 'No Account')}</td>
-                                                                            <td class="num">${fmt(scAmount)}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td>Regular Savings</td>
-                                                                            <td>Current balance</td>
-                                                                            <td>${soaEsc(member.savings_status || 'No Account')}</td>
-                                                                            <td class="num">${fmt(savingsBalance)}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td>Savings Interest Accrued</td>
-                                                                            <td>&mdash;</td>
-                                                                            <td>&mdash;</td>
-                                                                            <td class="num">${fmt(member.savings_interest)}</td>
-                                                                        </tr>
-                                                                        <tr class="totals-row">
-                                                                            <td colspan="3">TOTAL EQUITY (Share Capital + Savings)</td>
-                                                                            <td class="num">${fmt(scAmount + savingsBalance)}</td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
+                                                                                                                <div class="section-label">Account Balances</div>
+                                                                                                                <table>
+                                                                                                                    <thead>
+                                                                                                                        <tr><th>Account</th><th>Details</th><th>Status</th><th>Amount</th></tr>
+                                                                                                                    </thead>
+                                                                                                                    <tbody>
+                                                                                                                        <tr>
+                                                                                                                            <td>Share Capital</td>
+                                                                                                                            <td>${Number(member.sc_total_shares) || 0} shares</td>
+                                                                                                                            <td>${soaEsc(member.sc_status || 'No Account')}</td>
+                                                                                                                            <td class="num">${fmt(scAmount)}</td>
+                                                                                                                        </tr>
+                                                                                                                        <tr>
+                                                                                                                            <td>Regular Savings</td>
+                                                                                                                            <td>Current balance</td>
+                                                                                                                            <td>${soaEsc(member.savings_status || 'No Account')}</td>
+                                                                                                                            <td class="num">${fmt(savingsBalance)}</td>
+                                                                                                                        </tr>
+                                                                                                                        <tr>
+                                                                                                                            <td>Savings Interest Accrued</td>
+                                                                                                                            <td>&mdash;</td>
+                                                                                                                            <td>&mdash;</td>
+                                                                                                                            <td class="num">${fmt(member.savings_interest)}</td>
+                                                                                                                        </tr>
+                                                                                                                        <tr class="totals-row">
+                                                                                                                            <td colspan="3">TOTAL EQUITY (Share Capital + Savings)</td>
+                                                                                                                            <td class="num">${fmt(scAmount + savingsBalance)}</td>
+                                                                                                                        </tr>
+                                                                                                                    </tbody>
+                                                                                                                </table>
 
-                                                                <div class="section-label">Active Loans</div>
-                                                                <table>
-                                                                    <thead>
-                                                                        <tr><th>Reference</th><th>Type</th><th class="num">Loan Amount</th><th class="num">Monthly</th><th class="num">Total Payable</th></tr>
-                                                                    </thead>
-                                                                    <tbody>${loanRows}</tbody>
-                                                                </table>
+                                                                                                                <div class="section-label">Active Loans</div>
+                                                                                                                <table>
+                                                                                                                    <thead>
+                                                                                                                        <tr><th>Reference</th><th>Type</th><th class="num">Loan Amount</th><th class="num">Monthly</th><th class="num">Total Payable</th></tr>
+                                                                                                                    </thead>
+                                                                                                                    <tbody>${loanRows}</tbody>
+                                                                                                                </table>
 
-                                                                <div class="footer">
-                                                                    <span>Generated on ${asOf}</span>
-                                                                    <span>Kingsland Pala-Pala Multi-Purpose Cooperative</span>
-                                                                </div>
+                                                                                                                <div class="footer">
+                                                                                                                    <span>Generated on ${asOf}</span>
+                                                                                                                    <span>Kingsland Pala-Pala Multi-Purpose Cooperative</span>
+                                                                                                                </div>
 
-                                                                ${scrOpen}
-                                                                    setTimeout(function () { window.print(); }, 300);
-                                                                    document.addEventListener('click', function (e) {
-                                                                        if (e.target.id === 'btn-print') window.print();
-                                                                        if (e.target.id === 'btn-close') window.close();
-                                                                    });
-                                                                <\/script>
-                                                            </body>
-                                                            </html>`;
+                                                                                                                ${scrOpen}
+                                                                                                                    setTimeout(function () { window.print(); }, 300);
+                                                                                                                    document.addEventListener('click', function (e) {
+                                                                                                                        if (e.target.id === 'btn-print') window.print();
+                                                                                                                        if (e.target.id === 'btn-close') window.close();
+                                                                                                                    });
+                                                                                                                <\/script>
+                                                                                                            </body>
+                                                                                                            </html>`;
 
             const w = window.open('', '_blank', 'width=900,height=760');
             if (!w) {
@@ -2960,15 +3253,15 @@
     </script>
 
     <!-- <script nonce="{{ csp_nonce() }}">
-                                            fetch('/resignation/' + id + '/reject', {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                                                        ?? document.querySelector('input[name="_token"]')?.value,
-                                                    'Accept': 'application/json',
-                                                },
-                                                body: JSON.stringify({ rejection_reason: reason }),
-                                            })
-                                        </script> -->
+                                                                                            fetch('/resignation/' + id + '/reject', {
+                                                                                                method: 'POST',
+                                                                                                headers: {
+                                                                                                    'Content-Type': 'application/json',
+                                                                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                                                                                                        ?? document.querySelector('input[name="_token"]')?.value,
+                                                                                                    'Accept': 'application/json',
+                                                                                                },
+                                                                                                body: JSON.stringify({ rejection_reason: reason }),
+                                                                                            })
+                                                                                        </script> -->
 @endsection

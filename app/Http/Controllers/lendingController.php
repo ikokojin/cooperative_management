@@ -35,7 +35,7 @@ class lendingController extends Controller
 
         return [
             'fees_only' => $feesOnly,
-            'total_charges' => $feesOnly, // ← was: round($interest + $feesOnly, 2)
+            'total_charges' => round($interest + $feesOnly, 2), // now: Interest + Fees, everywhere
             'total_payable' => $feesAlreadyIncluded
                 ? round($storedPayable, 2)
                 : round($principalPlusInterest + $feesOnly, 2),
@@ -971,6 +971,15 @@ class lendingController extends Controller
             ->map(fn($n) => (int) $n)
             ->all();
 
+        // ← add this
+        $paidNumbers = lending_repayments_tbl::where('lending_id', $loan->id)
+            ->get()
+            ->reject(fn($p) => in_array(strtolower($p->status ?? ''), ['pending', 'voided']))
+            ->pluck('payment_number')
+            ->map(fn($n) => (int) $n)
+            ->unique()
+            ->all();
+
         $nextNo = $paymentsMade + 1;
         $anchor = $status->due_date
             ? \Carbon\Carbon::parse($status->due_date)
@@ -983,7 +992,7 @@ class lendingController extends Controller
             $amount = $row ? (float) $row->amount_due : $monthlyDue;
             $isPaid = $row ? (float) $row->amount_paid >= (float) $row->amount_due : $i <= $paymentsMade;
 
-            if ($isPaid || in_array($i, $pending, true)) {
+            if ($isPaid || in_array($i, $pending, true) || in_array($i, $paidNumbers, true)) { // ← added
                 continue;
             }
 
@@ -1226,6 +1235,16 @@ class lendingController extends Controller
                 ->toArray()
             : [];
 
+        $paidInstallmentNumbers = $selectedLoan
+            ? $paymentHistory
+                ->reject(fn($p) => in_array(strtolower($p->status ?? ''), ['pending', 'voided']))
+                ->pluck('payment_number')
+                ->map(fn($n) => (int) $n)
+                ->unique()
+                ->values()
+                ->toArray()
+            : [];
+
         // ── Build computed hero/breakdown data ──────────────────────────────────
         $paymentSchedule = collect();
         $progressPercent = 0;
@@ -1297,6 +1316,7 @@ class lendingController extends Controller
             $currentInstallmentRow = $scheduleRows->first(
                 fn($row) => (float) $row->amount_paid < (float) $row->amount_due
                     && !in_array((int) $row->payment_number, $pendingInstallmentNumbers)
+                    && !in_array((int) $row->payment_number, $paidInstallmentNumbers)
             );
             if ($currentInstallmentRow) {
                 $currentDueAmount = (float) $currentInstallmentRow->amount_due;
@@ -1326,6 +1346,7 @@ class lendingController extends Controller
             $chargeTotals = $this->loanChargeTotals($selectedLoan);
             $totalCharges = $chargeTotals['total_charges'];
             $totalPayable = $chargeTotals['total_payable'];
+            $totalChargesWithInterest = round($totalCharges + $totalInterest, 2);
 
             $remainingBalance = (float) $lendingStatus->remaining_balance;
             if ($totalPayment > 0 && $remainingBalance > 0) {
@@ -1353,9 +1374,12 @@ class lendingController extends Controller
 
                 $scheduleRow = $scheduleByNumber[$i] ?? null;
                 $installmentAmount = $scheduleRow ? (float) $scheduleRow->amount_due : $monthlyDue;
-                $isPaid = $scheduleRow
-                    ? (float) $scheduleRow->amount_paid >= (float) $scheduleRow->amount_due
-                    : ($i <= $paymentsMade);
+
+                $isPaid = in_array($i, $paidInstallmentNumbers, true)   // ← added, checked first
+                    || ($scheduleRow
+                        ? (float) $scheduleRow->amount_paid >= (float) $scheduleRow->amount_due
+                        : ($i <= $paymentsMade));
+
                 $isOverdue = !$isPaid && $dueDateForRow->lt($today);
                 $isNext = !$isPaid && !$nextDueDate;
 
@@ -1511,6 +1535,7 @@ class lendingController extends Controller
                 'loanStatusLabel',
                 'payableInstallments',
                 'pendingCount',
+                'totalChargesWithInterest'
             )
         ));
     }

@@ -88,13 +88,26 @@
                     </div>
                     <div style="max-height:360px; overflow-y: scroll;">
                         @forelse($navNotifications as $n)
+                            @php
+                                // Good news (confirmed / approved / released...) always shows green,
+                                // even if it was saved as "important" (which is red by default).
+                                $nTitle = strtolower($n['title'] ?? '');
+                                $nIcon = $n['icon'] ?? 'fa-bell';
+                                $nColor = $n['color'] ?? 'green';
+                                if (\Illuminate\Support\Str::contains($nTitle, ['confirmed', 'approved', 'accepted', 'received', 'released', 'completed', 'successful', 'verified'])) {
+                                    $nColor = 'green';
+                                    $nIcon = 'fa-circle-check';
+                                } elseif (\Illuminate\Support\Str::contains($nTitle, ['returned', 'declined', 'rejected', 'voided', 'overdue', 'failed', 'cancelled'])) {
+                                    $nColor = 'red';
+                                }
+                            @endphp
                             <a href="{{ $n['url'] ?? '#' }}" data-action="handleNotifClick"
                                 data-arg='["|event|","|el|","{{ $n['id'] }}","{{ $n['url'] ?? '#' }}"]'
                                 style="display:flex; gap:10px; padding:12px 16px; border-bottom:1px solid #f5f5f5; text-decoration:none; color:inherit;">
                                 <div
-                                    style="width:32px; height:32px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; background: {{ $n['color'] === 'red' ? '#fee2e2' : ($n['color'] === 'gold' ? '#fef3c7' : '#d1fae5') }};">
-                                    <i class="fa-solid {{ $n['icon'] }}"
-                                        style="font-size:13px; color: {{ $n['color'] === 'red' ? '#dc2626' : ($n['color'] === 'gold' ? '#b45309' : '#059669') }};"></i>
+                                    style="width:32px; height:32px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; background: {{ $nColor === 'red' ? '#fee2e2' : ($nColor === 'gold' ? '#fef3c7' : '#d1fae5') }};">
+                                    <i class="fa-solid {{ $nIcon }}"
+                                        style="font-size:13px; color: {{ $nColor === 'red' ? '#dc2626' : ($nColor === 'gold' ? '#b45309' : '#059669') }};"></i>
                                 </div>
                                 <div style="flex:1; min-width:0;">
                                     <p style="margin:0; font-size:13px; font-weight:600; color:#1a1a1a;">{{ $n['title'] }}
@@ -133,7 +146,6 @@
                     }
 
                     // Fire-and-forget: mark this notification read server-side.
-                    // keepalive lets the request finish even as the page navigates away.
                     fetch('{{ route('notifications.markRead') }}', {
                         method: 'POST',
                         headers: {
@@ -143,6 +155,16 @@
                         body: JSON.stringify({ id: id }),
                         keepalive: true
                     }).catch(() => { });
+
+                    // No destination URL (e.g. resignation status updates) — just mark it
+                    // read and remove it from the open panel, don't navigate away.
+                    if (!url || url === '#') {
+                        if (el) {
+                            el.style.opacity = '0';
+                            setTimeout(() => el.remove(), 150);
+                        }
+                        return;
+                    }
 
                     // Navigate ourselves, since data-action click already prevented default.
                     window.location.href = url;

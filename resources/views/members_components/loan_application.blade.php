@@ -1915,10 +1915,6 @@
                                         You need at least <strong>{{ number_format($minimumShares, 0) }}</strong> shares of
                                         share capital to apply for a loan.
                                         You currently have <strong>{{ number_format($currentShares, 2) }}</strong> shares.
-                                        @if($loanEligSettings->savings_to_loan_enabled)
-                                            <br>You also need savings of at least the loan amount plus the
-                                            ₱{{ number_format($loanEligSettings->savings_to_loan_ratio, 2) }} holdback to apply.
-                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -2178,23 +2174,23 @@
                                         <div class="table-filter">
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
-                                                <input type="search" id="search-all" data-action="applyFilters"
-                                                    data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                <input type="search" id="search-today" data-action="applyFilters"
+                                                    data-arg='["due-today-list","search-today","date-today","status-today"]'
                                                     data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
-                                                    <input type="date" id="date-all" class="date-input"
+                                                    <input type="date" id="date-today" class="date-input"
                                                         data-action="applyFilters"
-                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        data-arg='["due-today-list","search-today","date-today","status-today"]'
                                                         class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
-                                                    <select id="status-all" data-action="applyFilters"
-                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                    <select id="status-today" data-action="applyFilters"
+                                                        data-arg='["due-today-list","search-today","date-today","status-today"]'
                                                         class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
@@ -2209,7 +2205,9 @@
                                         <div class="loan-list" id="due-today-list">
                                             @forelse($dueTodayLoans ?? [] as $loan)
                                                 @php $progress = ($loan->total_payments ?? 0) > 0 ? min(100, round((($loan->payments_made ?? 0) / $loan->total_payments) * 100)) : 0; @endphp
-                                                <div class="loan-card" data-ref="{{ $loan->reference_no }}">
+                                                <div class="loan-card" data-ref="{{ $loan->reference_no }}"
+                                                    data-status="{{ $loan->status }}"
+                                                    data-date="{{ \Carbon\Carbon::parse($loan->created_at)->format('Y-m-d') }}">
                                                     <div class="loan-row" data-action="toggleLoanCard" data-arg='["|el|"]'>
                                                         <div class="loan-ref-block">
                                                             <div class="loan-type-icon"><i class="fa fa-file-lines"></i>
@@ -2330,23 +2328,23 @@
                                         <div class="table-filter">
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
-                                                <input type="search" id="search-all" data-action="applyFilters"
-                                                    data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                <input type="search" id="search-week" data-action="applyFilters"
+                                                    data-arg='["due-week-list","search-week","date-week","status-week"]'
                                                     data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
-                                                    <input type="date" id="date-all" class="date-input"
+                                                    <input type="date" id="date-week" class="date-input"
                                                         data-action="applyFilters"
-                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        data-arg='["due-week-list","search-week","date-week","status-week"]'
                                                         class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
-                                                    <select id="status-all" data-action="applyFilters"
-                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                    <select id="status-week" data-action="applyFilters"
+                                                        data-arg='["due-week-list","search-week","date-week","status-week"]'
                                                         class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
@@ -2361,7 +2359,9 @@
                                         <div class="loan-list" id="due-week-list">
                                             @forelse($dueThisWeekLoans ?? [] as $loan)
                                                 @php $progress = ($loan->total_payments ?? 0) > 0 ? min(100, round((($loan->payments_made ?? 0) / $loan->total_payments) * 100)) : 0; @endphp
-                                                <div class="loan-card" data-ref="{{ $loan->reference_no }}">
+                                                <div class="loan-card" data-ref="{{ $loan->reference_no }}"
+                                                    data-status="{{ $loan->status }}"
+                                                    data-date="{{ \Carbon\Carbon::parse($loan->created_at)->format('Y-m-d') }}">
                                                     <div class="loan-row" data-action="toggleLoanCard" data-arg='["|el|"]'>
                                                         <div class="loan-ref-block">
                                                             <div class="loan-type-icon"><i class="fa fa-file-lines"></i>
@@ -2481,23 +2481,23 @@
                                         <div class="table-filter">
                                             <div class="filter search-parent">
                                                 <i class="fa fa-search"></i>
-                                                <input type="search" id="search-all" data-action="applyFilters"
-                                                    data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                <input type="search" id="search-overdue" data-action="applyFilters"
+                                                    data-arg='["overdue-list","search-overdue","date-overdue","status-overdue"]'
                                                     data-trigger="input"
                                                     placeholder="Search by reference, type, purpose">
                                             </div>
 
                                             <div class="filter-parent">
                                                 <div class="filter date">
-                                                    <input type="date" id="date-all" class="date-input"
+                                                    <input type="date" id="date-overdue" class="date-input"
                                                         data-action="applyFilters"
-                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                        data-arg='["overdue-list","search-overdue","date-overdue","status-overdue"]'
                                                         class="form-control">
                                                 </div>
 
                                                 <div class="filter status">
-                                                    <select id="status-all" data-action="applyFilters"
-                                                        data-arg='["all-loans-list","search-all","date-all","status-all"]'
+                                                    <select id="status-overdue" data-action="applyFilters"
+                                                        data-arg='["overdue-list","search-overdue","date-overdue","status-overdue"]'
                                                         class="form-select">
                                                         <option value="all">All Status</option>
                                                         <option value="Pending">Pending</option>
@@ -2512,7 +2512,9 @@
                                         <div class="loan-list" id="overdue-list">
                                             @forelse($overdueLoans ?? [] as $loan)
                                                 @php $progress = ($loan->total_payments ?? 0) > 0 ? min(100, round((($loan->payments_made ?? 0) / $loan->total_payments) * 100)) : 0; @endphp
-                                                <div class="loan-card" data-ref="{{ $loan->reference_no }}">
+                                                <div class="loan-card" data-ref="{{ $loan->reference_no }}"
+                                                    data-status="{{ $loan->status }}"
+                                                    data-date="{{ \Carbon\Carbon::parse($loan->created_at)->format('Y-m-d') }}">
                                                     <div class="loan-row" data-action="toggleLoanCard" data-arg='["|el|"]'>
                                                         <div class="loan-ref-block">
                                                             <div class="loan-type-icon"><i class="fa fa-file-lines"></i>

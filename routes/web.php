@@ -108,7 +108,6 @@ Route::get('/member/status-ping', [UsersHandle::class, 'AccountStatusPing'])
 
 Route::get('/faqs', [UsersHandle::class, 'Faqs'])->name('Faqs');
 Route::post('/support/report', [UsersHandle::class, 'SubmitReport'])->name('support.report.store');
-Route::get('/support/reports', [UsersHandle::class, 'MyReports'])->name('support.report.index');
 
 // Member reports (support tickets)
 Route::get("/admin/support-reports", [AdminSupportController::class, "reportsIndex"])->name("admin.support-reports.index")->middleware("admin");

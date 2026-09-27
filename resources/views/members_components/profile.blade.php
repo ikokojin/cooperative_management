@@ -81,15 +81,29 @@
 
                     <div class="personal-body">
                         <div class="personal-sub-body">
-                            <div class="body-icon">
-                                {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}
+                            {{-- Avatar + quick "change photo" button. Opens the same
+                            Edit Personal Information modal, which now includes a
+                            Profile Photo upload field. --}}
+                            <div class="body-icon-wrap">
+                                <div class="body-icon" style="overflow:hidden; padding:0;">
+                                    @if($otherinfo && $otherinfo->profile_picture)
+                                        <img src="{{ asset('storage/' . $otherinfo->profile_picture) }}" alt="Profile Photo"
+                                            style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                                    @else
+                                        {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}
+                                    @endif
+                                </div>
+                                <button type="button" class="avatar-edit-btn" data-bs-toggle="modal"
+                                    data-bs-target="#editPersonalInfoModal" title="Change profile photo">
+                                    <i class="fa fa-camera"></i>
+                                </button>
                             </div>
                             <div class="parent-box">
                                 <div class="body-text">
                                     <h2>{{ $user->first_name }}
                                         {{ $user->middle_name ? $user->middle_name . ' ' : '' }}{{ $user->last_name }}
                                     </h2>
-                                    <p>{{ $user->role }} · {{ $otherinfo->present_address ?? 'N/A' }}</p>
+                                    <p>{{ $user->role }} · {{ $otherinfo->present_address ?? '-' }}</p>
                                 </div>
                                 <div class="since-parent">
                                     <div class="member member-no">
@@ -140,22 +154,22 @@
 
                                     <div class="information">
                                         <span>Date of Birth</span>
-                                        <strong>{{ $otherinfo->date_of_birth ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->date_of_birth ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Sex</span>
-                                        <strong>{{ $otherinfo->sex ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->sex ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Civil Status</span>
-                                        <strong>{{ $otherinfo->civil_status ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->civil_status ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Mobile Number</span>
-                                        <strong>{{ $otherinfo->contact_no ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->contact_no ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
@@ -165,40 +179,50 @@
 
                                     <div class="information">
                                         <span>Present Address</span>
-                                        <strong>{{ $otherinfo->present_address ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->present_address ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Permanent Address</span>
-                                        <strong>{{ $otherinfo->permanent_address ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->permanent_address ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Weight</span>
-                                        <strong>{{ $otherinfo->weight ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->weight ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Height</span>
-                                        <strong>{{ $otherinfo->height ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->height ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Blood Type</span>
-                                        <strong>{{ $otherinfo->blood_type ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->blood_type ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Citizenship</span>
-                                        <strong>{{ $otherinfo->citizenship ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->citizenship ?? '-' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Place of Birth</span>
+                                        <strong>{{ $otherinfo->place_of_birth ?? '-' }}</strong>
+                                    </div>
+
+                                    <div class="information">
+                                        <span>Skills / Expertise</span>
+                                        <strong>{{ $otherinfo->skills ?? '-' }}</strong>
                                     </div>
                                 </div>
                                 <!-- <div class="more-button">
-                                                <button>
-                                                    View More
-                                                    <i class="fa fa-arrow-right"></i>
-                                                </button>
-                                            </div> -->
+                                                                                                                    <button>
+                                                                                                                        View More
+                                                                                                                        <i class="fa fa-arrow-right"></i>
+                                                                                                                    </button>
+                                                                                                                </div> -->
                             </div>
 
                             <div class="personal-information-1">
@@ -218,22 +242,22 @@
                                 <div class="personal-information-body">
                                     <div class="information">
                                         <span>Role</span>
-                                        <strong>{{ $user->role ?? 'N/A' }}</strong>
+                                        <strong>{{ $user->role ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Monthly Income</span>
-                                        <strong>{{ $savedMonthlyIncome ? '₱' . number_format($savedMonthlyIncome, 2) : 'N/A' }}</strong>
+                                        <strong>{{ $savedMonthlyIncome ? '₱' . number_format($savedMonthlyIncome, 2) : '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Member Category</span>
-                                        <strong>{{ $otherinfo->membership_category ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->membership_category ?? '-' }}</strong>
                                     </div>
 
                                     <div class="information">
                                         <span>Status</span>
-                                        <strong>{{ $otherinfo->membership_status ?? 'N/A' }}</strong>
+                                        <strong>{{ $otherinfo->membership_status ?? '-' }}</strong>
                                     </div>
 
                                     {{-- <div class="information">
@@ -282,8 +306,81 @@
                                     @endforeach
                                 </div>
                             </div>
+
                         </div>
                         <div class="personal-sub-information">
+                            {{-- Family Background — now reuses the same
+                            personal-information-1 / personal-information-body
+                            classes as "Personal Information" above, so the
+                            label/value styling (grid, spacing, teal values)
+                            matches instead of falling back to plain text. --}}
+                            <div class="personal-information-1">
+                                <div class="personal-information-header">
+                                    <div class="header-text">
+                                        <div class="header-icon"><i class="fa fa-people-roof"></i></div>
+                                        <h4>Family Background</h4>
+                                    </div>
+                                    <div>
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editFamilyModal">
+                                            Edit
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="personal-information-body">
+                                    <div class="information">
+                                        <span>Spouse Name</span>
+                                        <strong>{{ $family->spouse_name ?? '-' }}</strong>
+                                    </div>
+                                    <div class="information">
+                                        <span>Spouse Date of Birth</span>
+                                        <strong>{{ $family->spouse_date_birth ?? '-' }}</strong>
+                                    </div>
+                                    <div class="information">
+                                        <span>Spouse Place of Birth</span>
+                                        <strong>{{ $family->spouse_place_birth ?? '-' }}</strong>
+                                    </div>
+                                    <div class="information">
+                                        <span>Number of Sons</span>
+                                        <strong>{{ $family->number_son ?? '0' }}</strong>
+                                    </div>
+                                    <div class="information">
+                                        <span>Number of Daughters</span>
+                                        <strong>{{ $family->number_daughter ?? '0' }}</strong>
+                                    </div>
+                                    <div class="information">
+                                        <span>Other Dependents</span>
+                                        <strong>{{ $family->other_spec ?? '-' }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Vehicle Information — same class swap as above, and
+                            reuses "document-body" (already used by "Documents on
+                            File") instead of the undefined "document-body-2". --}}
+                            <div class="personal-information-1">
+                                <div class="personal-information-header">
+                                    <div class="header-text">
+                                        <div class="header-icon"><i class="fa fa-car"></i></div>
+                                        <h4>Vehicle Information</h4>
+                                    </div>
+                                    <div>
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editVehicleModal">
+                                            Edit
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="personal-information-body document-body">
+                                    @forelse($vehicles as $vehicle)
+                                        <div class="doc-row">
+                                            <i class="fa fa-car doc-icon"></i>
+                                            <div class="doc-name">{{ $vehicle->vehicle_type }}</div>
+                                            <div class="doc-meta">Plate No: {{ $vehicle->plate_no }}</div>
+                                        </div>
+                                    @empty
+                                        <p style="color:#9ca3af; font-size:13.5px; margin:0;">No vehicles on file.</p>
+                                    @endforelse
+                                </div>
+                            </div>
                             <div class="personal-information-2">
                                 <div class="personal-information-header">
                                     <div class="header-text">
@@ -295,9 +392,9 @@
                                 </div>
                                 <div class="personal-information-body-2">
                                     <!-- <div class="personal-head">
-                                                    <p>Description</p>
-                                                    <p>Balance</p>
-                                                </div> -->
+                                                                                                                        <p>Description</p>
+                                                                                                                        <p>Balance</p>
+                                                                                                                    </div> -->
                                     <div class="personal-parent">
                                         <div class="item item-share">
                                             <div class="stat-icon">
@@ -337,15 +434,15 @@
                                         </div>
                                     </div>
                                     <!-- <div class="personal-footer">
-                                                    <div class="item item-net"> 
-                                                        <div class="fw-bold item-category-net">
-                                                            <span>Net Standing</span>
+                                                                                                                        <div class="item item-net"> 
+                                                                                                                            <div class="fw-bold item-category-net">
+                                                                                                                                <span>Net Standing</span>
 
-                                                            <strong>₱51,930.00</strong>
-                                                        </div>
-                                                        <div class="fw-bold item-value-net">₱51,930.00</div>
-                                                    </div>
-                                                </div> -->
+                                                                                                                                <strong>₱51,930.00</strong>
+                                                                                                                            </div>
+                                                                                                                            <div class="fw-bold item-value-net">₱51,930.00</div>
+                                                                                                                        </div>
+                                                                                                                    </div> -->
                                 </div>
                             </div>
 
@@ -381,6 +478,25 @@
                                     </div>
 
                                 </div>
+                            </div>
+
+
+                        </div>
+
+                        <div class="personal-information-1">
+                            <div class="personal-information-header">
+                                <div class="header-text">
+                                    <div class="header-icon"><i class="fa fa-signature"></i></div>
+                                    <h4>Signature on File</h4>
+                                </div>
+                            </div>
+                            <div class="personal-information-body" style="display:block; padding:20px 24px; display: flex; justify-content: center; align-items: center;">
+                                @if($otherinfo && $otherinfo->signature)
+                                    <img src="{{ $otherinfo->signature }}" alt="Signature"
+                                        style="max-width:100%; max-height:120px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
+                                @else
+                                    <p style="color:#9ca3af; font-size:13.5px; margin:0;">No signature on file.</p>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -532,6 +648,36 @@
                         @csrf
                         <input type="hidden" name="_form" value="personal">
 
+                        {{-- Profile Photo upload --}}
+                        <div class="sm-field">
+                            <label class="sm-label">Profile Photo</label>
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <div id="avatarPreviewWrap"
+                                    style="width:60px; height:60px; border-radius:50%; overflow:hidden; background:#EDF0F5; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <img id="avatarPreviewImg"
+                                        src="{{ ($otherinfo && $otherinfo->profile_picture) ? asset('storage/' . $otherinfo->profile_picture) : '' }}"
+                                        style="width:100%; height:100%; object-fit:cover; {{ ($otherinfo && $otherinfo->profile_picture) ? '' : 'display:none;' }}">
+                                    <span id="avatarPreviewInitial"
+                                        style="font-weight:600; color:#1E2A4A; font-size:20px; {{ ($otherinfo && $otherinfo->profile_picture) ? 'display:none;' : '' }}">
+                                        {{ strtoupper(substr($user->first_name ?? 'U', 0, 1)) }}
+                                    </span>
+                                </div>
+                                <label for="upload_profile_picture" class="doc-upload-box"
+                                    id="uploadBox_profile_picture" style="flex:1;">
+                                    <div class="doc-upload-icon"><i class="fa fa-cloud-upload-alt"></i></div>
+                                    <div class="doc-upload-text">
+                                        <span class="doc-upload-title" id="uploadTitle_profile_picture">
+                                            {{ ($otherinfo && $otherinfo->profile_picture) ? 'Replace photo' : 'Click to upload' }}
+                                        </span>
+                                        <span class="doc-upload-sub" id="uploadSub_profile_picture">JPG or PNG, max
+                                            2MB</span>
+                                    </div>
+                                </label>
+                                <input type="file" id="upload_profile_picture" name="profile_picture"
+                                    class="doc-upload-input" accept="image/*" onchange="handleAvatarUploadChange(this)">
+                            </div>
+                        </div>
+
                         <div class="sm-field-row">
                             <div class="sm-field">
                                 <label class="sm-label">First Name</label>
@@ -666,12 +812,21 @@
                             <div style="position:relative;">
                                 <span class="sm-input-prefix">₱</span>
                                 <input type="number" step="0.01" name="monthly_income"
-                                    class="sm-input sm-input-prefixed" value="{{ $savedMonthlyIncome ?? '' }}">
+                                    class="sm-input sm-input-prefixed" value="{{ $savedMonthlyIncome ?? '' }}"
+                                    {{ $savedMonthlyIncome ? '' : 'disabled' }}>
                             </div>
+                            @if(!$savedMonthlyIncome)
+                                <small class="sm-hint-text">
+                                    <i class="fa fa-lock"></i>
+                                    This is filled in automatically once you submit a Loan Application with your
+                                    monthly income. You'll be able to edit it here afterward.
+                                </small>
+                            @endif
                         </div>
 
-                        <button type="submit" class="sm-btn-confirm"><i class="fa fa-check"></i> Confirm
-                            Changes</button>
+                        <button type="submit" class="sm-btn-confirm" {{ $savedMonthlyIncome ? '' : 'disabled' }}>
+                            <i class="fa fa-check"></i> Confirm Changes
+                        </button>
                         <button type="button" class="sm-btn-cancel" data-bs-dismiss="modal">Cancel</button>
                     </form>
                 </div>
@@ -712,7 +867,17 @@
 
                         @foreach($docFields as $fieldName => $doc)
                             <div class="sm-field">
-                                <label class="sm-label">{{ $doc['label'] }}</label>
+                                <div
+                                    style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                                    <label class="sm-label" style="margin-bottom:0;">{{ $doc['label'] }}</label>
+                                    @if($doc['value'])
+                                        <a href="#" class="doc-view-link" data-doc-src="{{ asset('storage/' . $doc['value']) }}"
+                                            data-doc-label="{{ $doc['label'] }}"
+                                            style="font-size:12px; font-weight:600; color:#1E2A4A; text-decoration:none; display:flex; align-items:center; gap:4px;">
+                                            <i class="fa fa-eye"></i> View current file
+                                        </a>
+                                    @endif
+                                </div>
                                 <label for="upload_{{ $fieldName }}" class="doc-upload-box" id="uploadBox_{{ $fieldName }}">
                                     <div class="doc-upload-icon"><i class="fa fa-cloud-upload-alt"></i></div>
                                     <div class="doc-upload-text">
@@ -736,6 +901,137 @@
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+
+    {{-- Edit Family Background Modal --}}
+    <div class="modal fade" id="editFamilyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content sm-modal-content">
+                <div class="modal-header sm-modal-header">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="sm-modal-icon"><i class="fa fa-people-roof"></i></div>
+                        <div>
+                            <h5 class="sm-modal-title">Edit Family Background</h5>
+                            <p class="sm-modal-subtitle">Update your spouse and dependents information</p>
+                        </div>
+                    </div>
+                    <button type="button" class="sm-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body sm-modal-body">
+                    <form action="{{ route('UpdateProfileMember') }}" method="POST" id="familyForm">
+                        @csrf
+                        <input type="hidden" name="_form" value="family">
+
+                        <div class="sm-field">
+                            <label class="sm-label">Spouse Name</label>
+                            <input type="text" name="spouse_name" class="sm-input"
+                                value="{{ $family->spouse_name ?? '' }}">
+                        </div>
+
+                        <div class="sm-field-row">
+                            <div class="sm-field">
+                                <label class="sm-label">Spouse Date of Birth</label>
+                                <input type="date" name="spouse_date_birth" class="sm-input"
+                                    value="{{ $family->spouse_date_birth ?? '' }}">
+                            </div>
+                            <div class="sm-field">
+                                <label class="sm-label">Spouse Place of Birth</label>
+                                <input type="text" name="spouse_place_birth" class="sm-input"
+                                    value="{{ $family->spouse_place_birth ?? '' }}">
+                            </div>
+                        </div>
+
+                        <div class="sm-field-row">
+                            <div class="sm-field">
+                                <label class="sm-label">Number of Sons</label>
+                                <input type="number" min="0" name="number_son" class="sm-input"
+                                    value="{{ $family->number_son ?? 0 }}">
+                            </div>
+                            <div class="sm-field">
+                                <label class="sm-label">Number of Daughters</label>
+                                <input type="number" min="0" name="number_daughter" class="sm-input"
+                                    value="{{ $family->number_daughter ?? 0 }}">
+                            </div>
+                        </div>
+
+                        <div class="sm-field">
+                            <label class="sm-label">Other Dependents</label>
+                            <input type="text" name="other_spec" class="sm-input"
+                                value="{{ $family->other_spec ?? '' }}">
+                        </div>
+
+                        <button type="submit" class="sm-btn-confirm"><i class="fa fa-check"></i> Confirm
+                            Changes</button>
+                        <button type="button" class="sm-btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Add Vehicle Modal --}}
+    <div class="modal fade" id="editVehicleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content sm-modal-content">
+                <div class="modal-header sm-modal-header">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="sm-modal-icon"><i class="fa fa-car"></i></div>
+                        <div>
+                            <h5 class="sm-modal-title">Add Vehicle</h5>
+                            <p class="sm-modal-subtitle">Add a vehicle to your file</p>
+                        </div>
+                    </div>
+                    <button type="button" class="sm-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body sm-modal-body">
+                    <form action="{{ route('UpdateProfileMember') }}" method="POST" id="vehicleForm">
+                        @csrf
+                        <input type="hidden" name="_form" value="vehicle">
+
+                        <div class="sm-field">
+                            <label class="sm-label">Vehicle Type</label>
+                            <select name="vehicle_type" class="sm-input" required>
+                                <option value="">Select</option>
+                                <option value="UV">UV</option>
+                                <option value="TAXI">Taxi</option>
+                                <option value="BUS">Bus</option>
+                                <option value="MINI BUS">Mini Bus</option>
+                                <option value="JEEP">Jeep</option>
+                                <option value="MULTI-CAB">Multi-Cab</option>
+                                <option value="TRICYCLE">Tricycle</option>
+                            </select>
+                        </div>
+
+                        <div class="sm-field">
+                            <label class="sm-label">Plate Number</label>
+                            <input type="text" name="plate_no" class="sm-input" required>
+                        </div>
+
+                        <button type="submit" class="sm-btn-confirm"><i class="fa fa-check"></i> Add
+                            Vehicle</button>
+                        <button type="button" class="sm-btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Document Preview Lightbox --}}
+    <div id="doc-lightbox-overlay"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100000; align-items:center; justify-content:center; padding:1.5rem;">
+        <button type="button" id="doc-lightbox-close"
+            style="position:absolute; top:20px; right:24px; background:#fff; border:none; width:40px; height:40px; border-radius:50%; font-size:20px; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <i class="fa fa-times"></i>
+        </button>
+        <div style="max-width:90%; max-height:90vh; text-align:center;">
+            <p id="doc-lightbox-title" style="color:#fff; font-weight:600; margin-bottom:12px; font-size:15px;"></p>
+            <img id="doc-lightbox-img" src="" alt="Document preview"
+                style="max-width:100%; max-height:80vh; border-radius:10px; background:#fff;">
         </div>
     </div>
 
@@ -805,6 +1101,43 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        /* Avatar edit button — small camera badge over the main profile photo */
+        .body-icon-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .avatar-edit-btn {
+            position: absolute;
+            right: -2px;
+            bottom: -2px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--teal, #1E2A4A);
+            color: #fff;
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            padding: 0;
+        }
+
+        .avatar-edit-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Locked Monthly Income field, until a value exists from a loan
+           application (or was set here previously). */
+        .sm-input:disabled {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
     </style>
 
     <script nonce="{{ csp_nonce() }}">
@@ -824,6 +1157,54 @@
                 sub.textContent = 'JPG or PNG, max 2MB';
             }
         }
+
+        // Same pattern as handleDocUploadChange, plus it swaps the small round
+        // avatar preview inside the modal so the member can see the photo
+        // they're about to save before confirming.
+        function handleAvatarUploadChange(input) {
+            const box = document.getElementById('uploadBox_profile_picture');
+            const title = document.getElementById('uploadTitle_profile_picture');
+            const sub = document.getElementById('uploadSub_profile_picture');
+            const previewImg = document.getElementById('avatarPreviewImg');
+            const previewInitial = document.getElementById('avatarPreviewInitial');
+
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                box.classList.add('has-file');
+                title.textContent = 'File selected';
+                sub.textContent = file.name;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                    previewInitial.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                box.classList.remove('has-file');
+                title.textContent = 'Click to upload';
+                sub.textContent = 'JPG or PNG, max 2MB';
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('.doc-view-link');
+            if (link) {
+                e.preventDefault();
+                document.getElementById('doc-lightbox-img').src = link.dataset.docSrc;
+                document.getElementById('doc-lightbox-title').textContent = link.dataset.docLabel;
+                document.getElementById('doc-lightbox-overlay').style.display = 'flex';
+            }
+        });
+
+        document.getElementById('doc-lightbox-close')?.addEventListener('click', function () {
+            document.getElementById('doc-lightbox-overlay').style.display = 'none';
+        });
+
+        document.getElementById('doc-lightbox-overlay')?.addEventListener('click', function (e) {
+            if (e.target === this) this.style.display = 'none';
+        });
     </script>
 
     {{-- AOS animation link js --}}

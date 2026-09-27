@@ -10,24 +10,20 @@
   <div class="offcanvas-body">
     <div class="offcanvas-links">
       <ul>
-        <li>
-          <a href="{{ route("index") }}">Home</a>
+        <li class="tw:list-none">
+          <a href="{{ route("index") }}" class="tw:no-underline text-decoration-none">Home</a>
         </li>
-
-        <li>
-          <a href="{{ route("AboutUs") }}">About</a>
+        <li class="tw:list-none">
+          <a href="#section3" class="tw:no-underline text-decoration-none">About Us</a>
         </li>
-
-        <li>
-          <a href="#">Services</a>
+        <li class="tw:list-none">
+          <a href="#how-it-works-parent" class="tw:no-underline text-decoration-none">How it Works</a>
         </li>
-
-        <li>
-          <a href="{{ route("BlogsPage") }}">Blogs</a>
+        <li class="tw:list-none">
+          <a href="#how-it-works-parent" class="tw:no-underline text-decoration-none">Loan Application</a>
         </li>
-
-        <li>
-          <a href="{{ route("ContactPage") }}">Contacts</a>
+        <li class="tw:list-none">
+          <a href="#products_services" class="tw:no-underline text-decoration-none">Products & Services</a>
         </li>
       </ul>
     </div>

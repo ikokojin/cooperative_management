@@ -1394,17 +1394,17 @@ div.card-header {
 }
 
 .terms-modal-body::-webkit-scrollbar-track {
-    background: var(--lavender-tint);
-    border-radius: 8px;
+    /* background: var(--teal); */
+    border-radius: 0;
 }
 
 .terms-modal-body::-webkit-scrollbar-thumb {
-    background: var(--muted);
-    border-radius: 8px;
+    background: var(--teal);
+    border-radius: 3px;
 }
 
 .terms-modal-body::-webkit-scrollbar-thumb:hover {
-    background: var(--blue-light);
+    background: var(--teal);
 }
 
 .terms-section {

@@ -555,6 +555,7 @@ class UsersHandle extends Controller
                 $penaltyPreview = $alreadyPenalizedForThis ? 0 : round($monthlyDue * 0.02, 2);
 
                 return [
+                    'loan_id' => $loan->id,
                     'sort_at' => $dueDateCarbon,
                     'icon' => 'coral',
                     'icon_fa' => 'fa-triangle-exclamation',
@@ -785,6 +786,7 @@ class UsersHandle extends Controller
             $displayType = $typeMapDues[$loan->lending_type] ?? $loan->lending_type;
 
             $upcomingDues->push([
+                'loan_id' => $loan->id,
                 'sort_at' => $dueDateCarbon,
                 'icon' => 'gold',
                 'icon_fa' => 'fa-calendar-day',
@@ -878,6 +880,9 @@ class UsersHandle extends Controller
         $seminarsCompletedCount = $seminarsSummary->count();
         $seminarsTotalCount = count($seminarTypeLabels);
 
+        // ★ NEW: gate access to Financial / LoanStatus until all 3 seminars are done
+        $seminarsUnlocked = $seminarsCompletedCount === $seminarsTotalCount;
+
         return view('members_components.member_portal', [
             'username' => $username,
             'email' => $email,
@@ -956,6 +961,7 @@ class UsersHandle extends Controller
             'remainingUnscheduledSeminars' => $remainingUnscheduledSeminars,
             'seminarCompletedFlags' => $seminarCompletedFlags,
             'seminarTypeLabels' => $seminarTypeLabels,
+            'seminarsUnlocked' => $seminarsUnlocked
         ]);
     }
 
@@ -1687,17 +1693,6 @@ class UsersHandle extends Controller
     /**
      * Member's own report/ticket history + status.
      */
-    public function MyReports()
-    {
-        $username = Auth::check() ? Auth::user()->username : null;
-        $email = Auth::check() ? Auth::user()->email : null;
-
-        $reports = \App\Models\SupportTicket_tbl::where('user_id', Auth::id())
-            ->orderByDesc('created_at')
-            ->get();
-
-        return view('members_components.my_reports', compact('username', 'email', 'reports'));
-    }
 
     /**
      * Single source of truth for a loan's display status.
@@ -2582,10 +2577,25 @@ class UsersHandle extends Controller
         $membergovernIds = Membergovern_ids_tbl::where('user_id', $userId)->first();
         $family = Family_tbl::where('user_id', $userId)->first();
 
+        if ($request->_form === 'vehicle') {
+            $request->validate([
+                'vehicle_type' => 'required|string|max:50',
+                'plate_no' => 'required|string|max:50',
+            ]);
+
+            Membervehi_tbl::create([
+                'user_id' => $userId,
+                'vehicle_type' => $request->vehicle_type,
+                'plate_no' => trim($request->plate_no),
+                'quantity' => 1,
+            ]);
+        }
+
         if ($request->_form === 'personal') {
             $request->validate([
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
+                'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // ← add this
             ]);
 
             $user->first_name = $request->first_name;
@@ -2614,6 +2624,11 @@ class UsersHandle extends Controller
                 }
             }
 
+            // ← add this block
+            if ($request->hasFile('profile_picture')) {
+                $updateData['profile_picture'] = $request->file('profile_picture')->store('profile_pictures', 'public');
+            }
+
             Otherinfo_tbl::updateOrCreate(['user_id' => $userId], $updateData);
         }
 
@@ -2622,10 +2637,12 @@ class UsersHandle extends Controller
                 'monthly_income' => 'nullable|numeric|min:0',
             ]);
 
-            Otherinfo_tbl::updateOrCreate(
-                ['user_id' => $userId],
-                ['monthly_income' => $request->monthly_income]
-            );
+            if ($request->filled('monthly_income')) {
+                Otherinfo_tbl::updateOrCreate(
+                    ['user_id' => $userId],
+                    ['monthly_income' => $request->monthly_income]
+                );
+            }
         }
 
         if ($request->_form === 'documents') {
@@ -2648,8 +2665,10 @@ class UsersHandle extends Controller
         $familyData = [
             'spouse_name' => $request->spouse_name,
             'spouse_date_birth' => $request->spouse_date_birth,
+            'spouse_place_birth' => $request->spouse_place_birth,
             'number_son' => $request->number_son,
             'number_daughter' => $request->number_daughter,
+            'other_spec' => $request->other_spec,
         ];
 
         if (!empty(array_filter($familyData))) {
@@ -2752,6 +2771,29 @@ class UsersHandle extends Controller
     {
         $notifications = collect();
         $today = Carbon::today();
+
+        // ── 0) Stored notifications (Notifications_tbl) — e.g. admin replies to
+// support reports, resignation decisions, disbursements, etc. These are
+// the only notifications actually written to the database; everything
+// else in this method is computed live. Only unread + recent (30 days)
+// ones are surfaced here so the bell doesn't grow unbounded.
+        $storedNotifications = \App\Models\Notifications_tbl::where('user_id', $userId)
+            ->where('is_read', false)
+            ->where('created_at', '>=', $today->copy()->subDays(30))
+            ->orderByDesc('created_at')
+            ->get();
+
+        foreach ($storedNotifications as $n) {
+            $notifications->push([
+                'db_id' => $n->id, // real table id, so "mark read" can update the row itself
+                'icon' => 'fa-comment-dots',
+                'color' => $n->is_important ? 'red' : 'mint',
+                'title' => $n->title,
+                'message' => $n->message,
+                'time' => $n->created_at->diffForHumans(),
+                'sort_at' => $n->created_at,
+            ]);
+        }
 
         // ── 1) Loan due dates ──────────────────────────────────────────
         $typeMap = [
@@ -3062,7 +3104,7 @@ class UsersHandle extends Controller
         return $notifications
             ->unique(fn($n) => $n['title'] . '|' . $n['message'])
             ->map(function ($n) {
-                $n['id'] = md5($n['title'] . '|' . $n['message']);
+                $n['id'] = $n['db_id'] ?? md5($n['title'] . '|' . $n['message']);
                 return $n;
             })
             ->reject(fn($n) => isset($readIds[$n['id']]))
@@ -3076,6 +3118,13 @@ class UsersHandle extends Controller
     {
         $request->validate(['id' => 'required|string|max:64']);
 
+        // If this id belongs to a real stored notification, mark it read in the DB.
+        \App\Models\Notifications_tbl::where('user_id', Auth::id())
+            ->where('id', $request->id)
+            ->update(['is_read' => true]);
+
+        // Also record it for the computed (non-DB) notifications, which use a
+        // hashed id and have no row to update.
         $read = session('read_notification_ids', []);
         $read[$request->id] = true;
         session(['read_notification_ids' => $read]);
@@ -3439,6 +3488,7 @@ class UsersHandle extends Controller
                 'number_son' => 'nullable|integer',
                 'number_daughter' => 'nullable|integer',
                 'other_spec' => 'nullable',
+                'contact_no' => 'nullable|string|max:255',
 
                 'sss_id' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
                 'philhealth_id' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
@@ -3525,11 +3575,13 @@ class UsersHandle extends Controller
                 'sex' => $request->sex,
                 'civil_status' => $request->civil_status,
                 'citizenship' => $request->citizenship, // ← add this
-                'skills' => $request->skills_expertise,  // ← note: form uses skills_expertise
+                'skills' =>
+                    $request->skills_expertise,  // ← note: form uses skills_expertise
                 'signature' => $request->signature,
                 'profile_picture' => $profilePicturePath,
                 'approval_status' => 'Pending',
                 'membership_status' => 'Unofficial',
+                'contact_no' => $request->contact_no,
             ]);
 
             // Vehicles
