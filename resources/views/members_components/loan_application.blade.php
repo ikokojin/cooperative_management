@@ -4095,6 +4095,7 @@
             document.getElementById('cb-protect-hint').textContent = '₱' + fees.protectionPerMonth + ' × ' + t + ' months';
             document.getElementById('cb-retention').textContent = fmt(calc.retentionFee);
             document.getElementById('cb-retention-hint').textContent = fees.retentionRate + '% of principal (unpaid rate)';
+            document.getElementById('cb-charges').textContent = fmt(calc.totalInterest + calc.totalFees); // ✅ fix lives here now
             const adjBox = document.getElementById('cb-adjust-box');
             if (adjBox) {
                 if (calc.adjDelta > 0) {
@@ -4119,12 +4120,12 @@
                 const moPayment = Math.round((moPrin + moInt) * 100) / 100; // this month's actual payment (varies, since interest declines)
                 bal = Math.round((bal - moPrin) * 100) / 100;
                 tb.innerHTML += `<tr>
-                        <td><span class="mo-n">${m}</span></td>
-                        <td><strong>${fmt(moPayment)}</strong></td>
-                        <td>${fmt(moPrin)}</td>
-                        <td class="int-n">${fmt(moInt)}</td>
-                        <td class="bal-n">${fmt(Math.max(bal, 0))}</td>
-                    </tr>`;
+                <td><span class="mo-n">${m}</span></td>
+                <td><strong>${fmt(moPayment)}</strong></td>
+                <td>${fmt(moPrin)}</td>
+                <td class="int-n">${fmt(moInt)}</td>
+                <td class="bal-n">${fmt(Math.max(bal, 0))}</td>
+            </tr>`;
             }
 
             mGoStep(2);
@@ -4173,6 +4174,7 @@
 
             mGoStep(3);
         }
+
 
         // ══════════════════════════════════════════════════════════
         //  SUBMIT — inline error for unchecked checkbox
