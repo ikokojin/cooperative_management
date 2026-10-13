@@ -340,7 +340,7 @@
     border: 1px solid var(--border);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
     border-radius: 20px;
-    display: none;
+    /* display: none; */
 }
 
 /* ── Receipt Modal Overlay (Share Capital) ── */
@@ -622,11 +622,407 @@
     .main-sub-parent {
         padding: 2rem 1.5rem;
     }
+
+    .fin-tabs {
+        width: 100%;
+    }
+
+    .fin-tabs a {
+        width: 100%;
+    }
 }
 
 @media only screen and (max-width: 500px) {
     .container-fluid #section1 .main-card-box {
         display: grid;
         grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — Transaction History (Savings) + Contribution
+   History (Share Capital): tabs, search/filters, tables
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Header: title + CSV/PDF buttons wrap instead of overflowing ── */
+.container-fluid .card-box-title {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* ── Savings type tabs: one row that scrolls sideways ── */
+.container-fluid .sm-tab-group {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.container-fluid .sm-tab-group::-webkit-scrollbar {
+    display: none;
+}
+
+.container-fluid .sm-tab-group .sm-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* ── Savings search + filters ── */
+.container-fluid .sm-tx-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.container-fluid .sm-tx-toolbar .sm-search-box {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.container-fluid .sm-tx-toolbar .sm-search-box input {
+    width: 100%;
+    min-width: 0;
+}
+
+/* ── Share Capital search + filters ── */
+.container-fluid .contribution-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.container-fluid .contribution-search {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.container-fluid .sc-search-box input {
+    width: 100%;
+    min-width: 0;
+}
+
+.container-fluid .sc-filter-bar,
+.container-fluid .sc-filter-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Long reference numbers break instead of stretching the table */
+.container-fluid .tx-ref,
+.container-fluid .sc-ref-text {
+    word-break: break-all;
+}
+
+/* ═══════════════ PHONES / SMALL TABLETS ═══════════════ */
+@media only screen and (max-width: 768px) {
+
+    /* ── Savings toolbar: search full width, date + status side by side ── */
+    .container-fluid .sm-tx-toolbar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .container-fluid .sm-tx-toolbar .sm-search-box {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .container-fluid .sm-tx-toolbar .sm-filter-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .container-fluid .sm-tx-toolbar .sm-filter-clear {
+        grid-column: 1 / -1;
+        text-align: center;
+    }
+
+    /* ── Share Capital toolbar ── */
+    .container-fluid .contribution-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .container-fluid .contribution-search,
+    .container-fluid .sc-search-box {
+        width: 100%;
+    }
+
+    .container-fluid .sc-filter-bar {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .container-fluid .sc-filter-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .container-fluid .sc-filter-group,
+    .container-fluid .sc-filter-group input,
+    .container-fluid .sc-filter-group select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .container-fluid #sc-filter-clear {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    /* ── Both tables → stacked cards ── */
+    .container-fluid .card-box-savings .table,
+    .container-fluid .contribution-parent .parent-table .table {
+        min-width: 0 !important;
+        width: 100%;
+        table-layout: auto;
+    }
+
+    .container-fluid .card-box-savings .table thead,
+    .container-fluid .contribution-parent .parent-table .table thead {
+        display: none;
+    }
+
+    .container-fluid .card-box-savings .table tbody,
+    .container-fluid .contribution-parent .parent-table .table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    /* (no !important here so the JS filter's display:none still hides rows) */
+    .container-fluid .card-box-savings .table tbody tr,
+    .container-fluid .contribution-parent .parent-table .table tbody tr {
+        display: block;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border, #e5e7eb);
+    }
+
+    .container-fluid .card-box-savings .table tbody td,
+    .container-fluid .contribution-parent .parent-table .table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 6px 0;
+        border: none;
+        background: transparent;
+        text-align: right !important;
+        font-size: 13px;
+    }
+
+    .container-fluid .card-box-savings .table tbody td>*,
+    .container-fluid .contribution-parent .parent-table .table tbody td>* {
+        max-width: 65%;
+    }
+
+    /* Column label on the left of each line */
+    .container-fluid .card-box-savings .table tbody td::before,
+    .container-fluid .contribution-parent .parent-table .table tbody td::before {
+        flex-shrink: 0;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: var(--muted, #888);
+        text-align: left;
+    }
+
+    /* Savings columns: Type · Reference No. · Date · Amount · Status */
+    .container-fluid .card-box-savings .table tbody td:nth-child(1)::before {
+        content: "Type";
+    }
+
+    .container-fluid .card-box-savings .table tbody td:nth-child(2)::before {
+        content: "Reference No.";
+    }
+
+    .container-fluid .card-box-savings .table tbody td:nth-child(3)::before {
+        content: "Date";
+    }
+
+    .container-fluid .card-box-savings .table tbody td:nth-child(4)::before {
+        content: "Amount";
+    }
+
+    .container-fluid .card-box-savings .table tbody td:nth-child(5)::before {
+        content: "Status";
+    }
+
+    /* Share Capital columns: Date · Type · Reference No. · Shares · Amount · Status */
+    .container-fluid .contribution-parent .parent-table .table tbody td:nth-child(1)::before {
+        content: "Date";
+    }
+
+    .container-fluid .contribution-parent .parent-table .table tbody td:nth-child(2)::before {
+        content: "Type";
+    }
+
+    .container-fluid .contribution-parent .parent-table .table tbody td:nth-child(3)::before {
+        content: "Reference No.";
+    }
+
+    .container-fluid .contribution-parent .parent-table .table tbody td:nth-child(4)::before {
+        content: "Shares";
+    }
+
+    .container-fluid .contribution-parent .parent-table .table tbody td:nth-child(5)::before {
+        content: "Amount";
+    }
+
+    .container-fluid .contribution-parent .parent-table .table tbody td:nth-child(6)::before {
+        content: "Status";
+    }
+
+    /* Share Capital reference cell has a badge + text — stack them on the right */
+    .container-fluid .contribution-parent .parent-table .table tbody td:nth-child(3) {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .container-fluid .contribution-parent .parent-table .table tbody td:nth-child(3)::before {
+        margin-right: auto;
+    }
+
+    /* Empty / "no results" rows: no label, centered */
+    .container-fluid .card-box-savings .table tbody td[colspan],
+    .container-fluid .contribution-parent .parent-table .table tbody td[colspan] {
+        flex-direction: column;
+        justify-content: center;
+        text-align: center !important;
+    }
+
+    .container-fluid .card-box-savings .table tbody td[colspan]::before,
+    .container-fluid .contribution-parent .parent-table .table tbody td[colspan]::before {
+        content: none;
+    }
+
+    .container-fluid .card-box-savings .table tbody td[colspan]>*,
+    .container-fluid .contribution-parent .parent-table .table tbody td[colspan]>* {
+        max-width: 100%;
+    }
+
+    /* ── Pagination / footers stack and center ── */
+    .container-fluid .sm-pagination-wrap,
+    .container-fluid .sc-table-footer {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .container-fluid .sm-pagination,
+    .container-fluid .sc-pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* ── Fix: search box was taking 240px of HEIGHT in column layout ── */
+    .container-fluid .contribution-search {
+        flex: 0 0 auto;
+    }
+
+    /* ── Fix: keep content clear of the fixed bottom navigation bar ── */
+    .main-sub-parent {
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Last card in each table doesn't need a divider line */
+    .container-fluid .card-box-savings .table tbody tr:last-child,
+    .container-fluid .contribution-parent .parent-table .table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    /* A little breathing room around the "Showing X of Y" footers */
+    .container-fluid .sm-pagination-wrap,
+    .container-fluid .sc-table-footer {
+        padding: 14px 16px 18px;
+    }
+}
+
+/* ═══ Share Capital stat cards — responsive ═══ */
+/* .container-fluid .sc-stat-grid {
+    display: grid;
+    gap: 1rem;
+} */
+
+/* Tablets: never more than 2 per row (covers the 4-card "not eligible" state) */
+@media only screen and (max-width: 768px) {
+    .container-fluid .sc-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+/* Phones: one card per row so text has room */
+@media only screen and (max-width: 480px) {
+    .container-fluid .sc-stat-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .container-fluid .sc-stat-card .sc-stat-sub {
+        max-width: 100%;
+    }
+}
+
+/* ═══ Phones: show page title + description, buttons below ═══ */
+@media only screen and (max-width: 576px) {
+    .container-fluid .main-parent .parent-main {
+        display: flex !important;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .container-fluid .main-parent .parent-main .parent-text {
+        display: block !important;
+        width: 100%;
+        max-width: none;
+    }
+
+    .container-fluid .main-parent .parent-main .parent-text h3 {
+        display: block !important;
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--teal);
+        margin: 0;
+    }
+
+    .container-fluid .main-parent .parent-main .parent-text p {
+        display: block !important;
+        font-size: 13.5px;
+        line-height: 1.5;
+        color: var(--muted);
+        margin: 5px 0 0;
+    }
+
+    /* Buttons share the row evenly (one button → full width) */
+    .container-fluid .main-parent .parent-main .parent-download {
+        display: flex !important;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .container-fluid .main-parent .parent-main .parent-download .share {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .container-fluid .main-parent .parent-main .parent-download .share button {
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .container-fluid .fin-tabs {
+        margin-top: 1.25rem;
     }
 }

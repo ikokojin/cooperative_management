@@ -78,7 +78,8 @@
                 <i data-lucide="graduation-cap" class="w-5 h-5 text-primary-500"></i>
                 Member Seminar Progress
             </h2>
-            <p class="text-sm text-gray-500">Click a member to view the seminars they have attended and not attended yet.</p>
+            <p class="text-sm text-gray-500">Click a member to view the seminars they have attended and not attended yet.
+            </p>
         </div>
 
         <form method="GET" action="{{ route('seminars.index') }}"
@@ -91,7 +92,8 @@
             <select name="status" class="input sm:w-52">
                 <option value="all" {{ ($statusFilter ?? 'all') === 'all' ? 'selected' : '' }}>All</option>
                 <option value="completed" {{ ($statusFilter ?? 'all') === 'completed' ? 'selected' : '' }}>Completed</option>
-                <option value="incomplete" {{ ($statusFilter ?? 'all') === 'incomplete' ? 'selected' : '' }}>Incomplete</option>
+                <option value="incomplete" {{ ($statusFilter ?? 'all') === 'incomplete' ? 'selected' : '' }}>Incomplete
+                </option>
             </select>
             <button type="submit" class="btn btn-primary">Filter</button>
         </form>
@@ -218,7 +220,8 @@
                         </div>
                         <div>
                             <h2 class="text-xl font-bold" style="color: #fff; margin: 0;">Schedule Seminar</h2>
-                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a new seminar session</p>
+                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Create a new
+                                seminar session</p>
                         </div>
                     </div>
                     <button data-action="closeModal" data-arg='["scheduleSeminarModal"]'
@@ -375,7 +378,8 @@
                         <div>
                             <h2 class="text-xl font-bold" style="color: #fff; margin: 0;">Manage Attendance</h2>
                             <p id="attendanceModalSubtitle"
-                                style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Mark attendees for this seminar</p>
+                                style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Mark attendees for
+                                this seminar</p>
                         </div>
                     </div>
                     <button data-action="closeModal" data-arg='["attendanceModal"]'
@@ -411,7 +415,8 @@
                         </div>
                         <div>
                             <h2 class="text-xl font-bold" style="color: #fff; margin: 0;">Member Seminars</h2>
-                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Attended and not-yet-attended seminars</p>
+                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Attended and
+                                not-yet-attended seminars</p>
                         </div>
                     </div>
                     <button data-action="closeModal" data-arg='["memberSeminarModal"]'
@@ -447,7 +452,8 @@
                         </div>
                         <div>
                             <h2 class="text-xl font-bold" style="color: #fff; margin: 0;">Create Seminar Type</h2>
-                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Add an additional seminar type beyond the core three</p>
+                            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Add an additional
+                                seminar type beyond the core three</p>
                         </div>
                     </div>
                     <button data-action="closeModal" data-arg='["createTypeModal"]'
@@ -526,30 +532,35 @@
 
             let html = '';
             html += `
-                <div class="flex items-center gap-3 mb-5">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-                        <span class="text-white font-bold text-base">${(user.first_name?.[0] || '') + (user.last_name?.[0] || '')}</span>
-                    </div>
-                    <div>
-                        <span class="text-base font-semibold text-gray-900">${user.first_name} ${user.last_name || ''}</span>
-                        <p class="text-xs text-gray-400">${user.email}</p>
-                    </div>
-                </div>`;
-
-            if (user.scheduled_seminar) {
-                html += `
-                    <div class="mb-5 p-3 rounded-lg bg-blue-50 border border-blue-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Scheduled Seminar</span>
-                            <span class="text-xs font-medium text-blue-600">${user.scheduled_seminar}</span>
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                            <span class="text-white font-bold text-base">${(user.first_name?.[0] || '') + (user.last_name?.[0] || '')}</span>
                         </div>
-                        ${user.scheduled_passcode ? `
-                        <div class="mt-2 flex items-center justify-between bg-white rounded-lg border border-blue-200 px-3 py-2">
-                            <span class="text-xs font-medium text-blue-700">Member Passcode</span>
-                            <code class="text-sm font-mono font-bold text-blue-900 tracking-wider">${user.scheduled_passcode}</code>
-                        </div>` : ''}
-                        <p class="text-xs text-blue-600 mt-2">Share this code with ${user.first_name} so they can mark the seminar complete.</p>
+                        <div>
+                            <span class="text-base font-semibold text-gray-900">${user.first_name} ${user.last_name || ''}</span>
+                            <p class="text-xs text-gray-400">${user.email}</p>
+                        </div>
                     </div>`;
+
+            const scheduled = user.scheduled_seminars || [];
+            if (scheduled.length) {
+                html += `<div class="mb-5 space-y-3">`;
+                scheduled.forEach(s => {
+                    html += `
+                <div class="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Scheduled Seminar</span>
+                        <span class="text-xs font-medium text-blue-600">${s.label}</span>
+                    </div>
+                    ${s.passcode ? `
+                    <div class="mt-2 flex items-center justify-between bg-white rounded-lg border border-blue-200 px-3 py-2">
+                        <span class="text-xs font-medium text-blue-700">Member Passcode</span>
+                        <code class="text-sm font-mono font-bold text-blue-900 tracking-wider">${s.passcode}</code>
+                    </div>` : ''}
+                    <p class="text-xs text-blue-600 mt-2">Share this code with ${user.first_name} so they can mark ${s.label} complete.</p>
+                </div>`;
+                });
+                html += `</div>`;
             }
 
             types.forEach(t => {
@@ -562,12 +573,12 @@
                 const label = attended ? 'Attended' : 'Not attended';
 
                 html += `
-                    <div class="flex items-center justify-between p-3 border rounded-lg ${boxClass} mb-2">
-                        <span class="text-sm font-medium text-gray-800">${t.label}</span>
-                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold ${iconClass}">
-                            <i data-lucide="${icon}" class="w-4 h-4"></i>${label}
-                        </span>
-                    </div>`;
+                        <div class="flex items-center justify-between p-3 border rounded-lg ${boxClass} mb-2">
+                            <span class="text-sm font-medium text-gray-800">${t.label}</span>
+                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold ${iconClass}">
+                                <i data-lucide="${icon}" class="w-4 h-4"></i>${label}
+                            </span>
+                        </div>`;
             });
 
             document.getElementById('memberSeminarBody').innerHTML = html;
@@ -612,31 +623,31 @@
                         const statusLabel = a.status === 'attended' ? 'Attended' : a.status === 'absent' ? 'Absent' : 'Pending';
 
                         html += `
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-                                        <span class="text-white font-bold text-sm">${initials}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-sm font-medium text-gray-900">${name}</span>
-                                        <div class="flex items-center gap-1 mt-0.5">
-                                            <span class="w-2 h-2 rounded-full ${statusColor}"></span>
-                                            <span class="text-xs text-gray-500">${statusLabel}</span>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                                            <span class="text-white font-bold text-sm">${initials}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-900">${name}</span>
+                                            <div class="flex items-center gap-1 mt-0.5">
+                                                <span class="w-2 h-2 rounded-full ${statusColor}"></span>
+                                                <span class="text-xs text-gray-500">${statusLabel}</span>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="flex items-center gap-2">
+                                        <button data-action="markAttendance" data-arg=\'[${seminar.id}, ${a.user_id}, "attended"]\' class="btn btn-success btn-xs px-2.5 py-1.5 ${a.status === 'attended' ? 'opacity-50 cursor-not-allowed' : ''}" ${a.status === 'attended' ? 'disabled' : ''}>
+                                            <i data-lucide="check" class="w-3 h-3"></i>
+                                            Attended
+                                        </button>
+                                        <button data-action="markAttendance" data-arg=\'[${seminar.id}, ${a.user_id}, "absent"]\' class="btn btn-danger btn-xs px-2.5 py-1.5 ${a.status === 'absent' ? 'opacity-50 cursor-not-allowed' : ''}" ${a.status === 'absent' ? 'disabled' : ''}>
+                                            <i data-lucide="x" class="w-3 h-3"></i>
+                                            Absent
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <button data-action="markAttendance" data-arg=\'[${seminar.id}, ${a.user_id}, "attended"]\' class="btn btn-success btn-xs px-2.5 py-1.5 ${a.status === 'attended' ? 'opacity-50 cursor-not-allowed' : ''}" ${a.status === 'attended' ? 'disabled' : ''}>
-                                        <i data-lucide="check" class="w-3 h-3"></i>
-                                        Attended
-                                    </button>
-                                    <button data-action="markAttendance" data-arg=\'[${seminar.id}, ${a.user_id}, "absent"]\' class="btn btn-danger btn-xs px-2.5 py-1.5 ${a.status === 'absent' ? 'opacity-50 cursor-not-allowed' : ''}" ${a.status === 'absent' ? 'disabled' : ''}>
-                                        <i data-lucide="x" class="w-3 h-3"></i>
-                                        Absent
-                                    </button>
-                                </div>
-                            </div>
-                        `;
+                            `;
                     });
                     document.getElementById('attendanceList').innerHTML = html;
                     lucide.createIcons();
@@ -671,7 +682,7 @@
             @if($errors->any())
                 openModal('scheduleSeminarModal');
             @endif
-        });
+            });
 
         /* ═══════════════════════════════════════════════════════════
            ATTENDEE SEARCH WITH MEMBER SUGGESTIONS

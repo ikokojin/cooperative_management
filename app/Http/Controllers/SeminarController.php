@@ -99,6 +99,21 @@ class SeminarController extends Controller
             ->get(['seminar_attendees_tbls.user_id', 'seminars_tbls.seminar_type', 'seminars_tbls.schedule_datetime'])
             ->groupBy('user_id');
 
+        $coreTypes = self::CORE_TYPES;
+        $validPasscodeTypes = collect($passcodes)
+            ->filter(fn($pc) => $pc && (is_null($pc->expires_at) || $pc->expires_at->gte(now())))
+            ->keys()
+            ->all();
+        $typeLabels = SeminarTypes_tbl::pluck('label', 'slug')->toArray();
+
+        $scheduledRowsByUser = DB::table('seminar_attendees_tbls')
+            ->join('seminars_tbls', 'seminars_tbls.id', '=', 'seminar_attendees_tbls.seminar_id')
+            ->where('seminar_attendees_tbls.status', 'pending')
+            ->where('seminars_tbls.schedule_datetime', '>=', now())
+            ->orderBy('seminars_tbls.schedule_datetime', 'asc')
+            ->get(['seminar_attendees_tbls.user_id', 'seminars_tbls.seminar_type', 'seminars_tbls.schedule_datetime'])
+            ->groupBy('user_id');
+
         $users->getCollection()->transform(function ($user) use ($attendedMap, $scheduledRowsByUser, $passcodes, $validPasscodeTypes, $typeLabels, $coreTypes) {
             $completion = (object) [
                 'pmes_completed' => (bool) $user->pmes_completed,
@@ -109,14 +124,18 @@ class SeminarController extends Controller
             $user->completion = $completion;
             $user->attended_types = $attendedMap[$user->id] ?? [];
 
-            $user->scheduled_seminar = null;
-            $user->scheduled_passcode = null;
-
+            $scheduled = [];
             $rows = $scheduledRowsByUser[$user->id] ?? collect();
+
             foreach ($rows as $row) {
                 $type = $row->seminar_type;
 
-                // Skip if the member has already completed this core seminar
+                // Already scheduled this type (keep the earliest one)
+                if (isset($scheduled[$type])) {
+                    continue;
+                }
+
+                // Skip if the member already completed this core seminar
                 if (in_array($type, $coreTypes) && ($completion->{$type . '_completed'} ?? false)) {
                     continue;
                 }
@@ -126,10 +145,20 @@ class SeminarController extends Controller
                     continue;
                 }
 
-                $user->scheduled_seminar = $typeLabels[$type] ?? ucwords(str_replace('_', ' ', $type));
-                $user->scheduled_passcode = $passcodes[$type]->passcode ?? null;
-                break;
+                $scheduled[$type] = [
+                    'slug' => $type,
+                    'label' => $typeLabels[$type] ?? ucwords(str_replace('_', ' ', $type)),
+                    'passcode' => $passcodes[$type]->passcode ?? null,
+                    'schedule_datetime' => $row->schedule_datetime,
+                ];
             }
+
+            // New: every scheduled seminar, each with its own passcode
+            $user->scheduled_seminars = array_values($scheduled);
+
+            // Kept for backward compatibility (first one only)
+            $user->scheduled_seminar = $user->scheduled_seminars[0]['label'] ?? null;
+            $user->scheduled_passcode = $user->scheduled_seminars[0]['passcode'] ?? null;
 
             return $user;
         });

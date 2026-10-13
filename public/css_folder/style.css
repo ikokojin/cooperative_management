@@ -290,9 +290,7 @@ line-height: 25px;
 .main-text {
     position: relative;
     flex: 1;
-    /* min-height: 220px; */
-    min-height: 450px;
-    /* prevents layout jump between slides */
+    display: grid;
 }
 
 .main-text .slide h2 {
@@ -396,10 +394,7 @@ line-height: 25px;
 }
 
 .slide {
-    position: absolute;
-    /* top: -25%; */
-    top: 0;
-    left: 0;
+    grid-area: 1 / 1;
     width: 100%;
     opacity: 0;
     visibility: hidden;
@@ -2099,7 +2094,7 @@ hr {
     /* width: 100%; */
     /* width: 538px; */
     width: 545px;
-    height: 540px;
+    height: 545px;
     /* height: 100%; */
     border-radius: 10px;
 }
@@ -2755,6 +2750,33 @@ footer {
     background-color: var(--green2);
 }
 
+.container-fluid{
+    position: relative;
+}
+
+.mv-back-arrow-up{
+    width: 50px;
+    height: 50px;
+    background-color: var(--teal);
+    z-index: 999;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+}
+
+.mv-back-arrow-up{
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.mv-back-arrow-up .fa{
+    font-size: 20px;
+}
+
 @media only screen and (min-width: 1301px) {
     .carousel {
         display: flex;
@@ -2890,11 +2912,9 @@ footer {
     }
 
     .main-text {
-        /* min-height: 420px; */
         width: 100%;
         text-align: center;
-        display: block;
-        /* was flex; not needed now that .slide handles centering */
+        display: grid;
     }
 
     .main-text .slide {
@@ -2933,7 +2953,7 @@ footer {
     }
 
     #section3 .section3-parent {
-        flex-direction: column;
+        flex-direction: column-reverse;
         gap: 80px;
     }
 
@@ -2972,6 +2992,10 @@ footer {
         display: flex;
         flex-direction: column;
     }
+
+    .how-it-works-parent .how-it-works .how-it-works-body .how-it-line {
+        display: none;
+    }
 }
 
 @media only screen and (max-width: 1130px) {
@@ -3001,6 +3025,10 @@ footer {
         text-align: center;
     }
 
+    #products_services .card p {
+        text-align: start;
+    }
+
     #products_services .card-parent {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -3026,10 +3054,39 @@ footer {
 }
 
 @media only screen and (max-width: 700px) {
+    .main-text .slide h2 {
+        font-size: 55px;
+    }
+
+    .carousel-track {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 0;
+    }
+
     #section6 .card-parent-box {
         display: grid;
         grid-template-columns: repeat(1, 1fr);
     }
+
+    .main-img {
+        height: auto;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+    }
+
+    .main-img .slide-img {
+        object-fit: contain;
+        transform: none;
+        /* transform: scale(1.12); */
+    }
+
+    .carousel {
+        padding-left: 0.5rem;
+        /* was 1.5rem / 2rem */
+        padding-right: 0.5rem;
+    }
+
 }
 
 @media only screen and (max-width: 665px) {
@@ -3041,13 +3098,91 @@ footer {
 }
 
 @media only screen and (max-width: 520px) {
-    #section5 .become-buttons {
-        display: flex;
-        flex-direction: column;
-    }
 
     .carousel-track {
         gap: 0.5rem;
+    }
+}
+
+@media only screen and (max-width: 560px) {
+    .main-text .slide h2 {
+        font-size: 50px;
+    }
+
+}
+
+@media only screen and (max-width: 535px){
+    #section5 .become-buttons{
+        display: flex;
+        flex-direction: column-reverse;
+    }
+
+    #section5 .become-buttons a{
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media only screen and (max-width: 430px) {
+    #section3 {
+        padding: 5rem 2rem 5rem 2rem;
+    }
+
+    .main-text .slide h2 {
+        font-size: 50px;
+    }
+
+    #section3 .section-text h2 {
+        text-align: center;
+        font-size: 40px;
+    }
+
+    #section3 .section3-parent {
+        flex-direction: column-reverse;
+        gap: 40px;
+    }
+
+    .how-it-works-parent {
+        padding: 5rem 2rem;
+        background-color: var(--lavender-tint);
+    }
+
+    .how-it-works-parent .how-it-works h2 {
+        font-size: 40px;
+    }
+
+    #products_services {
+        padding: 5rem 2rem;
+    }
+
+    #section6 {
+        padding: 5rem 2rem;
+    }
+
+    #section6 h2 {
+        font-size: 40px;
+    }
+
+    .officers-section {
+        padding: 5rem 2rem;
+    }
+
+    #section5 h2 {
+        font-size: 40px;
+    }
+}
+
+@media only screen and (max-width: 400px) {
+    .main-text .slide .button-group {
+        flex-direction: column;
+    }
+
+    .main-text .slide .button-group a{
+        width: 100%;
+    }
+
+    .main-text .slide p{
+        margin: 0 0 2rem;
     }
 }
 

@@ -27,10 +27,12 @@
 
 <body>
     <div class="container-fluid p-0 m-0">
+        @include("components.offcanvas")
         @include("components.sidebar")
 
         <div class="rightbar">
             @include("components.navbar2")
+            @include("components.footer")
 
             <div class="main-parent">
                 <div class="main-header">

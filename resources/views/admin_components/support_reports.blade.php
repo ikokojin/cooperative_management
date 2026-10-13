@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Member Reports</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Member Appeal</h1>
         <p class="text-gray-500 mt-1">Problems and appeals submitted by members through "Report a Problem".</p>
     </div>
 

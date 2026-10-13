@@ -593,23 +593,9 @@
                     @endif
                     @if($hasFullAccess || in_array('reports', $perms))
                         <a href="{{ route('reports') }}"
-                            class="sidebar-link justify-start {{ request()->routeIs('reports') ? 'active' : '' }}">
+                            class="sidebar-link justify-start {{ request()->routeIs('reports', 'reports.*') ? 'active' : '' }}">
                             <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                             <span>Reports</span>
-                        </a>
-                    @endif
-                    @if($hasFullAccess || in_array('support-reports', $perms ?? []) || $user?->isGeneralManager() || $user?->isMainAdmin())
-                        <a href="{{ route('admin.support-reports.index') }}"
-                            class="sidebar-link justify-start {{ request()->routeIs('admin.support-reports.*') ? 'active' : '' }}">
-                            <i data-lucide="life-buoy" class="w-5 h-5"></i>
-                            <span>Member Reports</span>
-                        </a>
-                    @endif
-                    @if($hasFullAccess || in_array('faqs', $perms ?? []) || $user?->isGeneralManager() || $user?->isMainAdmin())
-                        <a href="{{ route('admin.faqs.index') }}"
-                            class="sidebar-link justify-start {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
-                            <i data-lucide="help-circle" class="w-5 h-5"></i>
-                            <span>FAQs</span>
                         </a>
                     @endif
                     @if($hasFullAccess || in_array('seminars', $perms))
@@ -638,6 +624,13 @@
                             class="sidebar-link justify-start {{ request()->routeIs('allied-workers.*') ? 'active' : '' }}">
                             <i data-lucide="handshake" class="w-5 h-5"></i>
                             <span>Allied Workers</span>
+                        </a>
+                    @endif
+                    @if($hasFullAccess || in_array('support-reports', $perms ?? []) || $user?->isGeneralManager() || $user?->isMainAdmin())
+                        <a href="{{ route('admin.support-reports.index') }}"
+                            class="sidebar-link justify-start {{ request()->routeIs('admin.support-reports.*') ? 'active' : '' }}">
+                            <i data-lucide="life-buoy" class="w-5 h-5"></i>
+                            <span>Member Appeal</span>
                         </a>
                     @endif
                     @if($hasFullAccess || in_array('settings', $perms))

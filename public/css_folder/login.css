@@ -36,21 +36,17 @@
 }
 
 div.container-fluid {
-    /* background-color: var(--teal); */
-    /* background-color: var(--teal-dark); */
     background-color: #ffffff;
-    min-height: 100vh;
-    height: 100vh;
+    position: fixed;
+    inset: 0;
+    /* pins it to the real visible screen */
+    height: 100%;
+    /* replaces 100vh and min-height: 100vh */
     display: flex;
-    /* justify-content: space-evenly; */
-    /* align-items: stretch; */
     gap: 0;
     padding: 0;
     z-index: -1;
-    position: fixed;
     overflow: hidden;
-    /* inset: 0;
-    overflow: hidden; */
 }
 
 /* ── LAYERED GRADIENT BG ── */
@@ -554,8 +550,8 @@ div.container-fluid {
     /* overflow-y: hidden; */
     overflow-y: auto;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    /* flex-direction: column; */
+    justify-content: center;
     align-items: center;
     padding: 2rem;
     position: relative;
@@ -1424,14 +1420,33 @@ div.container-fluid {
 
 @media only screen and (max-width: 500px) {
     .container-fluid .form-parent .nav-form {
-        padding: 30px 30px 0;
+        padding: 20px 20px 0;
+    }
+
+    .container-fluid .form-parent .nav-form .nav-tag a {
+        margin: 0 0 20px;
     }
 
     .container-fluid .form-parent form {
-        padding: 0 30px 30px;
+        padding: 0 20px 20px;
     }
 
     .form-change label {
         width: 200px;
+    }
+
+    .container-fluid h1 {
+        text-align: center;
+    }
+
+    .container-fluid p {
+        text-align: center;
+    }
+
+    .container-fluid .form-box-parent {
+        padding: 1.5rem 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 }

@@ -133,7 +133,7 @@
             }
             nextBtn.disabled = true;
             nextBtn.classList.add('is-loading');
-            nextBtn.innerHTML = `<span class="btn-spinner"></span><span>${text || 'Sending code…'}</span>`;
+            nextBtn.innerHTML = `<span class="btn-spinner"></span><span class="btn-loading-text">${text || 'Sending code…'}</span>`;
         } else {
             nextBtn.disabled = false;
             nextBtn.classList.remove('is-loading');

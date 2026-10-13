@@ -632,7 +632,12 @@ class UserController extends Controller
     public function UserDirection()
     {
         $officers = \App\Models\officer_tbl::with('user')->orderBy('sort_order')->get();
-        return view('landingpage_components.index', compact('officers'));
+
+        $loansApprovedThisYear = lending_program_tbl::whereIn('status', ['Approved', 'Completed'])
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        return view('landingpage_components.index', compact('officers', 'loansApprovedThisYear'));
     }
 
     public function LoginPage()
@@ -643,7 +648,12 @@ class UserController extends Controller
     public function index()
     {
         $officers = \App\Models\officer_tbl::with('user')->orderBy('sort_order')->get();
-        return view("landingpage_components.index", compact('officers'));
+
+        $loansApprovedThisYear = lending_program_tbl::whereIn('status', ['Approved', 'Completed'])
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        return view("landingpage_components.index", compact('officers', 'loansApprovedThisYear'));
     }
 
     public function RegisterPage()
@@ -2916,6 +2926,7 @@ class UserController extends Controller
         }
 
         $adminUser = Auth::user();
+        $adminOther = DB::table('otherinfo_tbls')->where('user_id', $adminUser->id)->first();
         $companySettings = [
             'company_name' => system_settings_tbl::getValue('company_name', 'CoopAdmin Savings and Loan Cooperative'),
             'registration_number' => system_settings_tbl::getValue('registration_number', 'RN-2024-001234'),
@@ -2976,7 +2987,11 @@ class UserController extends Controller
                 ->values();
         }
 
-        return view('admin_components.settings', compact('adminUser', 'companySettings', 'adminList', 'roles', 'roleCounts', 'backups') + $financeData);
+        $faqs = \App\Models\Faq_tbl::orderBy('category')->orderBy('sort_order')->get();
+        $grouped = $faqs->groupBy('category');
+        $categories = $faqs->pluck('category')->unique()->values();
+
+        return view('admin_components.settings', compact('adminUser', 'companySettings', 'adminList', 'roles', 'roleCounts', 'backups', 'grouped', 'categories','adminOther') + $financeData);
 
         // return view('admin_components.settings', compact('adminUser', 'companySettings', 'adminList', 'roles', 'roleCounts') + $financeData);
     }
@@ -3304,6 +3319,49 @@ class UserController extends Controller
             'settings',
             null
         );
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users_tbls,email,' . $user->id,
+            'contact_no' => 'nullable|string|max:50',
+            'present_address' => 'nullable|string|max:500',
+        ]);
+
+        DB::transaction(function () use ($user, $validated) {
+            $user->update([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+            ]);
+
+            $info = [
+                'contact_no' => $validated['contact_no'] ?? null,
+                'present_address' => $validated['present_address'] ?? null,
+                'updated_at' => now(),
+            ];
+
+            if (DB::table('otherinfo_tbls')->where('user_id', $user->id)->exists()) {
+                DB::table('otherinfo_tbls')->where('user_id', $user->id)->update($info);
+            } else {
+                DB::table('otherinfo_tbls')->insert($info + [
+                    'user_id' => $user->id,
+                    'membership_category' => 'Admin',
+                    'signature' => null,
+                    'approval_status' => 'Approved',
+                    'created_at' => now(),
+                ]);
+            }
+        });
+
+        AuditLog::log('Updated Profile', 'Updated own profile details', 'user', $user->id);
+
+        return response()->json(['success' => true, 'message' => 'Profile updated successfully.']);
     }
 
     public function changePassword(Request $request)

@@ -105,3 +105,79 @@
         transform: translateX(60px);
     }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — FAQs page
+   ═══════════════════════════════════════════════════════════ */
+
+/* Long questions/answers wrap cleanly */
+.container-fluid .main-parent details summary,
+.container-fluid .main-parent details p {
+    overflow-wrap: anywhere;
+}
+
+.container-fluid .main-parent details summary {
+    line-height: 1.45;
+}
+
+/* Sidebar collapses to icons */
+@media only screen and (max-width: 1200px) {
+    .container-fluid .rightbar {
+        width: calc(100% - 80px);
+        margin-left: 80px;
+    }
+}
+
+@media only screen and (max-width: 711px) {
+    .container-fluid .main-parent {
+        padding: 2rem 1.5rem;
+    }
+}
+
+/* Sidebar hidden — page uses the full width + bottom nav */
+@media only screen and (max-width: 703px) {
+    .container-fluid .rightbar {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .container-fluid .main-parent {
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Content box was capped at 760px inline — let it fill the screen */
+    .container-fluid .main-parent main>div {
+        max-width: 100% !important;
+    }
+
+    /* "Didn't find what you're looking for?" box: button full width */
+    .container-fluid .main-parent .btn-report-problem {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    .container-fluid .main-parent {
+        padding: 1.5rem 1.25rem calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .container-fluid .main-parent h2 {
+        font-size: 18px;
+    }
+
+    .container-fluid .main-parent details summary {
+        padding: 12px 14px !important;
+        font-size: 13px !important;
+    }
+
+    .container-fluid .main-parent details p {
+        padding: 0 14px 14px !important;
+    }
+
+    .toast-message {
+        right: 12px;
+        left: 12px;
+        width: auto !important;
+    }
+}

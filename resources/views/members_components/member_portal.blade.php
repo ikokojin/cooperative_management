@@ -88,17 +88,28 @@
         }
 
         /* ─── Skeleton overlay ───────────────────────────────── */
+        /* Lives inside .main-parent, so it follows the real navbar,
+           sidebar (expanded / collapsed / hidden) and mobile bottom nav. */
+        .main-parent.sk-loading {
+            position: relative;
+            overflow: hidden !important;
+        }
+
         #skeleton-overlay {
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: var(--sidebar-width, 250px);
-            background: #fff;
-            z-index: 9998;
-            padding: 20px 32px 32px 32px;
+            position: absolute;
+            inset: 0;
+            padding: inherit;
+            /* same padding as .main-parent at every breakpoint */
+            background: #FBFBFD;
+            /* same bg as .main-parent */
+            z-index: 50;
             overflow: hidden;
             transition: opacity .45s ease;
+        }
+
+        #skeleton-overlay.sk-hide {
+            opacity: 0;
+            pointer-events: none;
         }
 
         @keyframes skshimmer {
@@ -118,124 +129,409 @@
             border-radius: 6px;
         }
 
-        .sk-round {
-            border-radius: 50%;
-        }
-
-        .sk-pill {
-            border-radius: 20px;
-        }
-
-        .sk-card {
-            border-radius: 12px;
-        }
-
-        #skeleton-overlay.sk-hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-
         #page-content {
             transition: opacity .4s ease .1s;
-            display: contents;
         }
 
         #page-content.sk-ready {
             opacity: 1 !important;
+        }
+
+        /* Greeting (mirrors main h2) */
+        .sk-title {
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sk-title .sk {
+            width: 320px;
+            max-width: 80%;
+            height: 22px;
+        }
+
+        /* Summary cards (mirrors .card-parent / .card-box) */
+        .sk-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            padding: 1.5rem 0;
+        }
+
+        .sk-cardbox {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+        }
+
+        .sk-cardbox-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sk-label {
+            width: 45%;
+            height: 14px;
+        }
+
+        .sk-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+        }
+
+        .sk-value {
+            width: 60%;
+            height: 29px;
+            margin-top: 10px;
+        }
+
+        .sk-sub {
+            width: 50%;
+            height: 15px;
+            margin-top: 7px;
+        }
+
+        /* Panels (mirrors .card-box-summary and .parent-panel) */
+        .sk-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .sk-bottom {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .sk-panel {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+            overflow: hidden;
+        }
+
+        .sk-panel-head {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .sk-panel-head.sk-no-border {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .sk-head-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .sk-h {
+            width: 45%;
+            height: 18px;
+        }
+
+        .sk-p {
+            width: 75%;
+            height: 14px;
+        }
+
+        .sk-link {
+            width: 48px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .sk-pills {
+            display: flex;
+            gap: 8px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sk-pills .sk {
+            height: 32px;
+            border-radius: 10px;
+        }
+
+        .sk-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .sk-tabs>div {
+            flex: 1;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sk-tabs .sk {
+            width: 50%;
+            height: 14px;
+        }
+
+        .sk-panel-body {
+            padding: 0 20px 12px;
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .sk-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .sk-row-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            flex-shrink: 0;
+        }
+
+        .sk-row-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .sk-row-info .sk:first-child {
+            width: 60%;
+            height: 13px;
+        }
+
+        .sk-row-info .sk:last-child {
+            width: 40%;
+            height: 11px;
+        }
+
+        .sk-row-amt {
+            width: 70px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Same breakpoints as homepage.css */
+        @media (max-width: 965px) {
+            .sk-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sk-summary {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .sk-bottom {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sk-title {
+                padding: 3rem 1.5rem 0;
+            }
+
+            .sk-cards {
+                padding: 2rem 1.5rem 2.5rem;
+            }
+
+            .sk-summary {
+                padding: 0 1.5rem;
+            }
+
+            .sk-bottom {
+                padding: 0 2rem;
+            }
+        }
+
+        @media (max-width: 460px) {
+            .sk-icon {
+                display: none;
+            }
+        }
+
+        @media (max-width: 425px) {
+            .sk-value {
+                height: 27px;
+                margin-top: 15px;
+            }
+
+            .sk-sub {
+                margin-top: 12px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    {{-- ═══════════════════════════════════════════════
-    SKELETON OVERLAY — only shown right after login
-    ═══════════════════════════════════════════════ --}}
-    @if (session('just_logged_in'))
-        <div id="skeleton-overlay" aria-hidden="true">
+    {{-- Shown only when the screen is narrower than 1200px (see homepage.css) --}}
 
-            {{-- Navbar bar --}}
-            <div class="sk sk-card" style="height:70px; margin-bottom:28px;"></div>
-
-            {{-- Welcome banner --}}
-            <div class="sk sk-card" style="height:150px; margin-bottom:28px;"></div>
-
-            {{-- 3 summary cards --}}
-            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px;">
-                <div class="sk sk-card" style="height:165px;"></div>
-                <div class="sk sk-card" style="height:165px;"></div>
-                <div class="sk sk-card" style="height:165px;"></div>
-            </div>
-
-            {{-- Apply banner --}}
-            <div class="sk sk-card" style="height:114px; margin-bottom:24px;"></div>
-
-            {{-- Loans + right sidebar --}}
-            <div style="display:grid; grid-template-columns:1fr 300px; gap:18px;">
-                <div>
-                    <div style="display:flex; gap:8px; margin-bottom:14px;">
-                        <div class="sk sk-pill" style="width:64px; height:34px;"></div>
-                        <div class="sk sk-pill" style="width:84px; height:34px;"></div>
-                        <div class="sk sk-pill" style="width:74px; height:34px;"></div>
-                        <div class="sk sk-pill" style="width:78px; height:34px;"></div>
-                    </div>
-                    <div class="sk sk-card" style="height:170px; margin-bottom:14px;"></div>
-                    <div class="sk sk-card" style="height:170px;"></div>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:14px;">
-                    <div class="sk sk-card" style="height:148px;"></div>
-                    <div class="sk sk-card" style="height:168px;"></div>
-                    <div class="sk sk-card" style="height:148px;"></div>
-                </div>
-            </div>
-
-        </div>
-    @endif
-
-
-    {{-- Sidebar always visible — outside the fading wrapper --}}
+    {{-- Sidebar, navbar and bottom nav always visible --}}
     <div class="container-fluid p-0 m-0">
         @include("components.offcanvas")
         @include("components.sidebar")
 
-        <div id="page-content" @if(session('just_logged_in')) style="opacity:0;" @endif>
-            <div class="rightbar">
-                @include("components.navbar2")
-                @include("components.footer")
+        <div class="rightbar">
+            @include("components.navbar2")
+            @include("components.footer")
 
-                <div class="main-parent">
+            <div class="main-parent {{ session('just_logged_in') ? 'sk-loading' : '' }}">
+
+                {{-- ═══════════════════════════════════════════════
+                SKELETON OVERLAY — only shown right after login
+                Mirrors the real dashboard layout below
+                ═══════════════════════════════════════════════ --}}
+                @if (session('just_logged_in'))
+                    <div id="skeleton-overlay" aria-hidden="true">
+
+                        {{-- Greeting --}}
+                        <div class="sk-title">
+                            <div class="sk"></div>
+                        </div>
+
+                        {{-- 6 summary cards --}}
+                        <div class="sk-cards">
+                            @for ($i = 0; $i < 6; $i++)
+                                <div class="sk-cardbox">
+                                    <div class="sk-cardbox-head">
+                                        <div class="sk sk-label"></div>
+                                        <div class="sk sk-icon"></div>
+                                    </div>
+                                    <div class="sk sk-value"></div>
+                                    <div class="sk sk-sub"></div>
+                                </div>
+                            @endfor
+                        </div>
+
+                        {{-- Recent Transactions + Community --}}
+                        <div class="sk-summary">
+                            <div class="sk-panel">
+                                <div class="sk-panel-head sk-no-border">
+                                    <div class="sk-head-text">
+                                        <div class="sk sk-h"></div>
+                                        <div class="sk sk-p"></div>
+                                    </div>
+                                    <div class="sk sk-link"></div>
+                                </div>
+                                <div class="sk-pills">
+                                    <div class="sk" style="width:48px;"></div>
+                                    <div class="sk" style="width:72px;"></div>
+                                    <div class="sk" style="width:84px;"></div>
+                                    <div class="sk" style="width:112px;"></div>
+                                </div>
+                                <div class="sk-panel-body">
+                                    @for ($i = 0; $i < 5; $i++)
+                                        <div class="sk-row">
+                                            <div class="sk sk-row-icon"></div>
+                                            <div class="sk-row-info">
+                                                <div class="sk"></div>
+                                                <div class="sk"></div>
+                                            </div>
+                                            <div class="sk sk-row-amt"></div>
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
+
+                            <div class="sk-panel">
+                                <div class="sk-panel-head">
+                                    <div class="sk-head-text">
+                                        <div class="sk sk-h"></div>
+                                        <div class="sk sk-p"></div>
+                                    </div>
+                                </div>
+                                <div class="sk-tabs">
+                                    <div>
+                                        <div class="sk"></div>
+                                    </div>
+                                    <div>
+                                        <div class="sk"></div>
+                                    </div>
+                                </div>
+                                <div class="sk-panel-body">
+                                    @for ($i = 0; $i < 5; $i++)
+                                        <div class="sk-row">
+                                            <div class="sk sk-row-icon"></div>
+                                            <div class="sk-row-info">
+                                                <div class="sk"></div>
+                                                <div class="sk"></div>
+                                            </div>
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Dividends + Patronage Refund --}}
+                        <div class="sk-bottom">
+                            @for ($p = 0; $p < 2; $p++)
+                                <div class="sk-panel">
+                                    <div class="sk-panel-head">
+                                        <div class="sk-head-text">
+                                            <div class="sk sk-h"></div>
+                                            <div class="sk sk-p"></div>
+                                        </div>
+                                    </div>
+                                    <div class="sk-panel-body">
+                                        @for ($i = 0; $i < 4; $i++)
+                                            <div class="sk-row">
+                                                <div class="sk sk-row-icon"></div>
+                                                <div class="sk-row-info">
+                                                    <div class="sk"></div>
+                                                    <div class="sk"></div>
+                                                </div>
+                                                <div class="sk sk-row-amt"></div>
+                                            </div>
+                                        @endfor
+                                    </div>
+                                </div>
+                            @endfor
+                        </div>
+
+                    </div>
+                @endif
+
+                <div id="page-content" @if(session('just_logged_in')) style="opacity:0;" @endif>
                     <main>
 
                         <h2>Good day, {{ $username }}! <span>Here's your overview</span></h2>
 
-                        {{-- @if ($username)
-                        <div class="main-header">
-                            <div class="main-intro">
-                                <div class="main-intro-icon"></div>
-                                <div class="main-intro-text">
-                                    <div class="main-intro-header">
-                                        <span>I'm, Judith</span>
-                                        <button type="button" class="btn-report-problem" data-bs-toggle="modal"
-                                            data-bs-target="#reportProblemModal"
-                                            style=" display:inline-flex; align-items:center; gap:8px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
-                                            <i class="fa-solid fa-flag"></i>
-                                            <span>Report a Problem</span>
-                                        </button>
-                                    </div>
-                                    <p>Got a question about your balance, a loan, or a payment that doesn't look right?
-                                        I can help — or you can send a report straight to our team.</p>
-                                    <button type="button" class="btn-report-problem" data-bs-toggle="modal"
-                                        data-bs-target="#reportProblemModal"
-                                        style="margin-top:10px; display:inline-flex; align-items:center; gap:8px; padding:9px 16px; background:#fff; color:#1E2A4A; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
-                                        <i class="fa-solid fa-flag"></i>
-                                        <span>Report a Problem</span>
-                                    </button>
+                        {{-- Shown only when the screen is 1200px or narrower (see homepage.css) --}}
+                        <div class="desktop-view-banner" role="note">
+                            <div class="dvb-window">
+                                <div class="dvb-dots">
+                                    <span></span><span></span><span></span>
                                 </div>
+                                <svg class="dvb-smile" viewBox="0 0 120 80" aria-hidden="true">
+                                    <line x1="28" y1="22" x2="40" y2="40" />
+                                    <line x1="42" y1="14" x2="54" y2="32" />
+                                    <path d="M18 68 Q80 70 104 12" />
+                                </svg>
+                            </div>
+                            <div class="dvb-text">
+                                <h4>Enable desktop view to access the full webpage experience and manage the admin panel.</h4>
+                                <p>Some sections may look cramped on smaller screens. Switch your browser to desktop
+                                    view or use a wider screen.</p>
                             </div>
                         </div>
-                        @endif --}}
-
-
 
                         <div class="card-parent">
 
@@ -544,7 +840,7 @@
 
                             <div class="recent-transaction">
                                 <div class="recent-header">
-                                    <div>
+                                    <div class="recent-header-text">
                                         <h3>Recent Transactions</h3>
                                         <p>Latest account activity across all accounts</p>
                                     </div>
@@ -1261,9 +1557,9 @@
                             </div>
                         </div>
                     </section>
-                </div>
-            </div>
-        </div>{{-- end #page-content --}}
+                </div>{{-- end #page-content --}}
+            </div>{{-- end .main-parent --}}
+        </div>{{-- end .rightbar --}}
     </div>{{-- end .container-fluid --}}
 
     <!-- Upcoming Dues Modal -->
@@ -1553,16 +1849,18 @@
 
                     var overlay = document.getElementById('skeleton-overlay');
                     var content = document.getElementById('page-content');
+                    var parent = document.querySelector('.main-parent.sk-loading');
+
+                    if (content) content.classList.add('sk-ready');
 
                     if (overlay) {
                         overlay.classList.add('sk-hide');
                         overlay.addEventListener('transitionend', function () {
                             overlay.remove();
+                            if (parent) parent.classList.remove('sk-loading');
                         }, { once: true });
-                    }
-
-                    if (content) {
-                        content.classList.add('sk-ready');
+                    } else if (parent) {
+                        parent.classList.remove('sk-loading');
                     }
                 }
 

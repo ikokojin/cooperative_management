@@ -22,7 +22,21 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $account = (string) ($request->input('login') ?? $request->input('email'));
-            return Limit::perMinute(5)->by(Str::lower($account) . '|' . $request->ip());
+
+            // Loosen while developing locally; production stays at 5 per minute
+            $maxAttempts = app()->environment('local') ? 30 : 5;
+
+            return Limit::perMinute($maxAttempts)
+                ->by(Str::lower($account) . '|' . $request->ip())
+                ->response(function (Request $request, array $headers) {
+                    $seconds = (int) ($headers['Retry-After'] ?? 60);
+
+                    // Send them back to the login form with a readable message
+                    // instead of the plain "429 | Too Many Requests" page
+                    return redirect()->route('login')
+                        ->withErrors(['login' => "Too many login attempts. Please try again in {$seconds} seconds."])
+                        ->withInput($request->only('login'));
+                });
         });
 
         RateLimiter::for('registration', function (Request $request) {

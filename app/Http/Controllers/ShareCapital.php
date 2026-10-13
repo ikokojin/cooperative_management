@@ -232,7 +232,7 @@ class ShareCapital extends Controller
             ->exists();
 
         $validated = $request->validate([
-            'shares' => 'required|numeric|min:0.01',
+            'shares' => 'required|numeric|min:0.005',
             'type' => ['required', 'in:Deposit,Withdrawal'],
             'payment_method' => ['required', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:500'],
@@ -265,12 +265,12 @@ class ShareCapital extends Controller
         $gcashReferenceNo = $request->input('gcash_reference_no') ? trim($request->input('gcash_reference_no')) : null;
         $gcashProofPath = $request->hasFile('gcash_proof')
             ? $request->file('gcash_proof')->store('documents/gcash_proofs', 'public')
-            : null;
+            : null; 
 
         $memberId = Auth::id();
         $amountPerShare = self::PAR_VALUE;
-        $shares = (float) $validated['shares'];
-        $totalAmount = $shares * $amountPerShare;
+        $shares = round((float) $validated['shares'], 6);
+        $totalAmount = round($shares * $amountPerShare, 2);
         $now = Carbon::now();
         $referenceNo = $this->generateReferenceNo();
         $type = $validated['type'];

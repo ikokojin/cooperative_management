@@ -1083,6 +1083,152 @@ textarea.sm-input {
     }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — Profile page
+   ═══════════════════════════════════════════════════════════ */
+
+/* Long values (emails, addresses, plate numbers) wrap instead of overflowing */
+.container-fluid .rightbar .main-parent .parent-information .personal-information-body .information strong,
+.container-fluid .rightbar .main-parent .main-personal-card .personal-body .body-text p,
+.doc-meta {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.container-fluid .rightbar .main-parent .main-personal-card .personal-body .personal-sub-body .parent-box {
+    min-width: 0;
+}
+
+/* Card header: badge never pushes the title off-screen */
+.container-fluid .rightbar .main-parent .main-personal-card .personal-header {
+    gap: 12px;
+}
+
+/* ── Tablets / large phones ── */
+@media only screen and (max-width: 703px) {
+
+    /* Keep the last card clear of the fixed bottom navigation bar */
+    .container-fluid .rightbar .main-parent {
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    .container-fluid .rightbar .main-parent .main-personal-card {
+        padding: 1.5rem 1.25rem;
+    }
+
+    /* Member No / Member Since wrap instead of overflowing */
+    .container-fluid .rightbar .main-parent .main-personal-card .personal-body .personal-sub-body .parent-box .since-parent {
+        flex-wrap: wrap;
+        gap: 12px 28px;
+    }
+
+    /* Card headers / bodies: slightly tighter padding */
+    .container-fluid .rightbar .main-parent .parent-information .personal-information-1 .personal-information-header,
+    .container-fluid .rightbar .main-parent .parent-information .personal-information-2 .personal-information-header {
+        padding: 16px 18px;
+    }
+
+    .container-fluid .rightbar .main-parent .parent-information .personal-information-1 .personal-information-body {
+        padding: 18px;
+    }
+
+    .container-fluid .rightbar .main-parent .parent-information .personal-information-2 .personal-information-body-2 {
+        padding: 8px 18px 16px;
+    }
+
+    /* Resignation card: full-width button */
+    .main-personal-card-resign {
+        align-items: stretch;
+    }
+
+    .main-personal-card-resign button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ── Phones ── */
+@media only screen and (max-width: 500px) {
+
+    /* Avatar on top, name + member info underneath, centered */
+    .container-fluid .rightbar .main-parent .main-personal-card .personal-body {
+        margin-top: 1.4rem;
+    }
+
+    .container-fluid .rightbar .main-parent .main-personal-card .personal-body .personal-sub-body {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 14px;
+        width: 100%;
+    }
+
+    .container-fluid .rightbar .main-parent .main-personal-card .personal-body .personal-sub-body .parent-box .since-parent {
+        justify-content: center;
+    }
+
+    .container-fluid .rightbar .main-parent .main-personal-card .personal-body .since-parent .member {
+        align-items: center;
+    }
+
+    .container-fluid .rightbar .main-parent .main-personal-card .personal-body .body-text h2 {
+        font-size: 17px;
+    }
+
+    /* Info grids: one field per line */
+    .container-fluid .rightbar .main-parent .parent-information .personal-information-1 .personal-information-body {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .container-fluid .rightbar .main-parent .parent-information .personal-information-1 .personal-information-body .information span {
+        font-size: 11.5px;
+    }
+
+    /* Document / vehicle rows: meta text drops under the name */
+    .doc-row {
+        flex-wrap: wrap;
+    }
+
+    .doc-meta {
+        width: 100%;
+        padding-left: 32px;
+    }
+
+    /* Loan progress header wraps if the amount is long */
+    .container-fluid .rightbar .main-parent .parent-information .personal-information-2 .personal-information-body-2 .parent-sub-progress .progress-repay .progress-header {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    /* Toast fits the screen */
+    .toast-message {
+        right: 12px;
+        left: 12px;
+        width: auto !important;
+    }
+}
+
+/* ── Edit modals: stack the 2–3 field rows on small screens ── */
+@media only screen and (max-width: 576px) {
+    .sm-field-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .sm-modal-header {
+        padding: 1rem 1.1rem;
+    }
+
+    .sm-modal-body {
+        padding: 1.1rem;
+    }
+
+    .sm-modal-subtitle {
+        font-size: 11.5px;
+    }
+}
+
 /* @media only screen and (max-width: 703px) {
     .container-fluid .rightbar {
         width: 100%;

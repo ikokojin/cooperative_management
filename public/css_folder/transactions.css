@@ -440,3 +440,235 @@
     color: #ffffff;
     border-color: var(--teal);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — Transactions page
+   ═══════════════════════════════════════════════════════════ */
+
+.tx-desc strong,
+.tx-desc span,
+.tx-ref {
+    overflow-wrap: anywhere;
+}
+
+.page-btns {
+    flex-wrap: wrap;
+}
+
+/* Sidebar collapses to icons */
+@media only screen and (max-width: 1200px) {
+    .container-fluid .rightbar {
+        width: calc(100% - 80px);
+        margin-left: 80px;
+    }
+}
+
+@media only screen and (max-width: 711px) {
+    .container-fluid .rightbar .main-parent {
+        padding: 2rem 1.5rem;
+    }
+}
+
+/* ── Sidebar hidden: full width + bottom-nav clearance ── */
+@media only screen and (max-width: 703px) {
+    .container-fluid .rightbar {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .container-fluid .rightbar .main-parent {
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* ── Phones ── */
+@media only screen and (max-width: 640px) {
+
+    .container-fluid .rightbar .main-parent {
+        padding: 1.5rem 1rem calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .container-fluid .rightbar .main-parent h3 {
+        font-size: 18px;
+    }
+
+    /* Tabs: full width, scroll sideways if needed */
+    .container-fluid .rightbar .main-parent .main-body .filters {
+        margin: 16px 0 12px;
+    }
+
+    .container-fluid .rightbar .main-parent .main-body .filters .tab-group {
+        width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .container-fluid .rightbar .main-parent .main-body .filters .tab-group::-webkit-scrollbar {
+        display: none;
+    }
+
+    .container-fluid .rightbar .main-parent .main-body .filters .tab-group .tab {
+        flex: 1 0 auto;
+        justify-content: center;
+        white-space: nowrap;
+        padding: 8px 12px;
+    }
+
+    /* Toolbar: search full width, date + status side by side */
+    .toolbar {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .search-box {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .toolbar .filter-select {
+        flex: 1 1 0;
+        min-width: 0;
+        width: 100%;
+    }
+
+    /* ── Table → stacked cards ── */
+    .ledger-page {
+        border-radius: 14px;
+    }
+
+    .ledger-page .table-scroll-wrapper {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .tx-table,
+    .tx-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .tx-table thead {
+        display: none;
+    }
+
+    .tx-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 12px;
+        row-gap: 8px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .tx-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .tx-table th,
+    .tx-table td {
+        width: auto !important;
+    }
+
+    .tx-table tbody td {
+        display: block;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
+    /* Row 1: description (left) + amount (right) */
+    .tx-table tbody td:nth-child(1) {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+    }
+
+    .tx-table tbody td:nth-child(5) {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: center;
+        white-space: nowrap;
+        font-size: 13px;
+    }
+
+    /* Rows 2–4: reference, date, status as label / value */
+    .tx-table tbody td:nth-child(2),
+    .tx-table tbody td:nth-child(3),
+    .tx-table tbody td:nth-child(4) {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        text-align: right;
+        font-size: 12px;
+    }
+
+    .tx-table tbody td:nth-child(2) {
+        margin-top: 4px;
+        padding-top: 10px !important;
+        border-top: 1px dashed var(--border) !important;
+    }
+
+    .tx-table tbody td:nth-child(2)::before,
+    .tx-table tbody td:nth-child(3)::before,
+    .tx-table tbody td:nth-child(4)::before {
+        font-family: "Poppins", sans-serif;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .6px;
+        color: var(--muted);
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    .tx-table tbody td:nth-child(2)::before {
+        content: "Reference No.";
+    }
+
+    .tx-table tbody td:nth-child(3)::before {
+        content: "Date";
+    }
+
+    .tx-table tbody td:nth-child(4)::before {
+        content: "Status";
+    }
+
+    /* Empty-state row */
+    .tx-table tbody td[colspan] {
+        grid-column: 1 / -1;
+        display: block;
+        text-align: center;
+        padding: 2rem 0 !important;
+    }
+
+    .tx-table tbody td[colspan]::before {
+        content: none;
+    }
+
+    /* Pagination: stacked and centered */
+    .pagination {
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .pagination span:nth-child(1) {
+        margin-left: 0;
+    }
+
+    .page-btns {
+        justify-content: center;
+    }
+}
+
+/* Very small phones: tabs 2×2 instead of scrolling */
+@media only screen and (max-width: 380px) {
+    .container-fluid .rightbar .main-parent .main-body .filters .tab-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+    }
+}

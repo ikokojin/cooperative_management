@@ -15,7 +15,8 @@
                         <h2 class="text-xl font-bold text-gray-900">Interest Eligibility</h2>
                         <p class="text-xs text-gray-500">{{ $sirSettings->frequency_label }} ·
                             {{ $sirSettings->annual_rate }}% p.a. · Min balance:
-                            ₱{{ number_format($sirSettings->min_balance_for_interest, 2) }}</p>
+                            ₱{{ number_format($sirSettings->min_balance_for_interest, 2) }}
+                        </p>
                     </div>
                 </div>
                 <button data-action="closeModal" data-arg='["interestEligibilityModal"]'
@@ -1337,6 +1338,7 @@
         const amountFmt = Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         const balanceFmt = Number(balance || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         const isDeposit = String(type).toLowerCase() === 'deposit';
+        const isInterest = String(type).toLowerCase() === 'interest';
 
         const modal = document.createElement('div');
         modal.id = 'receiptModal';
@@ -1355,7 +1357,7 @@
                     <div style="width:60px;height:60px;background:${SV_NAVY};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
-                    <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">${isDeposit ? 'Deposit Successful!' : 'Withdrawal Successful!'}</h2>
+                    <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">${isInterest ? 'Interest Credited Successful!' : (isDeposit ? 'Deposit Successful!' : 'Withdrawal Successful!')}</h2>
                     <p style="color:#6b7280; font-size:0.82rem; margin:0;">KMPCATS Cooperative -- Official Receipt</p>
                 </div>
                 <div style="padding:1.5rem;">
@@ -1396,6 +1398,7 @@
 
         const amountFmt = Number(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         const isDeposit = String(type).toLowerCase() === 'deposit';
+        const isInterest = String(type).toLowerCase() === 'interest';
 
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'position:fixed; left:-9999px; top:0; width:400px; background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.15);';
@@ -1404,7 +1407,7 @@
                 <div style="width:60px;height:60px;background:${SV_NAVY};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
-                <div style="color:#1a1a1a;font-size:1.25rem;font-weight:700;margin:0 0 0.25rem;">${isDeposit ? 'Deposit Successful!' : 'Withdrawal Successful!'}</div>
+                <div style="color:#1a1a1a;font-size:1.25rem;font-weight:700;margin:0 0 0.25rem;">${isInterest ? 'Interest Credited Successful!' : (isDeposit ? 'Deposit Successful!' : 'Withdrawal Successful!')}</div>
                 <div style="color:#6b7280;font-size:0.82rem;margin:0;">KMPCATS Cooperative -- Official Receipt</div>
             </div>
             <div style="padding:1.5rem;">

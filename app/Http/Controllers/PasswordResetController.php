@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 
 class PasswordResetController extends Controller
@@ -25,8 +26,27 @@ class PasswordResetController extends Controller
             'email' => 'required|email',
         ]);
 
-        Password::sendResetLink($request->only('email'));
+        $email = trim($request->input('email'));
 
+        try {
+            $status = Password::sendResetLink(['email' => $email]);
+
+            if ($status === Password::RESET_LINK_SENT) {
+                Log::info('Password reset link sent', ['email' => $email]);
+            } else {
+                // passwords.user      -> no row in the users table with that email
+                // passwords.throttled -> requested again within the broker throttle window (default 60s)
+                Log::warning('Password reset link NOT sent', ['email' => $email, 'status' => $status]);
+            }
+        } catch (\Throwable $e) {
+            // SMTP / mail config / missing password_reset_tokens table, etc.
+            Log::error('Password reset mail failed', [
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // The user still sees the same generic message (no email enumeration).
         return back()->with('status', self::GENERIC_EMAIL_STATUS);
     }
 

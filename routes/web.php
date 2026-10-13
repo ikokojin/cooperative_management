@@ -14,10 +14,37 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AlliedWorkerController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 Route::get("/", [UserController::class, "UserDirection"]);
 
 Route::get("/index", [UserController::class, "index"])->name("index");
+
+Route::get('/proof/{path}', function ($path) {
+    $path = ltrim($path, '/');
+    abort_if(str_contains($path, '..'), 404);
+
+    foreach (['public', 'local'] as $diskName) {
+        $disk = Storage::disk($diskName);
+        if ($disk->exists($path)) {
+            return $disk->response($path);
+        }
+    }
+
+    foreach ([
+        public_path($path),
+        public_path('storage/' . $path),
+        storage_path('app/' . $path),
+        storage_path('app/private/' . $path),
+        storage_path('app/public/' . $path),
+    ] as $candidate) {
+        if (is_file($candidate)) {
+            return response()->file($candidate);
+        }
+    }
+
+    abort(404);
+})->where('path', '.*')->middleware('auth');
 
 // ✅ THIS IS THE KEY FIX - named 'login' must point to the login PAGE view
 Route::get("/login", [UserController::class, "LoginPage"])->name("login");
@@ -271,7 +298,16 @@ Route::get("/dashboard-reports/statement-of-operations/print", [ReportController
 Route::get("/dashboard-settings", [UserController::class, "dashboard_settings"])->name("settings")->middleware("admin");
 Route::post("/dashboard-settings", [UserController::class, "dashboard_settings"])->name("settings.update")->middleware("admin");
 Route::post("/admin/store", [UserController::class, "storeAdmin"])->name("admin.store")->middleware("admin");
+
 Route::post("/admin/change-password", [UserController::class, "changePassword"])->name("admin.change-password")->middleware("admin");
+
+Route::post('/admin/update-profile', [UserController::class, 'updateProfile'])->name('admin.update-profile');
+
+Route::post("/admin/store", [UserController::class, "storeAdmin"])->name("admin.store")->middleware("admin");
+Route::post("/admin/change-password", [UserController::class, "changePassword"])->name("admin.change-password")->middleware("admin");
+Route::post("/admin/update-profile", [UserController::class, "updateProfile"])->name("admin.update-profile")->middleware("admin");
+Route::post("/admin/update", [UserController::class, "updateAdmin"])->name("admin.update")->middleware("admin");
+
 Route::post("/admin/update", [UserController::class, "updateAdmin"])->name("admin.update")->middleware("admin");
 Route::post("/admin/delete", [UserController::class, "deleteAdmin"])->name("admin.delete")->middleware("admin");
 Route::post("/admin/toggle-status", [UserController::class, "toggleAdminStatus"])->name("admin.toggle-status")->middleware("admin");

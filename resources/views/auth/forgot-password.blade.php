@@ -3,27 +3,112 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Forgot Password</title>
-    <link rel="icon" href="images/websitelogo.png" type="image/png">
+    <link rel="icon" href="{{ asset('images/websitelogo.png') }}" type="image/png">
 
-    <link rel="stylesheet" href="css_folder/login.css">
-    <link rel="stylesheet" href="css_folder/loading.css">
+    {{-- Intentionally NOT loading login.css, loading.css or app.js:
+         they put an overlay / click handlers on the page that block this form. --}}
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background: #F7F8FC;
+            font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+            color: #1E2A4A;
+        }
 
-    <link rel="stylesheet" href="font-awesome-icon/css/all.min.css">
+        .auth-wrap {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            padding-top: calc(24px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .auth-card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 440px;
+            background: #fff;
+            border: 1px solid #E5EAF3;
+            border-radius: 20px;
+            padding: 36px 32px;
+            box-shadow: 0 8px 30px rgba(30, 42, 74, .08);
+        }
+
+        .auth-card h2 { margin: 0 0 8px; font-size: 26px; font-weight: 600; line-height: 1.25; }
+        .auth-card .sub { margin: 0 0 24px; font-size: 14px; line-height: 1.6; color: #6b7a99; }
+
+        .alert {
+            font-size: 13.5px;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 18px;
+            overflow-wrap: anywhere;
+        }
+        .alert-info   { background: #eefaf1; border: 1px solid #bfe5c9; color: #1f7a3d; }
+        .alert-danger { background: #fef0f0; border: 1px solid #f5c6c6; color: #c92a2a; }
+        .alert ul { margin: 0; padding-left: 18px; }
+
+        label { display: block; margin-bottom: 6px; font-size: 13.5px; font-weight: 600; }
+
+        .field {
+            display: block;
+            width: 100%;
+            padding: 11px 14px;
+            font: inherit;
+            font-size: 16px; /* stops iOS zoom on focus */
+            color: #1E2A4A;
+            background: #fff;
+            border: 1.5px solid #E5EAF3;
+            border-radius: 10px;
+            outline: none;
+        }
+        .field:focus { border-color: #1E2A4A; box-shadow: 0 0 0 3px rgba(79, 127, 250, .15); }
+
+        .btn {
+            display: block;
+            width: 100%;
+            margin-top: 16px;
+            padding: 12px 16px;
+            font: inherit;
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #fff;
+            background: #1E2A4A;
+            border: 1px solid #1E2A4A;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .btn:hover, .btn:focus { background: #131a30; border-color: #131a30; }
+        .btn:disabled { opacity: .7; cursor: not-allowed; }
+
+        .back { text-align: center; margin-top: 16px; }
+        .back a { font-size: 14px; font-weight: 500; color: #1a56db; }
+
+        @media (max-width: 480px) {
+            .auth-wrap { align-items: flex-start; padding: 16px 12px; }
+            .auth-card { padding: 28px 20px; border-radius: 16px; margin-top: 8vh; }
+            .auth-card h2 { font-size: 22px; }
+            .auth-card .sub { font-size: 13px; }
+        }
+    </style>
 </head>
 
-<body class="auth-shell">
-
-    <div class="container-fluid d-flex align-items-center justify-content-center min-vh-100">
+<body>
+    <div class="auth-wrap">
         <div class="auth-card">
-            <div class="auth-card-head">
-                <h2>Forgot Password</h2>
-                <p>Enter the email linked to your cooperative account and we will send you a reset link.</p>
-            </div>
+            <h2>Forgot Password</h2>
+            <p class="sub">Enter the email linked to your cooperative account and we will send you a reset link.</p>
 
             @if (session('status'))
                 <div class="alert alert-info">{{ session('status') }}</div>
@@ -31,7 +116,7 @@
 
             @if ($errors->any())
                 <div class="alert alert-danger">
-                    <ul class="mb-0">
+                    <ul>
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
@@ -42,21 +127,18 @@
             <form method="POST" action="{{ route('password.email') }}">
                 @csrf
 
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" name="email" id="email" class="form-control"
-                        value="{{ old('email') }}" required autofocus autocomplete="email">
-                </div>
+                <label for="email">Email Address</label>
+                <input type="email" name="email" id="email" class="field"
+                    value="{{ old('email') }}" required autofocus autocomplete="email">
 
-                <button type="submit" class="btn btn-primary w-100 mt-3">Send Reset Link</button>
+                <button type="submit" class="btn">Send Reset Link</button>
             </form>
 
-            <div class="text-center mt-3">
+            <div class="back">
                 <a href="{{ route('login') }}">Back to sign in</a>
             </div>
         </div>
     </div>
-
 </body>
 
 </html>

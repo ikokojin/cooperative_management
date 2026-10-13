@@ -8,16 +8,6 @@
         color: #808080;
     }
 
-    .review-vehicle-row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 2px;
-        padding: 6px 0 15px;
-        /* border-bottom: 1px solid #f3f4f6; */
-        border-bottom: 1px solid var(--line);
-    }
-
     /* .review-vehicle-row:last-child {
         border-bottom: none;
     } */
@@ -31,20 +21,6 @@
     .review-vehicle-qty {
         color: #6b7280;
         font-size: 13px;
-    }
-
-    .review-plate-list {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        padding-left: 100px;
-    }
-
-    #vehicles_review_display {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
     }
 
     .review-plate-badge {
@@ -263,8 +239,8 @@
 
         <div class="row">
             <div class="col-lg-12 mt-4">
-                <div class="card py-3 px-4"
-                    style="background: rgba(245, 166, 35, .18); border: none; border-radius: 10px;">
+                <div class="card border-0"
+                    style="">
                     <p class="m-0" style="font-size: 14.5px; color: var(--gold);"><b>Note:</b> By submitting this
                         application, you authorize
                         the cooperative to verify the information provided and to conduct necessary background checks as

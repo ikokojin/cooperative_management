@@ -316,8 +316,6 @@ div.container-fluid {
 
 .container-fluid .rightbar .main {
     padding: 4rem 3rem 2rem 3rem;
-    height: 100vh;
-    overflow-y: auto;
     background-color: #FBFBFD;
 }
 
@@ -338,8 +336,7 @@ div.container-fluid {
     margin-top: 1rem;
 }
 
-.container-fluid .rightbar .form-step-parents {
-}
+.container-fluid .rightbar .form-step-parents {}
 
 .container-fluid .rightbar .form-step p {
     font-size: 15.5px;
@@ -574,8 +571,7 @@ div.container-fluid {
     position: relative;
 }
 
-.form-step .form-step-nav {
-}
+.form-step .form-step-nav {}
 
 .form-step .form-step-nav h2 {
     font-size: 30px;
@@ -1164,7 +1160,7 @@ div.card-header {
     max-height: 220px;
     overflow-y: auto;
     z-index: 50;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .autocomplete-list .autocomplete-item {
@@ -1280,7 +1276,7 @@ div.card-header {
     /* opacity: 0.5; */
 }
 
-.form-check-input:disabled ~ .form-check-label,
+.form-check-input:disabled~.form-check-label,
 .form-check:has(.form-check-input:disabled) .form-check-label {
     /* cursor: not-allowed; */
     /* opacity: 0.6; */
@@ -1292,6 +1288,23 @@ div.card-header {
     font-weight: 600;
     text-decoration: underline;
     opacity: 1;
+}
+
+.review-vehicle-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0 15px;
+    /* border-bottom: 1px solid #f3f4f6; */
+    border-bottom: 1px solid var(--line);
+}
+
+.review-vehicle-row-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 /* .form-check-input:disabled~.form-check-label, .form-check-input[disabled]~.form-check-label {
@@ -1527,6 +1540,25 @@ div.card-header {
     cursor: not-allowed;
 }
 
+.form-step .form-step-nav a {
+    display: none;
+}
+
+.review-plate-list {
+    width: 100%;
+    display: flex;
+    justify-content: end;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-left: 100px;
+}
+
+#vehicles_review_display {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
 @media only screen and (max-width: 650px) {
     .terms-modal-header {
         padding: 1.25rem 1.25rem;
@@ -1563,16 +1595,79 @@ div.card-header {
     }
 }
 
+@media only screen and (max-width: 1200px) {
+    .container-fluid .sidebar {
+        /* width: 320px; */
+        width: 280px;
+    }
+
+    .container-fluid .rightbar {
+        width: calc(100% - 280px);
+        margin-left: 280px;
+    }
+
+    /* .container-fluid .sidebar .sidebar-nav .nav-tag {
+        display: none;
+    }
+
+    .container-fluid .sidebar .sidebar-nav h2 {
+        display: none;
+    }
+
+    .container-fluid .sidebar .sidebar-nav p {
+        display: none;
+    }
+
+    .label .title {
+        display: none;
+    }
+
+    .label .sub {
+        display: none;
+    }
+
+    .container-fluid .sidebar .form-acc {
+        display: none;
+    } */
+}
+
 @media only screen and (max-width: 1150px) {
     .choose {
         padding: 20px 20px 0 20px;
     }
 }
 
-@media only screen and (max-width: 1015px) {
-    .form-box {
-        padding: 20px;
+@media only screen and (max-width: 1080px) {
+    .container-fluid .sidebar {
+        /* width: 320px; */
+        /* width: 280px; */
+        width: 0;
+        display: none;
     }
+
+    .container-fluid .rightbar {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .form-step .form-step-nav h2 {
+        margin: 1.5rem 0 6px;
+    }
+
+    .form-step .form-step-nav a {
+        text-decoration: none;
+        color: var(--teal);
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 0 0 2.5rem;
+    }
+}
+
+@media only screen and (max-width: 1015px) {
+    /* .form-box {
+        padding: 20px;
+    } */
 
     .choose {
         padding: 20px 20px 0 20px;
@@ -1582,9 +1677,23 @@ div.card-header {
         display: none;
     }
 
-    .step-personal {
+    /* .step-personal {
         width: 900px !important;
         padding: 20px 40px 40px;
+    } */
+}
+
+@media only screen and (max-width: 900px) {
+    /* .vehicles-grid {
+        display: flex;
+        flex-direction: column;
+    } */
+
+    .vehicles-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-top: 0.5rem;
     }
 }
 
@@ -1605,28 +1714,26 @@ div.card-header {
         width: 100%;
     }
 
-    .form-step .form-step-body {
+    /* .form-step .form-step-body {
         border-radius: 0;
         padding: 20px 30px 40px 30px;
-    }
+    } */
 
-    .step-personal {
+    /* .step-personal {
         width: 900px !important;
         padding: 20px 30px 40px 30px;
-    }
-
-    .review-parent {
-        flex-direction: column;
-    }
+    } */
 }
 
 @media only screen and (max-width: 735px) {
     div.container-fluid {
-        padding: 0px 0px 48px 0px;
+        /* padding: 0px 0px 48px 0px; */
+        padding: 0;
     }
 
     .form-box {
-        padding: 20px;
+        /* padding: 20px; */
+        padding: 0;
     }
 
     .choose {
@@ -1653,19 +1760,45 @@ div.card-header {
     }
 }
 
+@media only screen and (max-width: 700px) {
+    .review-parent {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
 @media only screen and (max-width: 650px) {
     .label {
         display: none;
     }
 }
 
-@media only screen and (max-width: 550px) {
-    .card {
-        padding: 30px;
+@media only screen and (max-width: 600px) {
+    .vehicles-grid {
+        display: flex;
+        flex-direction: column;
     }
 
-    .actions button span {
+    .review-vehicle-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px;
+        padding: 6px 0 15px;
+        /* border-bottom: 1px solid #f3f4f6; */
+        border-bottom: 1px solid var(--line);
+    }
+}
+
+@media only screen and (max-width: 550px) {
+
+    .actions button span:not(.btn-spinner):not(.btn-loading-text) {
         display: none;
+    }
+
+    .actions .btn-next.is-loading {
+        padding: 10px 20px;
+        white-space: nowrap;
     }
 
     .container-fluid .logo-image {
@@ -1687,13 +1820,39 @@ div.card-header {
 
 }
 
-@media only screen and (max-width: 420px) {
-    .card-body-box {
-        padding: 20px;
+@media only screen and (max-width: 515px) {
+    .review-plate-list {
+        all: unset;
+        display: flex;
+        align-items: center;
+        padding-left: 0;
+        column-gap: 5px;
     }
 }
 
-@media only screen and (max-width: 415px) {
+@media only screen and (max-width: 490px) {
+    #vehicles_review_display {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 12px;
+    }
+}
+
+@media only screen and (max-width: 430px) {
+    /* .card-body-box {
+        padding: 20px;
+    } */
+
+    .container-fluid .rightbar .main {
+        padding: 2rem 1.5rem;
+    }
+
+    .form-step .form-step-body-2 {
+        padding: 2rem 1.5rem;
+    }
+}
+
+/* @media only screen and (max-width: 415px) {
     .form-step .form-step-body {
         border-radius: 0;
         padding: 20px 23px 40px 23px;
@@ -1706,7 +1865,7 @@ div.card-header {
         line-height: 30px;
         margin: 16px 0px 16px 0px;
     }
-}
+} */
 
 @keyframes spin {
     100% {

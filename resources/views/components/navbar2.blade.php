@@ -62,7 +62,75 @@
     </ul>
 </div> -->
 
-    <div class="nav-menu">
+    <style>
+        /* Notification panel: wrap long text everywhere */
+        #nb-notif-panel p {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* ── Phones / small tablets: compact card under the bell ── */
+        @media only screen and (max-width: 576px) {
+            #nb-notif-panel {
+                position: fixed !important;
+                top: 78px !important;
+                right: 12px !important;
+                left: auto !important;
+                width: 340px !important;
+                max-width: calc(100vw - 24px) !important;
+                margin: 0 !important;
+                border-radius: 14px !important;
+                border: 1px solid #E5EAF3 !important;
+                box-shadow: 0 12px 32px rgba(30, 42, 74, .16) !important;
+                overflow: hidden;
+                z-index: 1100 !important;
+                background: #fff;
+            }
+
+            /* Header row */
+            #nb-notif-panel>div:first-child {
+                padding: 12px 14px !important;
+                font-size: 14px !important;
+            }
+
+            /* List: scrolls inside the card, stays clear of the bottom nav */
+            #nb-notif-panel>div:last-child {
+                max-height: min(380px, calc(100dvh - 78px - 130px)) !important;
+                overflow-y: auto !important;
+                overscroll-behavior: contain;
+            }
+
+            /* Each notification row */
+            #nb-notif-panel>div:last-child>a {
+                padding: 11px 14px !important;
+                gap: 10px !important;
+            }
+
+            #nb-notif-panel>div:last-child>a p:first-child {
+                font-size: 12.5px !important;
+            }
+
+            #nb-notif-panel>div:last-child>a p:nth-child(2) {
+                font-size: 11.5px !important;
+            }
+        }
+
+        @media only screen and (max-width: 360px) {
+            #nb-notif-panel {
+                right: 8px !important;
+                max-width: calc(100vw - 16px) !important;
+            }
+        }
+
+        /* Hide "Switch to Allied Worker" on screens 1200px and below — every page */
+        @media only screen and (max-width: 1200px) {
+            #dashboard-nav .aw-switch-item {
+                display: none !important;
+            }
+        }
+    </style>
+
+    <div class="nav-menu dashboard">
         <i class="fa fa-bars" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu2"
             aria-controls="staticBackdrop"></i>
     </div>
@@ -186,7 +254,7 @@
                 });
             </script>
             @if(auth()->user()?->isAlliedWorker())
-                <li class="tw:list-none" style="align-self:center; margin-right:12px;">
+                <li class="tw:list-none aw-switch-item" style="align-self:center; margin-right:12px;">
                     <button type="button" data-action="openAwSwitch"
                         style="background:#1D4ED8; color:#fff; border:none; border-radius:8px; padding:9px 15px; font-size:13px; font-weight:600; cursor:pointer;">
                         <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right:6px;"></i>Switch to Allied Worker
@@ -291,12 +359,10 @@
                             Reset Password
                         </a>
                     </li>
-                    @if($navSeminarsComplete)
-                        <li>
-                            <div class="card-icon"><i class="fa fa-circle-question"></i></div>
-                            <a href="{{ route('Faqs') }}">FAQs</a>
-                        </li>
-                    @endif
+                    <li>
+                        <div class="card-icon"><i class="fa fa-circle-question"></i></div>
+                        <a href="{{ route('Faqs') }}">FAQs</a>
+                    </li>
                     <li>
                         <div class="card-icon"><i class="fa fa-sign-out"></i></div>
                         <a href="{{ route('logout') }}">Logout</a>

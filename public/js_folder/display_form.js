@@ -187,8 +187,10 @@ function updateVehicleReview() {
 
         html += `
             <div class="review-vehicle-row mt-2">
-                <span class="review-vehicle-label">${label}:</span>
-                <span class="review-vehicle-qty">${qty} unit${qty > 1 ? 's' : ''}</span>
+                <div class="review-vehicle-row-text">
+                    <span class="review-vehicle-label">${label}:</span>
+                    <span class="review-vehicle-qty">${qty} unit${qty > 1 ? 's' : ''}</span>
+                </div>
                 ${plateList ? `<div class="review-plate-list mt-1">${plateList}</div>` : ''}
             </div>`;
     });

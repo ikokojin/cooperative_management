@@ -9,7 +9,7 @@
     <link rel="icon" href="images/websitelogo.png" type="image/png">
 
     {{-- css link --}}
-    <link rel="stylesheet" href="css_folder/register.css">
+    <link rel="stylesheet" href="css_folder/register.css?=28">
 
     {{-- bootstrap and tailwind link --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -94,18 +94,13 @@
                             <h2>KPMPCATS</h2>
                         </div>
 
-                        <a href="{{ route("index") }}">
+                        <a href="{{ route('LoginPage') }}">
                             <i class="fa fa-chevron-left"></i>
-                            <p>Back to Home</p>
                         </a>
                         {{-- <p>Ready to become part of something special? We can't wait to welcome you.</p> --}}
                     </div>
                 </div>
             </nav>
-
-            {{-- <h2>Terms & <b>Agreement</b></h2>
-
-            <p>Please read the following terms carefully before proceeding.</p> --}}
 
             <div class="main">
                 <form action="{{ route("registration") }}" id="form" method="post" class="needs-validation" novalidate
@@ -136,6 +131,10 @@
                                     {{-- <div class="header-track">
                                         <span>Step 1 of 4</span>
                                     </div> --}}
+
+                                    <a href="{{ route("LoginPage") }}">
+                                        <i class="fa fa-chevron-left"></i>
+                                    </a>
 
                                     <h2>Terms & <b>Agreement</b></h2>
 
@@ -647,8 +646,8 @@
     {{-- ── JS files ────────────────────────────────────────────────────────── --}}
     <script src="js_folder/otherinfo_form.js"></script>
     <script src="js_folder/vehicle_form.js"></script>
-    <script src="js_folder/display_form.js"></script>
-    <script src="js_folder/card_form.js"></script>
+    <script src="js_folder/display_form.js?=1"></script>
+    <script src="js_folder/card_form.js?=1"></script>
     <script src="js_folder/picture_display.js"></script>
     <script src="js_folder/signature_pad.umd.min.js"></script>
 

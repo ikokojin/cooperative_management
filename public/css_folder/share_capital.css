@@ -56,7 +56,7 @@ main .parent-main {
 main .parent-main .parent-download {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 10px;
 }
 
 main h3 {
@@ -77,13 +77,22 @@ main p {
 /* ═══════════════════════════════════════════════════
    STAT CARDS (.sc-stat-*)
    ═══════════════════════════════════════════════════ */
-.sc-stat-grid {
+/* .sc-stat-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
-    /* margin-bottom: 1.75rem;
-    margin-top: 1.75rem; */
     margin: 1.5rem 0;
+} */
+
+.sc-journey-sub-card {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.sc-stat-card.green{
+    padding: 30px 34px 28px;
 }
 
 .sc-stat-card {
@@ -173,8 +182,13 @@ main p {
     color: var(--teal);
 }
 
+.sc-stat-label.green {
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+}
+
 .sc-stat-label {
-    font-size: 13.5px;
+    font-size: 12.5px;
     color: var(--muted);
     font-weight: 600;
 }
@@ -183,11 +197,26 @@ main p {
     font-size: 24px;
     font-weight: 700;
     line-height: 1.1;
-    margin: 10px 0 7px;
+    margin: 10px 0 10px;
 }
 
+/* .main-stat{
+    font-size: 25px;
+} */
+
 .sc-stat-value.green {
-    color: var(--forest);
+    /* color: var(--forest); */
+    font-size: 25px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 25px;
+    /* margin: 10px 0 10px; */
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.sc-stat-value.green b {
+    font-size: 45px;
+    color: #1a1a1a;
 }
 
 .sc-stat-value.gold {
@@ -200,6 +229,10 @@ main p {
 
 .sc-stat-value.blue {
     color: var(--teal);
+}
+
+.sc-stat-sub.green {
+    margin: 10px 0 0;
 }
 
 .sc-stat-sub {
@@ -1541,6 +1574,21 @@ main .dividend-parent .table tbody tr td {
     }
 }
 
+@media only screen and (max-width: 932px) {
+    main .parent-main .parent-download {
+
+        flex-direction: column;
+    }
+
+    main .parent-main .parent-download .share {
+        width: 100%;
+    }
+
+    main .parent-main .parent-download button {
+        width: 100%;
+    }
+}
+
 @media (max-width: 900px) {
     .sc-stat-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -1589,6 +1637,7 @@ main .dividend-parent .table tbody tr td {
     .main-sub-parent {
         padding: 2rem 1.5rem;
     }
+
 }
 
 @media only screen and (max-width: 700px) {
@@ -1630,6 +1679,14 @@ main .dividend-parent .table tbody tr td {
 
     .parent-text {
         display: none;
+    }
+}
+
+@media only screen and (max-width: 555px) {
+    main .parent-main .parent-download {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
     }
 }
 

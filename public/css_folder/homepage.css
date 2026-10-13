@@ -2689,6 +2689,481 @@
     color: #9ca3af;
 }
 
+/* ─── Skeleton overlay ───────────────────────────────── */
+.main-parent.sk-loading {
+    position: relative;
+    overflow: hidden !important;
+    /* no scrolling while skeleton shows */
+}
+
+#skeleton-overlay {
+    position: absolute;
+    inset: 0;
+    padding: inherit;
+    /* same padding as .main-parent at every breakpoint */
+    background: #FBFBFD;
+    /* same bg as .main-parent */
+    z-index: 50;
+    overflow: hidden;
+    transition: opacity .45s ease;
+}
+
+#skeleton-overlay.sk-hide {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes skshimmer {
+    0% {
+        background-position: -700px 0;
+    }
+
+    100% {
+        background-position: 700px 0;
+    }
+}
+
+.sk {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 700px 100%;
+    animation: skshimmer 1.4s infinite linear;
+    border-radius: 6px;
+}
+
+#page-content {
+    transition: opacity .4s ease .1s;
+}
+
+#page-content.sk-ready {
+    opacity: 1 !important;
+}
+
+/* Greeting (mirrors main h2) */
+.sk-title {
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.sk-title .sk {
+    width: 320px;
+    max-width: 80%;
+    height: 22px;
+}
+
+/* Summary cards (mirrors .card-parent / .card-box) */
+.sk-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1.5rem 0;
+}
+
+.sk-cardbox {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+}
+
+.sk-cardbox-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sk-label {
+    width: 45%;
+    height: 14px;
+}
+
+.sk-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+}
+
+.sk-value {
+    width: 60%;
+    height: 29px;
+    margin-top: 10px;
+}
+
+.sk-sub {
+    width: 50%;
+    height: 15px;
+    margin-top: 7px;
+}
+
+/* Panels (mirrors .card-box-summary and .parent-panel) */
+.sk-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.sk-bottom {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.sk-panel {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+    overflow: hidden;
+}
+
+.sk-panel-head {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sk-panel-head.sk-no-border {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.sk-head-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.sk-h {
+    width: 45%;
+    height: 18px;
+}
+
+.sk-p {
+    width: 75%;
+    height: 14px;
+}
+
+.sk-link {
+    width: 48px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.sk-pills {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.sk-pills .sk {
+    height: 32px;
+    border-radius: 10px;
+}
+
+.sk-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+}
+
+.sk-tabs>div {
+    flex: 1;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sk-tabs .sk {
+    width: 50%;
+    height: 14px;
+}
+
+.sk-panel-body {
+    padding: 0 20px 12px;
+    height: 300px;
+    overflow: hidden;
+}
+
+.sk-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1.5px solid var(--border);
+}
+
+.sk-row-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    flex-shrink: 0;
+}
+
+.sk-row-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.sk-row-info .sk:first-child {
+    width: 60%;
+    height: 13px;
+}
+
+.sk-row-info .sk:last-child {
+    width: 40%;
+    height: 11px;
+}
+
+.sk-row-amt {
+    width: 70px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+/* Same breakpoints as homepage.css */
+@media (max-width: 965px) {
+    .sk-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sk-summary {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sk-bottom {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .sk-title {
+        padding: 3rem 1.5rem 0;
+    }
+
+    .sk-cards {
+        padding: 2rem 1.5rem 2.5rem;
+    }
+
+    .sk-summary {
+        padding: 0 1.5rem;
+    }
+
+    .sk-bottom {
+        padding: 0 2rem;
+    }
+}
+
+@media (max-width: 460px) {
+    .sk-icon {
+        display: none;
+    }
+}
+
+@media (max-width: 425px) {
+    .sk-value {
+        height: 27px;
+        margin-top: 15px;
+    }
+
+    .sk-sub {
+        margin-top: 12px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DESKTOP-VIEW BANNER (above the 6 cards, 1200px and below)
+   ═══════════════════════════════════════════════════════════ */
+.desktop-view-banner {
+    display: none;
+}
+
+/* ── Tablets / small laptops ── */
+@media only screen and (max-width: 1200px) {
+    .desktop-view-banner {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        margin-top: 1.5rem;
+        padding: 16px 20px;
+        background: #BDEBFA;
+        border: 1px solid #9fdcf2;
+        border-radius: 20px;
+        animation: slideIn 0.4s ease both;
+    }
+
+    .dvb-window {
+        position: relative;
+        flex-shrink: 0;
+        width: 150px;
+        aspect-ratio: 350 / 210;
+        background: #0A5BC9;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dvb-dots {
+        position: absolute;
+        top: 8px;
+        left: 9px;
+        display: flex;
+        gap: 4px;
+    }
+
+    .dvb-dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #BDEBFA;
+    }
+
+    .dvb-smile {
+        width: 45%;
+        height: auto;
+        fill: none;
+        stroke: #BDEBFA;
+        stroke-width: 6;
+        stroke-linecap: round;
+    }
+
+    .dvb-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .container-fluid .main-parent main .desktop-view-banner .dvb-text h4 {
+        margin: 0;
+        padding: 0;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.3;
+        letter-spacing: 0;
+        text-transform: none;
+        color: #0A5BC9;
+    }
+
+    .container-fluid main .desktop-view-banner .dvb-text p {
+        margin: 5px 0 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #1E4A7A;
+    }
+}
+
+/* ── Large phones / small tablets ── */
+@media only screen and (max-width: 768px) {
+    .desktop-view-banner {
+        gap: 1rem;
+        padding: 14px 16px;
+        border-radius: 16px;
+    }
+
+    .dvb-window {
+        width: 118px;
+        border-radius: 8px;
+    }
+
+    .dvb-dots {
+        top: 6px;
+        left: 7px;
+    }
+
+    .dvb-dots span {
+        width: 6px;
+        height: 6px;
+    }
+
+    .container-fluid .main-parent main .desktop-view-banner .dvb-text h4 {
+        font-size: 16px;
+    }
+
+    .container-fluid main .desktop-view-banner .dvb-text p {
+        font-size: 12.5px;
+    }
+}
+
+/* ── Phones: same 16px side gutter as the rest of the page ── */
+@media only screen and (max-width: 600px) {
+    .desktop-view-banner {
+        margin: 1.25rem 1rem 0;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+    }
+
+    .dvb-window {
+        width: 88px;
+        border-radius: 7px;
+    }
+
+    .dvb-dots {
+        top: 5px;
+        left: 6px;
+        gap: 3px;
+    }
+
+    .dvb-dots span {
+        width: 5px;
+        height: 5px;
+    }
+
+    .dvb-smile {
+        stroke-width: 8;
+    }
+
+    .container-fluid .main-parent main .desktop-view-banner .dvb-text h4 {
+        font-size: 14.5px;
+        line-height: 1.3;
+    }
+
+    .container-fluid main .desktop-view-banner .dvb-text p {
+        margin-top: 4px;
+        font-size: 11.5px;
+        line-height: 1.45;
+    }
+}
+
+/* ── Small phones: keep only the headline so the banner stays short ── */
+@media only screen and (max-width: 400px) {
+    .desktop-view-banner {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .dvb-window {
+        width: 64px;
+        border-radius: 6px;
+    }
+
+    .dvb-dots {
+        top: 4px;
+        left: 5px;
+    }
+
+    .dvb-dots span {
+        width: 4px;
+        height: 4px;
+    }
+
+    .container-fluid .main-parent main .desktop-view-banner .dvb-text h4 {
+        font-size: 13.5px;
+    }
+
+    .container-fluid main .desktop-view-banner .dvb-text p {
+        display: none;
+    }
+}
+
 /* .container-fluid section .card-box-parent {
     width: 100%;
     height: 742px;
@@ -2793,6 +3268,10 @@
         width: calc(100% - 80px);
         margin-left: 80px;
     }
+
+    .aw-switch-item {
+        display: none !important;
+    }
 }
 
 @media only screen and (max-width: 1170px) {
@@ -2841,7 +3320,7 @@
     .container-fluid section .card-box-summary {
         /* grid-template-columns: repeat(1, 1fr); */
         display: flex;
-        flex-direction: column-reverse;
+        flex-direction: column;
         /* gap: 3rem; */
     }
 
@@ -2931,102 +3410,8 @@
         margin-left: 0;
     }
 
-    .container-fluid main .card-parent {
-        padding: 2.5rem 0;
-    }
-
-    .container-fluid section .card-box-summary {
-        /* grid-template-columns: repeat(1, 1fr); */
-        display: flex;
-        flex-direction: column-reverse;
-        gap: 3rem;
-    }
-
-    .container-fluid main .main-intro .main-intro-text {
-        width: 400px;
-        top: -60px;
-        left: 15px;
-    }
-
-    .container-fluid section .recent-transaction {
-        all: unset;
-    }
-
-    .container-fluid section .recent-transaction .button-parent {
-        display: flex;
-        gap: 8px;
-        /* padding: 14px 20px 14px; */
-        padding: 15px 0;
-        border-bottom: 1px solid var(--border)
-    }
-
-    .container-fluid section .recent-transaction .recent-header {
-        /* padding: 18px 20px 0; */
-        padding: 0;
-        /* border-bottom: 1px solid var(--border); */
-    }
-
-    .container-fluid section .recent-transaction .recent-header h3 {
-        font-size: 16px;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin: 0px;
-    }
-
-    .container-fluid section .recent-transaction .recent-header p {
-        display: none;
-        /* width: 280px; */
-    }
-
-    .container-fluid section .recent-transaction .recent-header a {
-        display: none;
-    }
-
-    .container-fluid section .recent-transaction {
-        max-width: 100%;
-        overflow: hidden;
-    }
-
-    .container-fluid section .recent-transaction .recent-body {
-        /* max-height: 300px; */
-        height: 100%;
-        padding: 0;
-    }
-
-    .panel {
-        all: unset;
-    }
-
-    .panel-head {
-        /* padding: 18px 20px; */
-        padding: 0 0 12px;
-        align-items: center;
-        border-bottom: 1px solid var(--line);
-    }
-
-    .panel-head h3 {
-        font-size: 16px;
-        margin: 0;
-        font-weight: 600;
-        /* color: var(--teal); */
-        color: #1a1a1a;
-    }
-
-    .panel-head p {
-        display: none;
-    }
-
-    .panel-body {
-        /* padding: 0 20px 20px; */
-        /* height: calc(100% - 62px); */
-        padding: 0;
-        height: 100%;
-        /* height: 300px; */
-        overflow-y: auto;
-    }
-
-    .panel-1 {
-        display: none;
+    .container-fluid section .parent-panel {
+        padding: 0 0 5rem;
     }
 }
 
@@ -3076,7 +3461,7 @@
     }
 
     .container-fluid main .card-parent {
-        padding: 2rem 1.5rem 1.5rem;
+        padding: 2rem 1.5rem 2.5rem;
     }
 
     .container-fluid section .card-box-summary {
@@ -3085,7 +3470,7 @@
     }
 
     .container-fluid section .parent-panel {
-        padding: 0 1.5rem 1.5rem;
+        padding: 0 2rem 7rem;
     }
 
     .container-fluid .main-parent main h2 {
@@ -3171,19 +3556,6 @@
 
     .container-fluid .main-parent {
         padding: 0;
-    }
-
-    .container-fluid main .card-parent {
-        padding: 2rem 1.5rem 2rem;
-    }
-
-    .container-fluid section .card-box-summary {
-        padding: 0 1.5rem 7rem;
-        /* flex-direction: column-reverse; */
-    }
-
-    .container-fluid section .parent-panel {
-        padding: 0 1.5rem 7rem;
     }
 
     .container-fluid main .main-intro .main-intro-text {
@@ -3302,6 +3674,12 @@
 }
 
 @media only screen and (max-width: 425px) {
+
+    .container-fluid section .recent-transaction .recent-header .recent-header-text {
+        width: 100%;
+        max-width: 220px;
+    }
+
     .container-fluid main .main-intro .main-intro-icon {
         width: 130px;
         height: 150px;
@@ -3323,16 +3701,29 @@
         font-weight: 700;
     }
 
+    .container-fluid main .card-box .card-body h5 {
+        font-size: 22px;
+    }
+
+    .container-fluid main .card-box .card-body {
+        margin: 15px 0 0;
+    }
+
+    .container-fluid main .card-box .card-body p {
+        margin: 10px 0 0;
+    }
+
     .container-fluid main .main-intro p {
         font-size: 12.5px;
     }
 
-    .container-fluid main .card-parent {
+    /* .container-fluid main .card-parent {
         display: none;
-    }
+    } */
+
 
     .container-fluid main .card-parent-mobile {
-        display: block;
+        display: none;
         padding: 1.5rem;
     }
 
@@ -3367,6 +3758,227 @@
     .container-fluid main .card-parent .card-box{
         flex: 0 0 auto;
     } */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — Member dashboard (phones)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Long titles / amounts never push the layout wider */
+.tx-list-info strong,
+.tx-list-info span {
+    overflow-wrap: anywhere;
+}
+
+.container-fluid main .card-box .card-body h5 {
+    overflow-wrap: anywhere;
+}
+
+@media only screen and (max-width: 600px) {
+
+    /* ── One consistent 16px side gutter for every section ── */
+    .container-fluid .main-parent main h2 {
+        padding: 1.5rem 1rem 0;
+        font-size: 18px;
+        line-height: 1.35;
+    }
+
+    .container-fluid .main-parent main h2 span {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+    }
+
+    .container-fluid main .card-parent {
+        padding: 1.25rem 1rem;
+        gap: 12px;
+    }
+
+    .container-fluid section .card-box-summary {
+        padding: 0 1rem;
+        gap: 12px;
+    }
+
+    .container-fluid section .parent-panel {
+        padding: 0 1rem calc(110px + env(safe-area-inset-bottom, 0px));
+        margin-top: 12px;
+        gap: 12px;
+    }
+
+    /* ── Summary cards ── */
+    .container-fluid main .card-box {
+        padding: 14px 16px;
+        border-radius: 16px;
+    }
+
+    /* ── Panels ── */
+    .container-fluid section .recent-transaction,
+    .panel {
+        border-radius: 16px;
+    }
+
+    .container-fluid section .recent-transaction .recent-header {
+        padding: 16px 16px 0;
+        gap: 12px;
+    }
+
+    .container-fluid section .recent-transaction .recent-header .recent-header-text {
+        flex: 1;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .panel-head {
+        padding: 16px;
+    }
+
+    .recent-body,
+    .panel-body {
+        padding: 0 16px 10px;
+    }
+
+    /* Filter pills scroll sideways instead of squeezing */
+    .container-fluid section .recent-transaction .button-parent {
+        padding: 12px 16px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+    }
+
+    .container-fluid section .recent-transaction .button-parent::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tx-tab-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 6px 14px;
+    }
+
+    .tx-list-item {
+        gap: 12px;
+        padding: 12px 0;
+    }
+
+    /* Community: expanded announcement uses full width, poll header wraps */
+    [id^="announcement-expanded-"] {
+        padding-left: 0 !important;
+    }
+
+    [id^="member-poll-"]>div:first-child {
+        flex-wrap: wrap;
+    }
+
+    /* ── Skeleton follows the same spacing ── */
+    #skeleton-overlay .sk-title {
+        padding: 1.5rem 1rem 0;
+    }
+
+    #skeleton-overlay .sk-cards {
+        padding: 1.25rem 1rem;
+        gap: 12px;
+    }
+
+    #skeleton-overlay .sk-summary {
+        padding: 0 1rem;
+        gap: 12px;
+    }
+
+    #skeleton-overlay .sk-bottom {
+        padding: 0 1rem;
+        margin-top: 12px;
+        gap: 12px;
+    }
+
+    /* ── Pop-ups: Upcoming Dues / Overdue / Seminars / Net Standing / Resign ── */
+    #upcomingDuesModal>div,
+    #overdueLoansModal>div,
+    #seminarsModal>div,
+    #netStandingModal>div,
+    #resignModal>div {
+        width: calc(100% - 24px) !important;
+        max-height: 85vh !important;
+        max-height: 85dvh !important;
+        display: flex !important;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    #upcomingDuesModal>div>div:first-child,
+    #overdueLoansModal>div>div:first-child,
+    #seminarsModal>div>div:first-child,
+    #netStandingModal>div>div:first-child,
+    #resignModal>div>div:first-child {
+        padding: 16px !important;
+    }
+
+    /* Scroll areas: grow with content instead of a fixed 368px / 310px */
+    #upcomingDuesModal>div>div:last-child,
+    #overdueLoansModal>div>div:last-child {
+        height: auto !important;
+        flex: 1;
+        min-height: 0;
+        padding: 0 16px !important;
+    }
+
+    #seminarAttendedPanel,
+    #seminarPasscodePanel {
+        height: auto !important;
+        max-height: 60vh;
+        max-height: 60dvh;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    #netStandingModal>div>div:last-child {
+        padding: 16px !important;
+        overflow-y: auto;
+    }
+}
+
+/* ── Small phones: tighter card text so amounts fit 2-up ── */
+@media only screen and (max-width: 450px) {
+    .container-fluid main .card-box .card-header p {
+        font-size: 12.5px;
+    }
+
+    .container-fluid main .card-box .card-body h5 {
+        font-size: 18px;
+    }
+
+    .container-fluid main .card-box .card-body {
+        margin: 10px 0 0;
+    }
+
+    .container-fluid main .card-box .card-body p {
+        margin: 6px 0 0;
+        font-size: 11.5px;
+    }
+
+    .tx-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .tx-list-amt {
+        font-size: 12.5px;
+    }
+
+    /* Toasts fit the screen */
+    .toast-message {
+        left: 12px;
+        right: 12px;
+        width: auto !important;
+    }
+}
+
+/* ── Very small phones: cards one per row ── */
+@media only screen and (max-width: 340px) {
+
+    .container-fluid main .card-parent,
+    #skeleton-overlay .sk-cards {
+        grid-template-columns: 1fr;
+    }
 }
 
 

@@ -85,42 +85,57 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($pendingRepayments as $pr)
-                            <tr class="repay-pending-row cursor-pointer hover:bg-gray-50 transition-colors" data-id="{{ $pr->id }}"
-                                data-member="{{ ($pr->user->first_name ?? '') . ' ' . ($pr->user->last_name ?? '') }}"
-                                data-loan-ref="{{ $pr->lending->reference_no ?? 'N/A' }}"
-                                data-loan-type="{{ $pr->lending->lending_type ?? 'N/A' }}"
-                                data-payment-number="{{ $pr->payment_number }}"
-                                data-payment-sequence="{{ $pr->payment_sequence ?? 1 }}"
-                                data-amount="{{ number_format($pr->amount_paid + (float) ($pr->late_fee ?? 0), 2) }}"
-                                data-base-amount="{{ number_format($pr->amount_paid, 2) }}" data-method="{{ $pr->payment_method }}"
-                                data-gcash-ref="{{ $pr->gcash_reference_no ?? '' }}"
-                                data-reference-no="{{ $pr->reference_no ?? '' }}"
-                                data-date="{{ $pr->created_at->format('M d, Y g:i A') }}"
-                                data-proof="{{ $pr->payment_proof_path ? asset('storage/' . $pr->payment_proof_path) : '' }}"
-                                data-late-fee="{{ $pr->late_fee ? number_format($pr->late_fee, 2) : '' }}"
-                                data-notes="{{ $pr->notes ?? '' }}">
-                                <td>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                                            <span class="text-xs text-primary-600 font-medium">
-                                                {{ strtoupper(substr($pr->user->first_name ?? 'U', 0, 1) . substr($pr->user->last_name ?? '', 0, 1)) }}
-                                            </span>
-                                        </div>
-                                        <span class="text-sm text-gray-900">
-                                            {{ $pr->user->first_name ?? 'Unknown' }} {{ $pr->user->last_name ?? '' }}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="text-sm text-gray-900 font-medium">{{ $pr->lending->reference_no ?? 'N/A' }}</td>
-                                <td class="text-sm text-gray-600">
-                                    {{ $pr->payment_number }}@if(($pr->payment_sequence ?? 1) > 1)<span
-                                    class="ml-1 px-1.5 py-0.5 bg-warning-100 text-warning-600 text-[10px] font-semibold rounded-full">{{ $pr->payment_sequence }}x</span>@endif
-                                </td>
-                                <td class="text-sm font-semibold text-gray-900">₱{{ number_format($pr->amount_paid, 2) }}</td>
-                                <td class="text-sm text-gray-600">{{ $pr->payment_method }}</td>
-                                <td class="text-sm text-gray-600">{{ $pr->created_at->format('M d, Y') }}</td>
-                            </tr>
+                        @php
+                            $pendingGroups = $pendingRepayments->groupBy(fn($p) => $p->lending_id . '|' . ($p->reference_no ?: 'no-ref-' . $p->id));
+                        @endphp
+                        @foreach($pendingGroups as $grp)
+                            @php
+                                $grp = $grp->sortBy('payment_number')->values();
+                                $pr = $grp->first();
+                                $grpTotal = $grp->sum(fn($p) => $p->amount_paid + (float) ($p->late_fee ?? 0));
+                            @endphp
+
+                            @if($grp->count() > 1)
+                                    <tr class="repay-group-row cursor-pointer hover:bg-gray-50 transition-colors"
+                                        data-member="{{ ($pr->user->first_name ?? '') . ' ' . ($pr->user->last_name ?? '') }}"
+                                        data-loan-ref="{{ $pr->lending->reference_no ?? 'N/A' }}"
+                                        data-loan-type="{{ $pr->lending->lending_type ?? 'N/A' }}" data-method="{{ $pr->payment_method }}"
+                                        data-gcash-ref="{{ $pr->gcash_reference_no ?? '' }}"
+                                        data-reference-no="{{ $pr->reference_no ?? '' }}"
+                                        data-date="{{ $pr->created_at->format('M d, Y g:i A') }}"
+                                        data-proof="{{ $pr->payment_proof_path ? url('/proof/' . ltrim($pr->payment_proof_path, '/')) : '' }}"
+                                        data-total="{{ number_format($grpTotal, 2) }}" data-items="{{ json_encode($grp->map(fn($p) => [
+                                    'id' => $p->id,
+                                    'number' => $p->payment_number,
+                                    'amount' => (float) $p->amount_paid,
+                                    'penalty' => (float) ($p->late_fee ?? 0),
+                                ])->values()) }}">
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                                                    <span class="text-xs text-primary-600 font-medium">
+                                                        {{ strtoupper(substr($pr->user->first_name ?? 'U', 0, 1) . substr($pr->user->last_name ?? '', 0, 1)) }}
+                                                    </span>
+                                                </div>
+                                                <span class="text-sm text-gray-900">{{ $pr->user->first_name ?? 'Unknown' }}
+                                                    {{ $pr->user->last_name ?? '' }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-sm text-gray-900 font-medium">{{ $pr->lending->reference_no ?? 'N/A' }}</td>
+                                        <td class="text-sm text-gray-600">
+                                            {{ $grp->first()->payment_number }}–{{ $grp->last()->payment_number }}
+                                            <span
+                                                class="ml-1 px-1.5 py-0.5 bg-warning-100 text-warning-600 text-[10px] font-semibold rounded-full">{{ $grp->count() }}
+                                                installments</span>
+                                        </td>
+                                        <td class="text-sm font-semibold text-gray-900">₱{{ number_format($grp->sum('amount_paid'), 2) }}
+                                        </td>
+                                        <td class="text-sm text-gray-600">{{ $pr->payment_method }}</td>
+                                        <td class="text-sm text-gray-600">{{ $pr->created_at->format('M d, Y') }}</td>
+                                    </tr>
+                            @else
+                                {{-- KEEP YOUR EXISTING <tr class="repay-pending-row ..."> ... </tr> HERE, unchanged --}}
+                            @endif
                         @endforeach
                     </tbody>
                 </table>
@@ -462,8 +477,8 @@
                     let html = '<option value="">Select loan</option>';
                     loans.forEach(loan => {
                         html += `<option value="${loan.id}" data-monthly="${loan.monthly_payment}" data-total="${loan.total_payment}" data-amount="${loan.lending_amount}">
-                                                                        ${loan.reference_no} — ${loan.lending_type} (₱${parseFloat(loan.lending_amount).toLocaleString()})
-                                                                    </option>`;
+                                                                                            ${loan.reference_no} — ${loan.lending_type} (₱${parseFloat(loan.lending_amount).toLocaleString()})
+                                                                                        </option>`;
                     });
                     loanSelect.innerHTML = html;
                 })
@@ -750,6 +765,74 @@
         </div>
     </div>
 
+    <div id="repaymentGroupModal" class="modal-overlay hidden">
+        <div class="modal max-w-lg">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                            <i data-lucide="layers" class="w-5 h-5 text-primary-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">Grouped Repayment</h2>
+                            <p id="rpGroupSub" class="text-xs text-gray-500"></p>
+                        </div>
+                    </div>
+                    <button data-action="closeModal" data-arg='["repaymentGroupModal"]'
+                        class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 space-y-4" style="max-height:65vh; overflow-y:auto;">
+                <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+                    <div class="flex justify-between"><span class="text-sm text-gray-500">Member</span><span
+                            id="rpGroupMember" class="text-sm font-semibold text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-sm text-gray-500">Loan Reference</span><span
+                            id="rpGroupLoanRef" class="text-sm font-semibold text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-sm text-gray-500">Loan Type</span><span
+                            id="rpGroupLoanType" class="text-sm text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-sm text-gray-500">Method</span><span
+                            id="rpGroupMethod" class="text-sm text-gray-900">—</span></div>
+                    <div id="rpGroupGcashRow" class="flex justify-between"><span class="text-sm text-gray-500">GCash Ref
+                            No.</span><span id="rpGroupGcash" class="text-sm font-semibold text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-sm text-gray-500">Reference No.</span><span
+                            id="rpGroupRef" class="text-sm font-mono text-gray-900">—</span></div>
+                    <div class="flex justify-between"><span class="text-sm text-gray-500">Date</span><span id="rpGroupDate"
+                            class="text-sm text-gray-900">—</span></div>
+                </div>
+
+                <div>
+                    <p class="text-sm font-medium text-gray-700 mb-2">Installments</p>
+                    <div id="rpGroupList" class="space-y-2"></div>
+                </div>
+
+                <div class="flex justify-between items-center bg-gray-900 text-white rounded-xl px-4 py-3">
+                    <span class="text-sm font-medium">Total</span>
+                    <span id="rpGroupTotal" class="text-lg font-bold">₱0.00</span>
+                </div>
+
+                <div id="rpGroupProofSection" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Member's Payment Proof</label>
+                    <div class="rounded-lg border border-gray-200 overflow-hidden">
+                        <img id="rpGroupProofImg" src="" alt="Payment proof"
+                            class="w-full max-h-64 object-contain bg-gray-50">
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
+                <button data-action="openRepaymentVoidConfirm"
+                    class="px-5 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 transition-colors flex items-center gap-2">
+                    <i data-lucide="undo-2" class="w-4 h-4"></i> Mark all as Returned
+                </button>
+                <button id="rpGroupCompleteBtn" data-action="confirmCompleteRepayment"
+                    class="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Mark all as Complete
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Void Repayment Confirm Modal -->
     <div id="repaymentVoidModal" class="modal-overlay hidden">
         <div class="modal max-w-md">
@@ -810,11 +893,75 @@
     </div>
 
     <script nonce="{{ csp_nonce() }}">
-        let currentRepaymentId = null;
+        let currentRepaymentIds = [];
+        let currentGroupMeta = null;
+
+        function rpMoney(n) {
+            return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Runs the request for every id, one after another, stopping on the first failure.
+        function rpRunForAll(ids, suffix, extra) {
+            return ids.reduce(function (chain, id) {
+                return chain.then(function () {
+                    var fd = new FormData();
+                    fd.append('_token', '{{ csrf_token() }}');
+                    if (extra) Object.keys(extra).forEach(function (k) { fd.append(k, extra[k]); });
+                    return fetch('/repayments/' + id + '/' + suffix, {
+                        method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).then(function (r) { return r.json(); })
+                        .then(function (d) { if (!d.success) throw new Error(d.message || 'Request failed'); });
+                });
+            }, Promise.resolve());
+        }
+
+        document.querySelectorAll('.repay-group-row').forEach(function (row) {
+            row.addEventListener('click', function () {
+                var d = this.dataset, items = [];
+                try { items = JSON.parse(d.items || '[]'); } catch (e) { }
+
+                currentRepaymentIds = items.map(function (i) { return i.id; });
+                currentGroupMeta = { member: d.member, amount: '₱' + d.total };
+
+                document.getElementById('rpGroupSub').textContent = items.length + ' installments submitted together';
+                document.getElementById('rpGroupMember').textContent = d.member || '—';
+                document.getElementById('rpGroupLoanRef').textContent = d.loanRef || '—';
+                document.getElementById('rpGroupLoanType').textContent = d.loanType || '—';
+                document.getElementById('rpGroupMethod').textContent = d.method || '—';
+                document.getElementById('rpGroupGcash').textContent = d.gcashRef || '—';
+                document.getElementById('rpGroupRef').textContent = d.referenceNo || '—';
+                document.getElementById('rpGroupDate').textContent = d.date || '—';
+                document.getElementById('rpGroupTotal').textContent = '₱' + d.total;
+
+                var isGcash = (d.method || '').toLowerCase() === 'gcash';
+                document.getElementById('rpGroupGcashRow').style.display = isGcash ? 'flex' : 'none';
+
+                document.getElementById('rpGroupList').innerHTML = items.map(function (it) {
+                    return '<div class="flex justify-between items-center border border-gray-200 rounded-lg px-3 py-2">' +
+                        '<span class="text-sm font-medium text-gray-900">Installment #' + it.number + '</span>' +
+                        '<span class="text-sm font-semibold text-gray-900">' + rpMoney(it.amount) +
+                        (it.penalty > 0 ? '<span class="block text-xs text-danger-600">+ ' + rpMoney(it.penalty) + ' late fee</span>' : '') +
+                        '</span></div>';
+                }).join('');
+
+                var img = document.getElementById('rpGroupProofImg');
+                if (d.proof) {
+                    img.src = d.proof;
+                    document.getElementById('rpGroupProofSection').classList.remove('hidden');
+                } else {
+                    document.getElementById('rpGroupProofSection').classList.add('hidden');
+                }
+
+                openModal('repaymentGroupModal');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            });
+        });
 
         document.querySelectorAll('.repay-pending-row').forEach(row => {
             row.addEventListener('click', function () {
                 currentRepaymentId = this.dataset.id;
+                currentRepaymentIds = [this.dataset.id];
+                currentGroupMeta = null;
                 document.getElementById('rpDetailMember').textContent = this.dataset.member || '—';
                 document.getElementById('rpDetailLoanRef').textContent = this.dataset.loanRef || '—';
                 document.getElementById('rpDetailLoanType').textContent = this.dataset.loanType || '—';
@@ -879,102 +1026,74 @@
         });
 
         function openRepaymentVoidConfirm() {
-            var row = document.querySelector('.repay-pending-row[data-id="' + currentRepaymentId + '"]');
-            if (row) {
-                document.getElementById('rpVoidAmount').textContent = '₱' + row.dataset.amount;
-                document.getElementById('rpVoidMember').textContent = row.dataset.member;
+            if (currentGroupMeta) {
+                document.getElementById('rpVoidAmount').textContent = currentGroupMeta.amount;
+                document.getElementById('rpVoidMember').textContent = currentGroupMeta.member;
+            } else {
+                var row = document.querySelector('.repay-pending-row[data-id="' + currentRepaymentId + '"]');
+                if (row) {
+                    document.getElementById('rpVoidAmount').textContent = '₱' + row.dataset.amount;
+                    document.getElementById('rpVoidMember').textContent = row.dataset.member;
+                }
             }
             document.getElementById('rpVoidReason').value = '';
             document.getElementById('rpVoidConfirmBtn').disabled = true;
-            closeModal('repaymentDetailModal');
+            closeModal(currentGroupMeta ? 'repaymentGroupModal' : 'repaymentDetailModal');
             openModal('repaymentVoidModal');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         function openRepaymentDetailFromVoid() {
             closeModal('repaymentVoidModal');
-            openModal('repaymentDetailModal');
+            openModal(currentGroupMeta ? 'repaymentGroupModal' : 'repaymentDetailModal');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         function submitRepaymentVoid() {
             var reason = document.getElementById('rpVoidReason').value;
-            if (!reason) {
-                showToast('Error', 'Please select a reason for returning.');
-                return;
-            }
+            if (!reason) { showToast('Error', 'Please select a reason for returning.'); return; }
+            if (!currentRepaymentIds.length) return;
 
             var btn = document.getElementById('rpVoidConfirmBtn');
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Processing...';
-            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
 
-            var formData = new FormData();
-            formData.append('_token', '{{ csrf_token() }}');
-            formData.append('void_reason', reason);
-
-            fetch('/repayments/' + currentRepaymentId + '/void', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-                .then(function (response) { return response.json(); })
-                .then(function (data) {
-                    if (data.success) {
-                        closeModal('repaymentVoidModal');
-                        showToast('Success', data.message || 'Repayment marked as returned.');
-                        setTimeout(function () { window.location.reload(); }, 1200);
-                    } else {
-                        showToast('Error', data.message || 'Failed to return repayment');
-                        btn.disabled = false;
-                        btn.innerHTML = '<i data-lucide="undo-2" class="w-4 h-4"></i> Confirm Return';
-                        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-                    }
+            rpRunForAll(currentRepaymentIds, 'void', { void_reason: reason })
+                .then(function () {
+                    closeModal('repaymentVoidModal');
+                    showToast('Success', 'Repayment marked as returned.');
+                    setTimeout(function () { window.location.reload(); }, 1200);
                 })
-                .catch(function (error) {
-                    console.error('Void repayment error:', error);
-                    showToast('Error', 'An error occurred. Please try again.');
+                .catch(function (err) {
+                    showToast('Error', err.message || 'Failed to return repayment');
                     btn.disabled = false;
                     btn.innerHTML = '<i data-lucide="undo-2" class="w-4 h-4"></i> Confirm Return';
-                    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 });
         }
 
         function confirmCompleteRepayment() {
-            if (!currentRepaymentId) return;
+            if (!currentRepaymentIds.length) return;
 
-            var btn = document.getElementById('rpDetailCompleteBtn');
+            var isGroup = !!currentGroupMeta;
+            var btn = document.getElementById(isGroup ? 'rpGroupCompleteBtn' : 'rpDetailCompleteBtn');
+            var label = isGroup ? 'Mark all as Complete' : 'Mark as Complete';
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Processing...';
-            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
 
-            var formData = new FormData();
-            formData.append('_token', '{{ csrf_token() }}');
-
-            fetch('/repayments/' + currentRepaymentId + '/complete', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-                .then(function (response) { return response.json(); })
-                .then(function (data) {
-                    if (data.success) {
-                        closeModal('repaymentDetailModal');
-                        showToast('Success', data.message || 'Repayment confirmed successfully.');
-                        setTimeout(function () { window.location.reload(); }, 1200);
-                    } else {
-                        showToast('Error', data.message || 'Failed to complete repayment');
-                        btn.disabled = false;
-                        btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Complete';
-                        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-                    }
+            rpRunForAll(currentRepaymentIds, 'complete')
+                .then(function () {
+                    closeModal(isGroup ? 'repaymentGroupModal' : 'repaymentDetailModal');
+                    showToast('Success', 'Repayment confirmed successfully.');
+                    setTimeout(function () { window.location.reload(); }, 1200);
                 })
-                .catch(function (error) {
-                    console.error('Complete repayment error:', error);
-                    showToast('Error', 'An error occurred. Please try again.');
+                .catch(function (err) {
+                    showToast('Error', err.message || 'Failed to complete repayment');
                     btn.disabled = false;
-                    btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Complete';
-                    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                    btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> ' + label;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 });
         }
 
@@ -1007,40 +1126,40 @@
             modal.id = 'repayVoidReasonModal';
             modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); z-index:999999; display:flex; align-items:flex-start; justify-content:center; padding:1.5rem 1rem; overflow-y:auto;';
             modal.innerHTML = `
-                                                            <div style="background:#fff; border-radius:20px; width:100%; max-width:400px; box-shadow:0 24px 60px rgba(0,0,0,0.18); margin:auto; animation:repayVoidIn 0.35s cubic-bezier(.22,1,.36,1) both;">
-                                                                <style>
-                                                                    @keyframes repayVoidIn {
-                                                                        from { opacity: 0; transform: translateY(28px) scale(0.97); }
-                                                                        to { opacity: 1; transform: translateY(0) scale(1); }
-                                                                    }
-                                                                </style>
-                                                                <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">
-                                                                    <div style="width:60px;height:60px;background:#c0392b;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
-                                                                    </div>
-                                                                    <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">Repayment Returned</h2>
-                                                                    <p style="color:#6b7280; font-size:0.82rem; margin:0;">This loan repayment has been returned by the admin.</p>
-                                                                </div>
-                                                                <div style="padding:0.75rem 1.5rem 0;">
-                                                                    <div style="background:#fafafa; border-radius:12px; padding:0.25rem 1rem;">
-                                                                        ${row('Loan Type', d.loantype || '—')}
-                                                                        ${row('Loan Reference', d.loanref || '—')}
-                                                                        ${row('Payment #', d.paymentnum || '—')}
-                                                                        ${row('Member', d.member || '—')}
-                                                                        ${row('Reference No.', d.ref || '—')}
-                                                                        ${row('Date & Time', d.date || '—')}
-                                                                        ${row('Method', d.method || '—')}
-                                                                    </div>
-                                                                </div>
-                                                                <div style="padding:1.25rem 1.5rem;">
-                                                                    <div style="font-size:0.78rem; color:#888; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.4rem;">Reason</div>
-                                                                    <div style="font-size:1rem; font-weight:700; color:#c0392b; background:#fdecec; border:1px solid #f5c6c6; border-radius:10px; padding:0.75rem 1rem;">${label}</div>
-                                                                </div>
-                                                                <div style="padding:0 1.5rem 1.5rem;">
-                                                                    <button data-action="remove-element" data-target="repayVoidReasonModal" class="rp-inline-close" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
-                                                                </div>
-                                                            </div>
-                                                        `;
+                                                                                <div style="background:#fff; border-radius:20px; width:100%; max-width:400px; box-shadow:0 24px 60px rgba(0,0,0,0.18); margin:auto; animation:repayVoidIn 0.35s cubic-bezier(.22,1,.36,1) both;">
+                                                                                    <style>
+                                                                                        @keyframes repayVoidIn {
+                                                                                            from { opacity: 0; transform: translateY(28px) scale(0.97); }
+                                                                                            to { opacity: 1; transform: translateY(0) scale(1); }
+                                                                                        }
+                                                                                    </style>
+                                                                                    <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">
+                                                                                        <div style="width:60px;height:60px;background:#c0392b;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>
+                                                                                        </div>
+                                                                                        <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">Repayment Returned</h2>
+                                                                                        <p style="color:#6b7280; font-size:0.82rem; margin:0;">This loan repayment has been returned by the admin.</p>
+                                                                                    </div>
+                                                                                    <div style="padding:0.75rem 1.5rem 0;">
+                                                                                        <div style="background:#fafafa; border-radius:12px; padding:0.25rem 1rem;">
+                                                                                            ${row('Loan Type', d.loantype || '—')}
+                                                                                            ${row('Loan Reference', d.loanref || '—')}
+                                                                                            ${row('Payment #', d.paymentnum || '—')}
+                                                                                            ${row('Member', d.member || '—')}
+                                                                                            ${row('Reference No.', d.ref || '—')}
+                                                                                            ${row('Date & Time', d.date || '—')}
+                                                                                            ${row('Method', d.method || '—')}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div style="padding:1.25rem 1.5rem;">
+                                                                                        <div style="font-size:0.78rem; color:#888; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.4rem;">Reason</div>
+                                                                                        <div style="font-size:1rem; font-weight:700; color:#c0392b; background:#fdecec; border:1px solid #f5c6c6; border-radius:10px; padding:0.75rem 1rem;">${label}</div>
+                                                                                    </div>
+                                                                                    <div style="padding:0 1.5rem 1.5rem;">
+                                                                                        <button data-action="remove-element" data-target="repayVoidReasonModal" class="rp-inline-close" style="width:100%; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            `;
             document.body.appendChild(modal);
         };
 
@@ -1086,69 +1205,69 @@
             modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); z-index:999999; display:flex; align-items:flex-start; justify-content:center; padding:1.5rem 1rem; overflow-y:auto;';
 
             modal.innerHTML = `
-                                                            <div style="background:#fff; border-radius:20px; width:100%; max-width:420px; box-shadow:0 24px 60px rgba(0,0,0,0.18); margin:auto; animation:repayRecIn 0.35s cubic-bezier(.22,1,.36,1) both;">
-                                                                <style>
-                                                                    @keyframes repayRecIn {
-                                                                        from { opacity: 0; transform: translateY(28px) scale(0.97); }
-                                                                        to { opacity: 1; transform: translateY(0) scale(1); }
-                                                                    }
-                                                                </style>
-                                                                <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">
-                                                                    <div style="width:60px;height:60px;background:${REPAY_NAVY};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                                    </div>
-                                                                    <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">Payment Recorded</h2>
-                                                                    <p style="color:#6b7280; font-size:0.82rem; margin:0;">KMPCATS Cooperative -- Official Receipt</p>
-                                                                </div>
-                                                                <div style="padding:0.6rem 1.5rem;">
-                                                                    ${payReceiptCard()}
-                                                                </div>
-                                                                <div style="padding:0 1.5rem 1.5rem; display:flex; gap:0.6rem;">
-                                                                    <button data-action="remove-element" data-target="repayReceiptModal" class="rp-inline-close" style="flex:1; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
-                                                                    <button data-action="downloadRepayReceipt" class="rp-inline-download" style="flex:1; padding:0.8rem; background:${REPAY_NAVY}; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                                                        Download
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        `;
+                                                                                <div style="background:#fff; border-radius:20px; width:100%; max-width:420px; box-shadow:0 24px 60px rgba(0,0,0,0.18); margin:auto; animation:repayRecIn 0.35s cubic-bezier(.22,1,.36,1) both;">
+                                                                                    <style>
+                                                                                        @keyframes repayRecIn {
+                                                                                            from { opacity: 0; transform: translateY(28px) scale(0.97); }
+                                                                                            to { opacity: 1; transform: translateY(0) scale(1); }
+                                                                                        }
+                                                                                    </style>
+                                                                                    <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e5e7eb;">
+                                                                                        <div style="width:60px;height:60px;background:${REPAY_NAVY};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                                                        </div>
+                                                                                        <h2 style="color:#1a1a1a; font-size:1.25rem; font-weight:700; margin:0 0 0.25rem;">Payment Recorded</h2>
+                                                                                        <p style="color:#6b7280; font-size:0.82rem; margin:0;">KMPCATS Cooperative -- Official Receipt</p>
+                                                                                    </div>
+                                                                                    <div style="padding:0.6rem 1.5rem;">
+                                                                                        ${payReceiptCard()}
+                                                                                    </div>
+                                                                                    <div style="padding:0 1.5rem 1.5rem; display:flex; gap:0.6rem;">
+                                                                                        <button data-action="remove-element" data-target="repayReceiptModal" class="rp-inline-close" style="flex:1; padding:0.7rem; background:transparent; color:#888; border:1.5px solid #e8e8e8; border-radius:12px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:background .2s,color .2s;">Close</button>
+                                                                                        <button data-action="downloadRepayReceipt" class="rp-inline-download" style="flex:1; padding:0.8rem; background:${REPAY_NAVY}; color:#fff; border:none; border-radius:12px; font-size:0.9rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s;">
+                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                                                            Download
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            `;
             document.body.appendChild(modal);
         };
 
         function payReceiptCard() {
             const d = currentRepayReceipt || {};
             return `
-                                                            ${payReceiptRow('Organization', 'KMPCATS')}
-                                                            ${payReceiptRow('Member', d.member)}
-                                                            ${payReceiptRow('Loan Reference', d.loanRef)}
-                                                            ${payReceiptRow('Loan Type', d.loanType)}
-                                                            ${payReceiptRow('Payment #', d.paymentNumber)}
-                                                            ${payReceiptRow('Amount', '&#8369;' + d.amount, true)}
-                                                            ${payReceiptRow('Payment Method', d.method)}
-                                                            ${payReceiptRow('Reference No.', repayRefBadge(d.ref))}
-                                                            ${payReceiptRow('Date & Time', d.date)}
-                                                            ${payReceiptRow('Status', repayStatusBadge())}
-                                                        `;
+                                                                                ${payReceiptRow('Organization', 'KMPCATS')}
+                                                                                ${payReceiptRow('Member', d.member)}
+                                                                                ${payReceiptRow('Loan Reference', d.loanRef)}
+                                                                                ${payReceiptRow('Loan Type', d.loanType)}
+                                                                                ${payReceiptRow('Payment #', d.paymentNumber)}
+                                                                                ${payReceiptRow('Amount', '&#8369;' + d.amount, true)}
+                                                                                ${payReceiptRow('Payment Method', d.method)}
+                                                                                ${payReceiptRow('Reference No.', repayRefBadge(d.ref))}
+                                                                                ${payReceiptRow('Date & Time', d.date)}
+                                                                                ${payReceiptRow('Status', repayStatusBadge())}
+                                                                            `;
         }
 
         window.downloadRepayReceipt = function () {
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'position:fixed; left:-9999px; top:0; width:400px; background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.15);';
             wrapper.innerHTML = `
-                                                            <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e8e8e8;">
-                                                                <div style="width:60px;height:60px;background:${REPAY_NAVY};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                                </div>
-                                                                <div style="color:#1a1a1a;font-size:1.25rem;font-weight:700;margin:0 0 0.25rem;">Payment Recorded</div>
-                                                                <div style="color:#6b7280;font-size:0.82rem;margin:0;">KMPCATS Cooperative -- Official Receipt</div>
-                                                            </div>
-                                                            <div style="padding:0.6rem 1.5rem;">
-                                                                ${payReceiptCard()}
-                                                            </div>
-                                                            <div style="padding:0.8rem 1.5rem 1.2rem;text-align:center;border-top:1px dashed #e8e8e8;">
-                                                                <div style="color:#aaa;font-size:0.72rem;">This receipt is system-generated and serves as official proof of your transaction.</div>
-                                                            </div>
-                                                        `;
+                                                                                <div style="padding:1.5rem; text-align:center; border-bottom:1px solid #e8e8e8;">
+                                                                                    <div style="width:60px;height:60px;background:${REPAY_NAVY};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.8rem;">
+                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                                                    </div>
+                                                                                    <div style="color:#1a1a1a;font-size:1.25rem;font-weight:700;margin:0 0 0.25rem;">Payment Recorded</div>
+                                                                                    <div style="color:#6b7280;font-size:0.82rem;margin:0;">KMPCATS Cooperative -- Official Receipt</div>
+                                                                                </div>
+                                                                                <div style="padding:0.6rem 1.5rem;">
+                                                                                    ${payReceiptCard()}
+                                                                                </div>
+                                                                                <div style="padding:0.8rem 1.5rem 1.2rem;text-align:center;border-top:1px dashed #e8e8e8;">
+                                                                                    <div style="color:#aaa;font-size:0.72rem;">This receipt is system-generated and serves as official proof of your transaction.</div>
+                                                                                </div>
+                                                                            `;
             document.body.appendChild(wrapper);
 
             const doCapture = function () {

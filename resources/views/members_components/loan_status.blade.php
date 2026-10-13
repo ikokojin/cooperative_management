@@ -241,10 +241,6 @@
             transition: background 0.2s;
         }
 
-        .lr-btn-download:hover {
-            background: #12704d;
-        }
-
         .lr-btn-close {
             flex: 1;
             display: flex;
@@ -265,9 +261,9 @@
             background: #f9fafb;
         }
 
-        .tx-voided-row {
+        /* .tx-voided-row {
             background: #fef2f2;
-        }
+        } */
 
         .tx-voided-row:hover {
             background: #fde8e8;
@@ -513,8 +509,8 @@
 
                     @if($loans->isEmpty())
                         <!-- <div class="loan-hero" style="display:flex;align-items:center;justify-content:center;padding:40px;">
-                                                                                                                                                                                                                                <p style="color:var(--teal);margin:0;">You have no approved loans yet.</p>
-                                                                                                                                                                                                                            </div> -->
+                                                                                                                                                                                                                                                                                            <p style="color:var(--teal);margin:0;">You have no approved loans yet.</p>
+                                                                                                                                                                                                                                                                                        </div> -->
                         <div class="header-main">
                             <h3>Loan Repayments</h3>
                             <p>Manage your loan repayments by tracking payment history, upcoming due dates, and outstanding
@@ -646,20 +642,20 @@
                                         </button>
 
                                         <!-- @if($selectedLoan->disbursed_at)
-                                                                                                                                                                                                                                                                <button disabled style="opacity:.6;cursor:not-allowed;background:#e8f5ee;color:#1e7a4e;border:1px solid rgba(30,122,78,.3);">
-                                                                                                                                                                                                                                                                    <i class="fa fa-circle-check"></i>
-                                                                                                                                                                                                                                                                    <span>Disbursed</span>
-                                                                                                                                                                                                                                                                </button>
-                                                                                                                                                                                                                                                            @else
-                                                                                                                                                                                                                                                                <form action="{{ route('loan.disburse') }}" method="POST" style="margin:0;">
-                                                                                                                                                                                                                                                                    @csrf
-                                                                                                                                                                                                                                                                    <input type="hidden" name="lending_id" value="{{ $selectedLoan->id }}">
-                                                                                                                                                                                                                                                                    <button type="submit">
-                                                                                                                                                                                                                                                                        <i class="fa fa-hand-holding-dollar"></i>
-                                                                                                                                                                                                                                                                        <span>Disburse Loan</span>
-                                                                                                                                                                                                                                                                    </button>
-                                                                                                                                                                                                                                                                </form>
-                                                                                                                                                                                                                                                            @endif -->
+                                                                                                                                                                                                                                                                                                                            <button disabled style="opacity:.6;cursor:not-allowed;background:#e8f5ee;color:#1e7a4e;border:1px solid rgba(30,122,78,.3);">
+                                                                                                                                                                                                                                                                                                                                <i class="fa fa-circle-check"></i>
+                                                                                                                                                                                                                                                                                                                                <span>Disbursed</span>
+                                                                                                                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                                                                                                                        @else
+                                                                                                                                                                                                                                                                                                                            <form action="{{ route('loan.disburse') }}" method="POST" style="margin:0;">
+                                                                                                                                                                                                                                                                                                                                @csrf
+                                                                                                                                                                                                                                                                                                                                <input type="hidden" name="lending_id" value="{{ $selectedLoan->id }}">
+                                                                                                                                                                                                                                                                                                                                <button type="submit">
+                                                                                                                                                                                                                                                                                                                                    <i class="fa fa-hand-holding-dollar"></i>
+                                                                                                                                                                                                                                                                                                                                    <span>Disburse Loan</span>
+                                                                                                                                                                                                                                                                                                                                </button>
+                                                                                                                                                                                                                                                                                                                            </form>
+                                                                                                                                                                                                                                                                                                                        @endif -->
                                     </div>
                                 </div>
                             </div>
@@ -730,20 +726,20 @@
                                 </button>
 
                                 <!-- @if($selectedLoan->disbursed_at)
-                                                                                                                                                                                                                                                        <button disabled style="opacity:.6;cursor:not-allowed;background:#e8f5ee;color:#1e7a4e;border:1px solid rgba(30,122,78,.3);">
-                                                                                                                                                                                                                                                            <i class="fa fa-circle-check"></i>
-                                                                                                                                                                                                                                                            <span>Disbursed</span>
-                                                                                                                                                                                                                                                        </button>
-                                                                                                                                                                                                                                                    @else
-                                                                                                                                                                                                                                                        <form action="{{ route('loan.disburse') }}" method="POST" style="margin:0;">
-                                                                                                                                                                                                                                                            @csrf
-                                                                                                                                                                                                                                                            <input type="hidden" name="lending_id" value="{{ $selectedLoan->id }}">
-                                                                                                                                                                                                                                                            <button type="submit">
-                                                                                                                                                                                                                                                                <i class="fa fa-hand-holding-dollar"></i>
-                                                                                                                                                                                                                                                                <span>Disburse Loan</span>
-                                                                                                                                                                                                                                                            </button>
-                                                                                                                                                                                                                                                        </form>
-                                                                                                                                                                                                                                                    @endif -->
+                                                                                                                                                                                                                                                                                                                    <button disabled style="opacity:.6;cursor:not-allowed;background:#e8f5ee;color:#1e7a4e;border:1px solid rgba(30,122,78,.3);">
+                                                                                                                                                                                                                                                                                                                        <i class="fa fa-circle-check"></i>
+                                                                                                                                                                                                                                                                                                                        <span>Disbursed</span>
+                                                                                                                                                                                                                                                                                                                    </button>
+                                                                                                                                                                                                                                                                                                                @else
+                                                                                                                                                                                                                                                                                                                    <form action="{{ route('loan.disburse') }}" method="POST" style="margin:0;">
+                                                                                                                                                                                                                                                                                                                        @csrf
+                                                                                                                                                                                                                                                                                                                        <input type="hidden" name="lending_id" value="{{ $selectedLoan->id }}">
+                                                                                                                                                                                                                                                                                                                        <button type="submit">
+                                                                                                                                                                                                                                                                                                                            <i class="fa fa-hand-holding-dollar"></i>
+                                                                                                                                                                                                                                                                                                                            <span>Disburse Loan</span>
+                                                                                                                                                                                                                                                                                                                        </button>
+                                                                                                                                                                                                                                                                                                                    </form>
+                                                                                                                                                                                                                                                                                                                @endif -->
                             </div>
 
                         </div>
@@ -829,11 +825,11 @@
                             <div class="schedule-parent">
                                 <div class="schedule-header" data-action="openScheduleModal" style="cursor:pointer;">
                                     <!-- <div class="header-tag">
-                                                                                                                                                                                                                                                            <div class="header-icon">
-                                                                                                                                                                                                                                                                <i class="fa fa-calendar-check"></i> 
-                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                        <div class="header-icon">
+                                                                                                                                                                                                                                                                                                                            <i class="fa fa-calendar-check"></i> 
+                                                                                                                                                                                                                                                                                                                        </div>
 
-                                                                                                                                                                                                                                                        Payment Schedule</div> -->
+                                                                                                                                                                                                                                                                                                                    Payment Schedule</div> -->
                                     <div>
                                         <div class="header-tag">Payment Schedule</div>
                                         <p>View your upcoming loan payment</p>
@@ -887,11 +883,11 @@
                             <div class="charges-parent">
                                 <div class="charges-header" data-action="openChargesModal" style="cursor:pointer;">
                                     <!-- <div class="header-tag">
-                                                                                                                                                                                                                                                            <div class="header-icon">
-                                                                                                                                                                                                                                                                <i class="fa fa-money-check-dollar"></i> 
-                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                        <div class="header-icon">
+                                                                                                                                                                                                                                                                                                                            <i class="fa fa-money-check-dollar"></i> 
+                                                                                                                                                                                                                                                                                                                        </div>
 
-                                                                                                                                                                                                                                                            Loan Charges</div> -->
+                                                                                                                                                                                                                                                                                                                        Loan Charges</div> -->
                                     <div>
                                         <div class="header-tag">Loan Charges</div>
                                         <p>View your breakdown loan charges</p>
@@ -964,166 +960,287 @@
                         </div>
 
                         {{-- PAYMENT HISTORY Table--}}
+                        @php
+                            $phGroups = $paymentHistory->groupBy(fn($p) => ($p->reference_no ?: 'no-ref-' . $p->id) . '|' . strtolower($p->status ?? ''));
+                        @endphp
+
+                        @php
+                            $phItems = fn($g) => $g->map(fn($p) => [
+                                'number' => $p->payment_number,
+                                'amount' => strtolower($p->status ?? '') === 'voided' ? 0 : (float) $p->amount_paid,
+                                'penalty' => (float) ($p->late_fee ?? 0),
+                                'due' => $p->due_date ? \Carbon\Carbon::parse($p->due_date)->format('M d, Y') : '—',
+                            ])->values();
+                        @endphp
                         <div class="loan-history-mobile">
                             <div class="loan-header-mobile">
                                 <div class="header-tag">Payment History</div>
                             </div>
                             <div class="loan-body-mobile">
-                                <div class="loan-history-mobile-list" id="ph-mobile-list">
-                                    @forelse($paymentHistory as $payment)
-                                        @php
-                                            $wasLate = $payment->due_date && \Carbon\Carbon::parse($payment->payment_date)->gt(\Carbon\Carbon::parse($payment->due_date));
-                                        @endphp
-                                        <div class="ph-card ph-row-mobile {{ strtolower($payment->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
-                                            @if(strtolower($payment->status ?? '') === 'voided') style="cursor:pointer;"
-                                                data-reason="{{ $payment->void_reason }}" data-amount="{{ $payment->amount_paid }}"
-                                                data-date="{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}"
-                                                data-method="{{ $payment->payment_method }}" data-ref="{{ $payment->reference_no }}"
-                                                data-loanref="{{ $payment->loan_reference_no ?? ($payment->loan_ref ?? '') }}"
-                                                data-paymentnum="{{ $payment->payment_number ?? '' }}"
-                                            data-action="showLoanVoidReason" data-arg='["|el|"]' @endif>
+                                @forelse($phGroups as $group)
+                                    @php
+                                        $group = $group->sortBy('payment_number')->values();
+                                        $first = $group->first();
+                                        $isGroup = $group->count() > 1;
+                                        $gStatus = strtolower($first->status ?? '');
+                                        $gAmount = $gStatus === 'voided' ? 0 : $group->sum('amount_paid');
+                                    @endphp
+
+                                    @if($isGroup)
+                                        <div class="ph-card ph-group-card" style="cursor:pointer;"
+                                            data-ref="{{ $first->reference_no }}"
+                                            data-date="{{ \Carbon\Carbon::parse($first->payment_date)->format('M d, Y') }} · {{ \Carbon\Carbon::parse($first->created_at)->format('h:i A') }}"
+                                            data-method="{{ $first->payment_method }}" data-status="{{ $gStatus }}"
+                                            data-total="{{ number_format($gAmount + $group->sum(fn($p) => (float) ($p->late_fee ?? 0)), 2) }}"
+                                            data-items="{{ json_encode($phItems($group)) }}">
                                             <div class="ph-card-top">
                                                 <div class="ph-card-icon"><i class="fa fa-receipt"></i></div>
                                                 <div class="ph-card-info">
-                                                    <p class="ph-card-ref">{{ $payment->reference_no }}</p>
+                                                    <p class="ph-card-ref">
+                                                        {{ $first->reference_no }}
+                                                    </p>
                                                     <p class="ph-card-meta">
-                                                        {{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }} ·
-                                                        {{ \Carbon\Carbon::parse($payment->created_at)->format('h:i A') }}
+                                                        {{ $group->count() }} installments ·
+                                                        {{ \Carbon\Carbon::parse($first->payment_date)->format('M d, Y') }}
                                                     </p>
                                                 </div>
-                                                @if(strtolower($payment->status ?? '') === 'voided')
+                                                @if($gStatus === 'voided')
                                                     <span class="badge-voided"><i class="fa fa-ban"></i> Returned</span>
-                                                @elseif(strtolower($payment->status ?? '') === 'pending')
+                                                @elseif($gStatus === 'pending')
                                                     <span class="badge-pending"><i class="fa fa-hourglass-half"></i> Pending</span>
-                                                @elseif($wasLate)
-                                                    <span class="badge-overdue"><i class="fa fa-triangle-exclamation"></i>
-                                                        Overdue</span>
                                                 @else
                                                     <span class="badge-paid">Paid</span>
                                                 @endif
                                             </div>
                                             <div class="ph-card-bottom">
-                                                <div class="ph-card-detail">
-                                                    <span>Amount</span>
-                                                    <p>₱{{ number_format(strtolower($payment->status ?? '') === 'voided' ? 0 : $payment->amount_paid, 2) }}
-                                                    </p>
+                                                <div class="ph-card-detail"><span>Total</span>
+                                                    <p>₱{{ number_format($gAmount, 2) }}</p>
                                                 </div>
-                                                <div class="ph-card-detail">
-                                                    <span>Penalty</span>
-                                                    <p>
-                                                        @if(($payment->late_fee ?? 0) > 0)
-                                                            <span
-                                                                style="color:var(--coral);font-weight:600;">₱{{ number_format($payment->late_fee, 2) }}</span>
-                                                        @else
-                                                            —
-                                                        @endif
-                                                    </p>
-                                                </div>
-                                                <div class="ph-card-detail">
-                                                    <span>Method</span>
-                                                    <p>{{ $payment->payment_method }}</p>
+                                                <div class="ph-card-detail"><span>Method</span>
+                                                    <p>{{ $first->payment_method }}</p>
                                                 </div>
                                             </div>
                                         </div>
-                                    @empty
+                                    @endif
+
+                                        @foreach($isGroup ? [] : $group as $payment)
+                                            @php
+                                                $wasLate = $payment->due_date && \Carbon\Carbon::parse($payment->payment_date)->gt(\Carbon\Carbon::parse($payment->due_date));
+                                            @endphp
+                                            <div class="ph-card ph-row-mobile {{ strtolower($payment->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
+                                                @if(strtolower($payment->status ?? '') === 'voided') style="cursor:pointer;"
+                                                    data-reason="{{ $payment->void_reason }}" data-amount="{{ $payment->amount_paid }}"
+                                                    data-date="{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}"
+                                                    data-method="{{ $payment->payment_method }}" data-ref="{{ $payment->reference_no }}"
+                                                    data-loanref="{{ $payment->loan_reference_no ?? ($payment->loan_ref ?? '') }}"
+                                                    data-paymentnum="{{ $payment->payment_number ?? '' }}"
+                                                data-action="showLoanVoidReason" data-arg='["|el|"]' @endif>
+                                                <div class="ph-card-top">
+                                                    <div class="ph-card-icon"><i class="fa fa-receipt"></i></div>
+                                                    <div class="ph-card-info">
+                                                        <p class="ph-card-ref">
+                                                            @if($isGroup) Installment #{{ $payment->payment_number }} @else
+                                                            {{ $payment->reference_no }} @endif
+                                                        </p>
+                                                        <p class="ph-card-meta">
+                                                            {{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }} ·
+                                                            {{ \Carbon\Carbon::parse($payment->created_at)->format('h:i A') }}
+                                                        </p>
+                                                    </div>
+                                                    @if(strtolower($payment->status ?? '') === 'voided')
+                                                        <span class="badge-voided"><i class="fa fa-ban"></i> Returned</span>
+                                                    @elseif(strtolower($payment->status ?? '') === 'pending')
+                                                        <span class="badge-pending"><i class="fa fa-hourglass-half"></i> Pending</span>
+                                                    @elseif($wasLate)
+                                                        <span class="badge-overdue"><i class="fa fa-triangle-exclamation"></i>
+                                                            Overdue</span>
+                                                    @else
+                                                        <span class="badge-paid">Paid</span>
+                                                    @endif
+                                                </div>
+                                                <div class="ph-card-bottom">
+                                                    <div class="ph-card-detail">
+                                                        <span>Amount</span>
+                                                        <p>₱{{ number_format(strtolower($payment->status ?? '') === 'voided' ? 0 : $payment->amount_paid, 2) }}
+                                                        </p>
+                                                    </div>
+                                                    <div class="ph-card-detail">
+                                                        <span>Penalty</span>
+                                                        <p>
+                                                            @if(($payment->late_fee ?? 0) > 0)
+                                                                <span
+                                                                    style="color:var(--coral);font-weight:600;">₱{{ number_format($payment->late_fee, 2) }}</span>
+                                                            @else
+                                                                —
+                                                            @endif
+                                                        </p>
+                                                    </div>
+                                                    <div class="ph-card-detail">
+                                                        <span>Method</span>
+                                                        <p>{{ $payment->payment_method }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                @empty
                                         <p style="color:#999;padding:1.5rem;text-align:center;">No payment history yet.</p>
                                     @endforelse
                                 </div>
                             </div>
-                        </div>
-                        <div class="loan-history">
-                            <div class="loan-header">
-                                <div class="header-tag">Payment History</div>
-                                <p>View your payment history below.</p>
-                            </div>
-                            <div class="loan-body">
-                                <div class="parent-table">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Reference No.</th>
-                                                <th>Payment Date</th>
-                                                <th>Time</th>
-                                                <th>Amount</th>
-                                                <th>Penalty</th>
-                                                <th>Penalty Date</th>
-                                                <th>Method</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="ph-tbody">
-                                            @forelse($paymentHistory as $payment)
-                                                <tr class="ph-row {{ strtolower($payment->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
-                                                    @if(strtolower($payment->status ?? '') === 'voided') style="cursor:pointer;"
-                                                        data-reason="{{ $payment->void_reason }}"
-                                                        data-amount="{{ $payment->amount_paid }}"
-                                                        data-date="{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}"
-                                                        data-method="{{ $payment->payment_method }}"
-                                                        data-ref="{{ $payment->reference_no }}"
-                                                        data-loanref="{{ $payment->loan_reference_no ?? ($payment->loan_ref ?? '') }}"
-                                                        data-paymentnum="{{ $payment->payment_number ?? '' }}"
-                                                    data-action="showLoanVoidReason" data-arg='["|el|"]' @endif>
-                                                    <td>{{ $payment->reference_no }}</td>
-                                                    <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}
-                                                    </td>
-                                                    <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('h:i A') }}</td>
-                                                    <td>₱{{ number_format(strtolower($payment->status ?? '') === 'voided' ? 0 : $payment->amount_paid, 2) }}
-                                                    </td>
-                                                    <td>
-                                                        @if(($payment->late_fee ?? 0) > 0)
-                                                            <span style="color: var(--coral); font-weight: 600;">
-                                                                ₱{{ number_format($payment->late_fee, 2) }}
-                                                            </span>
-                                                        @else
-                                                            <span style="color: #aaa;">—</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        @if($payment->penalty_applied_at)
-                                                            {{ \Carbon\Carbon::parse($payment->penalty_applied_at)->format('M d, Y · h:i A') }}
-                                                        @else
-                                                            <span style="color: #aaa;">—</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $payment->payment_method }}</td>
-                                                    <td>
-                                                        @php
-                                                            $wasLate = $payment->due_date && \Carbon\Carbon::parse($payment->payment_date)->gt(\Carbon\Carbon::parse($payment->due_date));
-                                                        @endphp
-                                                        @if(strtolower($payment->status ?? '') === 'voided')
-                                                            <span class="badge-voided"><i class="fa fa-ban"></i> Returned</span>
-                                                        @elseif(strtolower($payment->status ?? '') === 'pending')
-                                                            <span class="badge-pending"><i class="fa fa-hourglass-half"></i>
-                                                                Pending</span>
-                                                        @elseif($wasLate)
-                                                            <span class="badge-overdue"><i class="fa fa-triangle-exclamation"></i>
-                                                                Paid (Overdue)</span>
-                                                        @else
-                                                            <span class="badge-paid"> Paid</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="8" style="text-align:center;color:#999;padding:1.5rem;">No
-                                                        payment history yet.</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
+                            <div class="loan-history">
+                                <div class="loan-header">
+                                    <div class="header-tag">Payment History</div>
+                                    <p>View your payment history below.</p>
                                 </div>
+                                <div class="loan-body">
+                                    <div class="parent-table">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Reference No.</th>
+                                                    <th>Payment Date</th>
+                                                    <th>Time</th>
+                                                    <th>Amount</th>
+                                                    <th>Penalty</th>
+                                                    <th>Penalty Date</th>
+                                                    <th>Method</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="ph-tbody">
+                                                @forelse($phGroups as $gi => $group)
+                                                    @php
+                                                        $group = $group->sortBy('payment_number')->values();
+                                                        $first = $group->first();
+                                                        $isGroup = $group->count() > 1;
+                                                        $gStatus = strtolower($first->status ?? '');
+                                                        $gLate = $group->contains(fn($p) => $p->due_date && \Carbon\Carbon::parse($p->payment_date)->gt(\Carbon\Carbon::parse($p->due_date)));
+                                                        $gAmount = $gStatus === 'voided' ? 0 : $group->sum('amount_paid');
+                                                        $gPenalty = $group->sum(fn($p) => (float) ($p->late_fee ?? 0));
+                                                    @endphp
 
-                                @if($paymentHistory->isNotEmpty())
-                                    <div class="sc-table-footer">
-                                        <span id="ph-footer-count">Showing {{ min(10, $paymentHistory->count()) }} of
-                                            {{ $paymentHistory->count() }} payments</span>
-                                        <div class="sc-pagination" id="ph-pagination"></div>
+                                                    @if($isGroup)
+                                                        <tr class="ph-row ph-group-row" data-group="g{{ $gi }}"
+                                                            style="cursor:pointer;" data-ref="{{ $first->reference_no }}"
+                                                            data-date="{{ \Carbon\Carbon::parse($first->payment_date)->format('M d, Y') }} · {{ \Carbon\Carbon::parse($first->created_at)->format('h:i A') }}"
+                                                            data-method="{{ $first->payment_method }}" data-status="{{ $gStatus }}"
+                                                            data-total="{{ number_format($gAmount + $gPenalty, 2) }}"
+                                                            data-items="{{ json_encode($phItems($group)) }}">
+                                                            <td>
+                                                                {{ $first->reference_no }}
+                                                                (<span class="ph-count-badge">{{ $group->count() }}
+                                                                    installments</span>)
+                                                            </td>
+                                                            <td>{{ \Carbon\Carbon::parse($first->payment_date)->format('M d, Y') }}
+                                                            </td>
+                                                            <td>{{ \Carbon\Carbon::parse($first->created_at)->format('h:i A') }}
+                                                            </td>
+                                                            <td>₱{{ number_format($gAmount, 2) }}</td>
+                                                            <td>
+                                                                @if($gPenalty > 0)
+                                                                    <span
+                                                                        style="color: var(--coral); font-weight: 600;">₱{{ number_format($gPenalty, 2) }}</span>
+                                                                @else
+                                                                    <span style="color: #aaa;">—</span>
+                                                                @endif
+                                                            </td>
+                                                            <td><span style="color: #aaa;">—</span></td>
+                                                            <td>{{ $first->payment_method }}</td>
+                                                            <td>
+                                                                @if($gStatus === 'voided')
+                                                                    <span class="badge-voided"><i class="fa fa-ban"></i> Returned</span>
+                                                                @elseif($gStatus === 'pending')
+                                                                    <span class="badge-pending"><i class="fa fa-hourglass-half"></i>
+                                                                        Pending</span>
+                                                                @elseif($gLate)
+                                                                    <span class="badge-overdue"><i
+                                                                            class="fa fa-triangle-exclamation"></i>
+                                                                        Paid (Overdue)</span>
+                                                                @else
+                                                                    <span class="badge-paid"> Paid</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @endif
+
+                                                    @foreach($isGroup ? [] : $group as $payment)
+                                                        <tr class="{{ $isGroup ? 'ph-child' : 'ph-row' }} {{ strtolower($payment->status ?? '') === 'voided' ? 'tx-voided-row' : '' }}"
+                                                            @if($isGroup) data-group="g{{ $gi }}" @endif
+                                                            @if(strtolower($payment->status ?? '') === 'voided')
+                                                                style="cursor:pointer;" data-reason="{{ $payment->void_reason }}"
+                                                                data-amount="{{ $payment->amount_paid }}"
+                                                                data-date="{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}"
+                                                                data-method="{{ $payment->payment_method }}"
+                                                                data-ref="{{ $payment->reference_no }}"
+                                                                data-loanref="{{ $payment->loan_reference_no ?? ($payment->loan_ref ?? '') }}"
+                                                                data-paymentnum="{{ $payment->payment_number ?? '' }}"
+                                                            data-action="showLoanVoidReason" data-arg='["|el|"]' @endif>
+                                                            <td>
+                                                                @if($isGroup) Installment #{{ $payment->payment_number }} @else
+                                                                {{ $payment->reference_no }} @endif
+                                                            </td>
+                                                            <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}
+                                                            </td>
+                                                            <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('h:i A') }}
+                                                            </td>
+                                                            <td>₱{{ number_format(strtolower($payment->status ?? '') === 'voided' ? 0 : $payment->amount_paid, 2) }}
+                                                            </td>
+                                                            <td>
+                                                                @if(($payment->late_fee ?? 0) > 0)
+                                                                    <span
+                                                                        style="color: var(--coral); font-weight: 600;">₱{{ number_format($payment->late_fee, 2) }}</span>
+                                                                @else
+                                                                    <span style="color: #aaa;">—</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if($payment->penalty_applied_at)
+                                                                    {{ \Carbon\Carbon::parse($payment->penalty_applied_at)->format('M d, Y · h:i A') }}
+                                                                @else
+                                                                    <span style="color: #aaa;">—</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>{{ $payment->payment_method }}</td>
+                                                            <td>
+                                                                @php
+                                                                    $wasLate = $payment->due_date && \Carbon\Carbon::parse($payment->payment_date)->gt(\Carbon\Carbon::parse($payment->due_date));
+                                                                @endphp
+                                                                @if(strtolower($payment->status ?? '') === 'voided')
+                                                                    <span class="badge-voided"><i class="fa fa-ban"></i> Returned</span>
+                                                                @elseif(strtolower($payment->status ?? '') === 'pending')
+                                                                    <span class="badge-pending"><i class="fa fa-hourglass-half"></i>
+                                                                        Pending</span>
+                                                                @elseif($wasLate)
+                                                                    <span class="badge-overdue"><i
+                                                                            class="fa fa-triangle-exclamation"></i>
+                                                                        Paid (Overdue)</span>
+                                                                @else
+                                                                    <span class="badge-paid"> Paid</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="8" style="text-align:center;color:#999;padding:1.5rem;">No
+                                                            payment history yet.</td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
                                     </div>
-                                @endif
+
+                                    @if($paymentHistory->isNotEmpty())
+                                        <div class="sc-table-footer">
+                                            <span id="ph-footer-count">Showing {{ min(10, $phGroups->count()) }} of
+                                                {{ $phGroups->count() }} payments</span>
+                                            <div class="sc-pagination" id="ph-pagination"></div>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
-                        </div>
                     @endif
-                </div>
+                    </div>
             </main>
         </div>
 
@@ -1448,35 +1565,9 @@
                             </div>
                         </div>
                         <button type="button" class="btn-close" style="color:var(--muted);font-size:16px;"
-                            data-action="closeModal" data-arg='["chargesModal"]'>
+                            data-action="closeModal" data-arg='["chargesModal"]'></button>
                     </div>
                     <div class="modal-body" style="padding:0;background:#fff;max-height:70vh;overflow-y:auto;">
-                        <div class="pay-item">
-                            <div class="parent-item">
-                                <div class="item">
-                                    <div class="icon"><i class="fa fa-coins"></i></div>
-                                    <div><span>Interest Rate</span>
-                                        <p>Total interest applied</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="item-amount">
-                                <p>{{ number_format($interestRate, 2) }}%</p>
-                            </div>
-                        </div>
-                        <div class="pay-item">
-                            <div class="parent-item">
-                                <div class="item">
-                                    <div class="icon"><i class="fa fa-receipt"></i></div>
-                                    <div><span>Total Interest</span>
-                                        <p>Cost of borrowing</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="item-amount">
-                                <p>₱{{ number_format($totalInterest, 2) }}</p>
-                            </div>
-                        </div>
                         <div class="pay-item">
                             <div class="parent-item">
                                 <div class="item">
@@ -1527,19 +1618,6 @@
                             </div>
                             <div class="item-amount">
                                 <p>₱{{ number_format($retentionFee, 2) }}</p>
-                            </div>
-                        </div>
-                        <div class="pay-item">
-                            <div class="parent-item">
-                                <div class="item">
-                                    <div class="icon"><i class="fa fa-hand-holding-dollar"></i></div>
-                                    <div><span>Net Proceeds</span>
-                                        <p>Amount released to you</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="item-amount">
-                                <p>₱{{ number_format($netProceeds, 2) }}</p>
                             </div>
                         </div>
                         <div class="total-charges"
@@ -1664,6 +1742,26 @@
             <div class="lr-toast-bar"></div>
         </div> --}}
     @endif
+
+    <div id="ph-group-overlay">
+        <div id="ph-group-modal">
+            <div class="phg-head">
+                <div>
+                    <h2>Payment Breakdown</h2>
+                    <p id="phg-sub"></p>
+                </div>
+                <span id="phg-status"></span>
+            </div>
+            <div class="phg-meta">
+                <div class="phg-meta-row"><span>Reference No.</span><span id="phg-ref">—</span></div>
+                <div class="phg-meta-row"><span>Date</span><span id="phg-date">—</span></div>
+                <div class="phg-meta-row"><span>Method</span><span id="phg-method">—</span></div>
+            </div>
+            <div class="phg-list" id="phg-list"></div>
+            <div class="phg-total"><span>Total</span><strong id="phg-total">₱0.00</strong></div>
+            <div class="phg-foot"><button type="button" class="phg-close" id="phg-close-btn">Close</button></div>
+        </div>
+    </div>
 
     {{-- VOID REASON OVERLAY — Loan Repayment --}}
     <div id="lr-void-overlay">
@@ -1795,6 +1893,8 @@
                 rows.forEach(row => { row.style.display = 'none'; });
                 rows.slice(startIdx, endIdx).forEach(row => { row.style.display = ''; });
 
+                if (window.phSyncChildren) window.phSyncChildren();
+
                 if (footerCount) {
                     const shownCount = Math.min(endIdx, total) - startIdx;
                     footerCount.textContent = `Showing ${shownCount} of ${total} payments`;
@@ -1819,12 +1919,51 @@
             if (e.target === this) closeQrLightbox();
         });
 
+        function phEsc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+        function phMoney(n) {
+            return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function openPhGroupModal(el) {
+            var d = el.dataset, items = [];
+            try { items = JSON.parse(d.items || '[]'); } catch (err) { }
+
+            document.getElementById('phg-sub').textContent = items.length + ' installments paid together';
+            document.getElementById('phg-ref').textContent = d.ref || '—';
+            document.getElementById('phg-date').textContent = d.date || '—';
+            document.getElementById('phg-method').textContent = d.method || '—';
+            document.getElementById('phg-total').textContent = '₱' + (d.total || '0.00');
+
+            var st = document.getElementById('phg-status');
+            if (d.status === 'voided') st.innerHTML = '<span class="badge-voided"><i class="fa fa-ban"></i> Returned</span>';
+            else if (d.status === 'pending') st.innerHTML = '<span class="badge-pending"><i class="fa fa-hourglass-half"></i> Pending</span>';
+            else st.innerHTML = '<span class="badge-paid">Paid</span>';
+
+            document.getElementById('phg-list').innerHTML = items.map(function (it) {
+                return '<div class="phg-item">' +
+                    '<div class="phg-item-left"><div class="phg-num">' + phEsc(it.number) + '</div>' +
+                    '<div><div style="font-weight:600;font-size:.85rem;">Installment #' + phEsc(it.number) + '</div>' +
+                    '<div class="phg-due">Due ' + phEsc(it.due) + '</div></div></div>' +
+                    '<div class="phg-amt">' + phMoney(it.amount) +
+                    (it.penalty > 0 ? '<small>+ ' + phMoney(it.penalty) + ' late fee</small>' : '') +
+                    '</div></div>';
+            }).join('');
+
+            document.getElementById('ph-group-overlay').classList.add('active');
+        }
+        function closePhGroupModal() {
+            document.getElementById('ph-group-overlay').classList.remove('active');
+        }
+
         document.addEventListener('click', function (e) {
-            const link = e.target.closest('.js-open-qr-lightbox');
-            if (link) {
-                e.preventDefault();
-                openQrLightbox(link.dataset.qrSrc);
-            }
+            var g = e.target.closest('tr.ph-group-row, .ph-group-card');
+            if (g) { openPhGroupModal(g); return; }
+
+            if (e.target.id === 'ph-group-overlay' || e.target.id === 'phg-close-btn') closePhGroupModal();
         });
     </script>
 
@@ -2362,6 +2501,29 @@
     </script>
 
     <script nonce="{{ csp_nonce() }}">
+        function phSyncChildren() {
+            document.querySelectorAll('tr.ph-group-row').forEach(function (g) {
+                var open = g.classList.contains('expanded') && g.style.display !== 'none';
+                document.querySelectorAll('tr.ph-child[data-group="' + g.dataset.group + '"]').forEach(function (c) {
+                    c.classList.toggle('show', open);
+                });
+            });
+        }
+        window.phSyncChildren = phSyncChildren;
+
+        function togglePhGroup(el) {
+            el.classList.toggle('expanded');
+            phSyncChildren();
+        }
+
+        function togglePhGroupMobile(el) {
+            var list = el.nextElementSibling;
+            if (!list) return;
+            var open = list.style.display === 'none';
+            list.style.display = open ? 'block' : 'none';
+            el.classList.toggle('expanded', open);
+        }
+
         function loanCloseReceipt() {
             var overlay = document.getElementById('loan-receipt-overlay');
             if (overlay) overlay.remove();

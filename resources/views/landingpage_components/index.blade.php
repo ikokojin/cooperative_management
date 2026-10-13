@@ -31,6 +31,10 @@
         @include("components.navbar")
         @include("components.offcanvas")
 
+        <a href="#main-nav" class="mv-back-arrow-up">
+            <i class="fa fa-chevron-up"></i>
+        </a>
+
         <main class="z-1">
 
             <!-- <div class="main-text">
@@ -212,7 +216,7 @@
                                     <div class="profile"></div>
                                 </div>
                                 <div class="profile-text">
-                                    <p><b>12,000+</b> loans approved this year</p>
+                                    <p><b>{{ number_format($loansApprovedThisYear) }}</b> loans approved this year</p>
                                 </div>
                             </div>
                         </div>
@@ -245,7 +249,7 @@
                                     <div class="profile"></div>
                                 </div>
                                 <div class="profile-text">
-                                    <p><b>12,000+</b> loans approved this year</p>
+                                    <p><b>{{ number_format($loansApprovedThisYear) }}</b> loans approved this year</p>
                                 </div>
                             </div>
                         </div>
@@ -278,7 +282,7 @@
                                     <div class="profile"></div>
                                 </div>
                                 <div class="profile-text">
-                                    <p><b>12,000+</b> loans approved this year</p>
+                                    <p><b>{{ number_format($loansApprovedThisYear) }}</b> loans approved this year</p>
                                 </div>
                             </div>
                         </div>
@@ -312,7 +316,7 @@
                                     <div class="profile"></div>
                                 </div>
                                 <div class="profile-text">
-                                    <p><b>12,000+</b> loans approved this year</p>
+                                    <p><b>{{ number_format($loansApprovedThisYear) }}</b> loans approved this year</p>
                                 </div>
                             </div>
                         </div>

@@ -115,6 +115,10 @@
     /* box-shadow: 0 4px 16px rgba(27, 61, 47, .22); */
 }
 
+.container-fluid main .main-parent .table-header .main-button button .fa {
+    display: none;
+}
+
 .container-fluid .table-parent {
     background-color: #ffffff;
     /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04); */
@@ -566,7 +570,7 @@ select.form-select{
     font-size: 12.5px;
     /* margin-top: 10px; */
     margin: 0;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .container-fluid main .card-box:nth-child(1) .card-body span {
@@ -1851,27 +1855,67 @@ select.form-select{
     }
 }
 
-@media only screen and (max-width: 535px) {
-    .container-fluid main .main-parent .table-header .main-text {
-        display: none;
+@media only screen and (max-width: 553px) {
+    .container-fluid main .main-parent nav .nav-tabs button {
+        width: 100%;
     }
 
+    .container-fluid main .main-parent nav .nav-tabs {
+        /* display: flex;
+        flex-direction: column; */
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ═══ Phones: show page title + description, button below ═══ */
+@media only screen and (max-width: 535px) {
     .container-fluid main .main-parent .table-header {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 14px;
+    }
+
+    .container-fluid main .main-parent .table-header .main-text {
+        display: block;
+        width: 100%;
+        max-width: none;
+    }
+
+    .container-fluid main .main-parent .table-header .main-text h3 {
+        font-size: 20px;
+    }
+
+    .container-fluid main .main-parent .table-header .main-text p {
+        font-size: 13.5px;
+        line-height: 1.5;
+    }
+
+    /* Apply button: full width under the description */
+    .container-fluid main .main-parent .table-header .main-button {
+        display: block;
+        display: flex;
         justify-content: end;
     }
 
-    .col-status {
-        display: none;
-    }
-
-    .loan-row {
-        grid-template-columns: 1.5fr 0.1fr;
+    .container-fluid main .main-parent .table-header .main-button button {
+        /* width: 100%; */
+        justify-content: center;
     }
 }
 
 @media only screen and (max-width: 500px) {
     .container-fluid .main-sub-parent {
         padding: 2rem 1.5rem 8rem;
+    }
+
+    .container-fluid .table-parent .parent-pagination {
+        justify-content: end;
+    }
+
+    .container-fluid .table-parent .parent-pagination p {
+        display: none;
     }
 }
 
@@ -1886,16 +1930,16 @@ select.form-select{
 
 @media only screen and (max-width: 445px) {
     .container-fluid main .card-box-parent {
-        grid-template-columns: repeat(1, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media only screen and (max-width: 430px) {
     .detail-grid {
-        grid-template-columns: repeat(1, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    .progress-head span:nth-child(1){
+    .progress-head span:nth-child(1) {
         display: none;
     }
 
@@ -1907,5 +1951,320 @@ select.form-select{
     .loan-detail-inner {
         overflow-y: auto;
         height: 500px;
+    }
+}
+
+@media only screen and (max-width: 425px) {
+    .container-fluid main .card-box .card-body {
+        margin-top: 15px;
+    }
+
+    .container-fluid main .card-box .card-body span {
+        margin: 10px 0 0;
+    }
+
+    .container-fluid main .card-box .card-body p {
+        font-size: 22px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — Loan Application modal + page
+   ═══════════════════════════════════════════════════════════ */
+
+/* Footer buttons stay visible while the panel scrolls */
+#loanModalOverlay .modal-footer-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+}
+
+/* Long values in the review summary wrap instead of overflowing */
+#loanModalOverlay .sum-row-m {
+    gap: 12px;
+}
+
+#loanModalOverlay .sum-val-m {
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+/* Amortization table scrolls sideways instead of squeezing */
+#loanModalOverlay .amort-scroll-m {
+    overflow-x: auto;
+}
+
+#loanModalOverlay .amort-tbl {
+    min-width: 440px;
+}
+
+#loanModalOverlay .amort-tbl td,
+#loanModalOverlay .amort-tbl th {
+    white-space: nowrap;
+}
+
+/* ── Tablets (sidebar preview already hidden at 768px) ── */
+@media only screen and (max-width: 768px) {
+    #loanModalOverlay .modal-panel {
+        padding: 20px;
+    }
+
+    #loanModalOverlay .modal-steps-bar {
+        padding: 14px 18px;
+        gap: 8px;
+    }
+}
+
+/* ── Phones: modal becomes a bottom sheet ── */
+@media only screen and (max-width: 576px) {
+    #loanModalOverlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    #loanModalOverlay .loan-modal {
+        max-width: 100%;
+        max-height: 92vh;
+        max-height: 92dvh;
+        border-radius: 20px 20px 0 0;
+    }
+
+    #loanModalOverlay .form-disabled-overlay {
+        border-radius: 20px 20px 0 0;
+    }
+
+    /* Steps: circles only, plus the name of the current step */
+    #loanModalOverlay .modal-steps-bar {
+        padding: 12px 16px;
+        justify-content: space-between;
+    }
+
+    #loanModalOverlay .m-step {
+        flex: 0 0 auto;
+        gap: 6px;
+    }
+
+    #loanModalOverlay .m-step-info .m-step-num {
+        display: none;
+    }
+
+    #loanModalOverlay .m-step:not(.active) .m-step-info {
+        display: none;
+    }
+
+    #loanModalOverlay .m-step.active .m-step-info .m-step-name {
+        font-size: 12.5px;
+        margin: 0;
+    }
+
+    #loanModalOverlay .m-step-circle {
+        width: 26px;
+        height: 26px;
+    }
+
+    #loanModalOverlay .modal-panel {
+        padding: 16px;
+    }
+
+    /* Form */
+    #loanModalOverlay .p-form-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    #loanModalOverlay .p-input,
+    #loanModalOverlay .p-select,
+    #loanModalOverlay .p-textarea {
+        font-size: 14px;
+        /* 14px+ stops iOS from zooming in on focus */
+    }
+
+    #loanModalOverlay .upload-grid-modal {
+        grid-template-columns: 1fr;
+    }
+
+    #loanModalOverlay .loan-status-banner {
+        font-size: 12px;
+    }
+
+    /* Breakdown cards */
+    #loanModalOverlay .breakdown-grid-modal {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    #loanModalOverlay .b-box-m {
+        padding: 11px;
+    }
+
+    #loanModalOverlay .b-val-m {
+        font-size: 15px;
+        overflow-wrap: anywhere;
+    }
+
+    #loanModalOverlay .b-hint-m {
+        font-size: 10px;
+    }
+
+    /* Review */
+    #loanModalOverlay .confirm-title-m {
+        font-size: 18px;
+    }
+
+    #loanModalOverlay .sum-row-m {
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+
+    /* Footer: hide the small note, buttons share the full width */
+    #loanModalOverlay .modal-footer-bar {
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        margin: 16px -16px -16px;
+    }
+
+    #loanModalOverlay .mf-note {
+        display: none;
+    }
+
+    #loanModalOverlay .mf-btns {
+        width: 100%;
+    }
+
+    #loanModalOverlay .mf-btns .m-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 11px 12px;
+    }
+
+    /* Success screen */
+    #loanModalOverlay .success-screen-m {
+        padding: 32px 20px;
+    }
+
+    #loanModalOverlay .success-title-m {
+        font-size: 21px;
+    }
+}
+
+/* Very small phones: breakdown cards one per row */
+@media only screen and (max-width: 360px) {
+    #loanModalOverlay .breakdown-grid-modal {
+        grid-template-columns: 1fr;
+    }
+
+    #loanModalOverlay .mf-btns .m-btn {
+        font-size: 12.5px;
+    }
+}
+
+/* ═══ Page (loan list) ═══ */
+
+/* Keep the last loan card clear of the fixed bottom nav */
+@media only screen and (max-width: 703px) {
+    .container-fluid .main-sub-parent {
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* Apply button full width once the title text is hidden */
+@media only screen and (max-width: 535px) {
+    .container-fluid main .main-parent .table-header>div {
+        width: 100%;
+    }
+
+    .container-fluid main .main-parent .table-header .main-button {
+        display: flex;
+        justify-content: end;
+    }
+
+    .container-fluid main .main-parent .table-header .main-button button {
+        /* width: 100%; */
+        justify-content: center;
+    }
+}
+
+/* Expanded loan card: let it grow naturally instead of a fixed 500px inner scroll */
+@media only screen and (max-width: 430px) {
+    .loan-detail-inner {
+        height: auto;
+        overflow: visible;
+        padding: 16px;
+    }
+
+    .detail-grid {
+        gap: 10px;
+    }
+
+    .detail-box {
+        padding: 10px 12px;
+    }
+
+    .detail-box .cell-value,
+    .loan-purpose {
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    .detail-actions .btn-ghost {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Phones: floating card with space around it (not edge-to-edge) */
+@media only screen and (max-width: 576px) {
+    #loanModalOverlay {
+        padding: 16px 12px;
+        padding-top: calc(16px + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        align-items: center;
+    }
+
+    #loanModalOverlay .loan-modal {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: calc(100vh - 32px);
+        max-height: calc(100dvh - 32px);
+        border-radius: 18px;
+        transform: translateY(20px) scale(.98);
+    }
+
+    #loanModalOverlay.open .loan-modal {
+        transform: translateY(0) scale(1);
+    }
+
+    #loanModalOverlay .form-disabled-overlay {
+        border-radius: 18px;
+    }
+
+    /* Step bar stays pinned at the top while the form scrolls */
+    #loanModalOverlay .modal-steps-bar {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        border-radius: 18px 18px 0 0;
+    }
+
+    /* More breathing room inside the card */
+    #loanModalOverlay .modal-panel {
+        padding: 18px 18px 0;
+    }
+
+    /* Footer sits flush with the card's bottom edge, with rounded corners */
+    #loanModalOverlay .modal-footer-bar {
+        margin: 18px -18px 0;
+        padding: 12px 18px 14px;
+        border-radius: 0 0 18px 18px;
+        box-shadow: 0 -4px 12px rgba(30, 42, 74, .06);
+    }
+}
+
+/* Very small phones: slightly tighter outer gap */
+@media only screen and (max-width: 360px) {
+    #loanModalOverlay {
+        padding-left: 8px;
+        padding-right: 8px;
     }
 }

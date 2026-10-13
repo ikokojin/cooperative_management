@@ -34,7 +34,7 @@
             </div>
         </div>
 
-        <div class="nav-menu">
+        <div class="nav-menu landingpage">
             <i class="fa fa-bars" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu1"
                 aria-controls="staticBackdrop"></i>
         </div>

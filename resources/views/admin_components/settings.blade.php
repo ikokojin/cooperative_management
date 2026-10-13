@@ -5,6 +5,10 @@
 @section('content')
     @php
         $settingsIsPrivileged = auth()->user() ? (auth()->user()->isMainAdmin() || auth()->user()->isGeneralManager()) : false;
+
+        $faqRole = auth()->user() ? \App\Models\Role::where('slug', auth()->user()->role)->first() : null;
+        $faqPerms = $faqRole?->sidebar_permissions;
+        $canManageFaqs = $settingsIsPrivileged || is_null($faqPerms) || in_array('faqs', (array) $faqPerms, true);
     @endphp
 
     <!-- Breadcrumb -->
@@ -68,6 +72,14 @@
                 Finance Settings
             </button>
         @endif
+        @if($canManageFaqs)
+            <button
+                class="tab-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap"
+                data-tab="faqs" data-action="switchSettingsTab" data-arg='["faqs","|el|"]'>
+                <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+                FAQs
+            </button>
+        @endif
         @if($settingsIsPrivileged)
             <button
                 class="tab-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap"
@@ -116,32 +128,33 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form id="profileForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                    <input type="text" class="input" value="{{ $adminUser->first_name ?? '' }}">
+                    <input type="text" name="first_name" class="input" required value="{{ $adminUser->first_name ?? '' }}">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                    <input type="text" class="input" value="{{ $adminUser->last_name ?? '' }}">
+                    <input type="text" name="last_name" class="input" required value="{{ $adminUser->last_name ?? '' }}">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <input type="email" class="input" value="{{ $adminUser->email ?? '' }}">
+                    <input type="email" name="email" class="input" required value="{{ $adminUser->email ?? '' }}">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                    <input type="tel" class="input" value="{{ $adminUser->contact_no ?? '' }}">
+                    <input type="tel" name="contact_no" class="input" value="{{ $adminOther->contact_no ?? '' }}">
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <textarea class="input" rows="2">{{ $adminUser->present_address ?? '' }}</textarea>
+                    <textarea name="present_address" class="input"
+                        rows="2">{{ $adminOther->present_address ?? '' }}</textarea>
                 </div>
-            </div>
+            </form>
 
             <div class="mt-6 flex justify-end">
-                <button type="button" data-action="showToast" data-arg='["Saved","Profile settings updated successfully"]'
-                    class="btn btn-primary">
+                <button type="button" id="saveProfileBtn" data-action="submitProfileUpdate" class="btn btn-primary">
                     Save Changes
                 </button>
             </div>
@@ -331,6 +344,43 @@
         </script>
 
         <script nonce="{{ csp_nonce() }}">
+            function submitProfileUpdate() {
+                const form = document.getElementById('profileForm');
+                if (!form.reportValidity()) return;
+
+                const btn = document.getElementById('saveProfileBtn');
+                btn.disabled = true;
+                btn.textContent = 'Saving...';
+
+                fetch('{{ route("admin.update-profile") }}', {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                    .then(({ ok, data }) => {
+                        if (ok && data.success) {
+                            showToast('Saved', data.message, 'success');
+                        } else {
+                            const msg = data.errors
+                                ? Object.values(data.errors).flat().join(' ')
+                                : (data.message || 'Failed to update profile.');
+                            showToast('Error', msg, 'error');
+                        }
+                    })
+                    .catch(() => showToast('Error', 'An error occurred. Please try again.', 'error'))
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.textContent = 'Save Changes';
+                    });
+            }
+        </script>
+
+        <script nonce="{{ csp_nonce() }}">
             function switchSettingsTab(tabId, btn) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
                 const panel = document.getElementById('tab-' + tabId);
@@ -419,21 +469,21 @@
 
                                 const deleteBtn = isMainAdminUser
                                     ? `<button type="button" class="text-danger-600 hover:text-danger-700" data-action="deleteBackup" data-arg='["${data.backup.name}"]'>
-                                                               <i data-lucide="trash-2" class="w-4 h-4 inline-block"></i>
-                                                           </button>`
+                                                                                                               <i data-lucide="trash-2" class="w-4 h-4 inline-block"></i>
+                                                                                                           </button>`
                                     : '';
 
                                 row.innerHTML = `
-                                                        <td class="px-4 py-2 text-gray-900">${data.backup.name}</td>
-                                                        <td class="px-4 py-2 text-gray-600">${data.backup.size}</td>
-                                                        <td class="px-4 py-2 text-gray-600">${data.backup.created_at}</td>
-                                                        <td class="px-4 py-2 text-right">
-                                                            <a href="/admin/backups/${data.backup.name}/download" class="text-primary-600 hover:text-primary-700 mr-3">
-                                                                <i data-lucide="download" class="w-4 h-4 inline-block"></i>
-                                                            </a>
-                                                            ${deleteBtn}
-                                                        </td>
-                                                    `;
+                                                                                                        <td class="px-4 py-2 text-gray-900">${data.backup.name}</td>
+                                                                                                        <td class="px-4 py-2 text-gray-600">${data.backup.size}</td>
+                                                                                                        <td class="px-4 py-2 text-gray-600">${data.backup.created_at}</td>
+                                                                                                        <td class="px-4 py-2 text-right">
+                                                                                                            <a href="/admin/backups/${data.backup.name}/download" class="text-primary-600 hover:text-primary-700 mr-3">
+                                                                                                                <i data-lucide="download" class="w-4 h-4 inline-block"></i>
+                                                                                                            </a>
+                                                                                                            ${deleteBtn}
+                                                                                                        </td>
+                                                                                                    `;
                                 tbody.prepend(row);
                                 if (typeof lucide !== 'undefined') lucide.createIcons();
                             } else {
@@ -471,6 +521,10 @@
                         .catch(() => showToast('Error', 'An error occurred. Please try again.', 'error'));
                 }
             </script>
+        @endif
+
+        @if($canManageFaqs)
+            @include('admin_components.partials.faqs_tab')
         @endif
 
     </div>

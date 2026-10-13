@@ -1286,6 +1286,7 @@ class lendingController extends Controller
         $penaltyAmount = 0;
         $totalCharges = 0;
         $totalPayable = 0;
+        $totalChargesWithInterest = 0; 
         $loanStatusLabel = 'Active';
         $lateFeeRate = 2.00;
         $nextPaymentNumber = ($lendingStatus->payments_made ?? 0) + 1;

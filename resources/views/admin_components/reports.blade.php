@@ -142,15 +142,15 @@
 
     <!-- Tab Navigation -->
     <div class="flex gap-1 mb-6 border-b border-gray-200 no-print">
-        <a href="{{ route('reports') }}"
-            class="tab-btn px-5 py-2.5 text-sm font-medium rounded-t-lg transition-colors {{ (!isset($date) && !($statementView ?? false)) ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
-            <i data-lucide="bar-chart-3" class="w-4 h-4 inline mr-1.5"></i>
-            Monthly Report
-        </a>
         <a href="{{ route('reports.daily') }}"
             class="tab-btn px-5 py-2.5 text-sm font-medium rounded-t-lg transition-colors {{ isset($date) && !($statementView ?? false) ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
             <i data-lucide="calendar" class="w-4 h-4 inline mr-1.5"></i>
             Daily Report
+        </a>
+        <a href="{{ route('reports', ['view' => 'monthly']) }}"
+            class="tab-btn px-5 py-2.5 text-sm font-medium rounded-t-lg transition-colors {{ (!isset($date) && !($statementView ?? false)) ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 inline mr-1.5"></i>
+            Monthly Report
         </a>
         <a href="{{ route('reports.statement') }}"
             class="tab-btn px-5 py-2.5 text-sm font-medium rounded-t-lg transition-colors {{ ($statementView ?? false) ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">

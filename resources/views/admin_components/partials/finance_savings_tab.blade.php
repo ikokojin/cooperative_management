@@ -246,13 +246,20 @@
             </thead>
             <tbody>
                 @forelse($savingsTransactions as $tx)
-                    @php $txRowStatus = strtolower($tx->status ?? ''); @endphp
+                    @php
+                        $txRowStatus = strtolower($tx->status ?? '');
+                        $txIsInterest = strtolower($tx->type ?? '') === 'interest'
+                            || strtolower($tx->payment_method ?? '') === 'auto-credited'
+                            || str_starts_with((string) ($tx->reference_no ?? ''), 'INT-');
+                        $txTypeLabel = $txIsInterest ? 'Interest' : ($tx->type === 'deposit' ? 'Deposit' : 'Withdrawal');
+                    @endphp
                     <tr @if($txRowStatus === 'completed' || $txRowStatus === 'voided') style="cursor:pointer;"
                         data-void="{{ $txRowStatus === 'voided' ? '1' : '0' }}" data-reason="{{ $tx->void_reason ?? '' }}"
                         data-ref="{{ $tx->reference_no ?? '' }}"
                         data-member="{{ ($tx->savingsAccount->user->first_name ?? '') . ' ' . ($tx->savingsAccount->user->last_name ?? '') }}"
                         data-amount="{{ $txRowStatus === 'voided' ? 0 : $tx->amount }}"
-                        data-method="{{ $tx->payment_method ?? 'N/A' }}"
+                        data-method="{{ $tx->payment_method ?? 'N/A' }}" data-type="{{ $txTypeLabel }}"
+                        data-is-interest="{{ $txIsInterest ? '1' : '0' }}"
                         data-date="{{ $tx->created_at ? $tx->created_at->format('M d, Y h:i A') : '' }}"
                         data-balance="{{ $tx->balance_after ?? 0 }}" data-note="{{ $tx->note ?? 'N/A' }}"
                     data-action="openSavingsRow" data-arg='["|event|","|el|"]' @endif>
@@ -280,7 +287,9 @@
                             @endif
                         </td>
                         <td>
-                            @if($tx->type === 'deposit')
+                            @if($txIsInterest)
+                                <span class="badge" style="background:#dbeafe;color:#1d4ed8;">Interest</span>
+                            @elseif($tx->type === 'deposit')
                                 <span class="badge badge-success">Deposit</span>
                             @else
                                 <span class="badge badge-danger">Withdrawal</span>
